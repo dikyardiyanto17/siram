@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="assets/css/room.css" type="text/css" /> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/assets/css/room.css">
+    <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <title>Telepati</title>
+</head>
+
+<body>
+    <div class="full-container">
+        <div class="layout-modal" id="layout-modal">
+            <div class="layout-modal-header">
+                <span class="layout-modal-title">Ubah Susunan</span>
+                <img src="/assets/icons/close_button_layout.svg" alt="close_button" id="close-button-layout"
+                    style="cursor: pointer;">
+            </div>
+            <div class="layout-modal-content-1">
+                <div class="layout-option-container" data-option="1">
+                    <section class="layout-option-title">
+                        <img class="radio" src="/assets/icons/radio_button_active.svg" alt="radio_button_icon">
+                        <span>Petak</span>
+                    </section>
+                    <section class="layout-option-icon">
+                        <img src="/assets/icons/layout_1.svg" alt="layout_1">
+                    </section>
+                </div>
+                <div class="layout-option-container" data-option="2">
+                    <section class="layout-option-title">
+                        <img class="radio" src="/assets/icons/radio_button.svg" alt="radio_button_icon">
+                        <span>Pembicara</span>
+                    </section>
+                    <section class="layout-option-icon">
+                        <img src="/assets/icons/layout_2.svg" alt="layout_1">
+                    </section>
+                </div>
+                <div class="layout-option-container" data-option="3">
+                    <section class="layout-option-title">
+                        <img class="radio" src="/assets/icons/radio_button.svg" alt="radio_button_icon">
+                        <span>Petak Samping</span>
+                    </section>
+                    <section class="layout-option-icon">
+                        <img src="/assets/icons/layout_3.svg" alt="layout_1">
+                    </section>
+                </div>
+            </div>
+            <div class="layout-modal-content-2">
+                <div class="layout-modal-content-2-title">
+                    <p>Jumlah Petak</p>
+                    <span id="alert-video-layout" class="hide-alert">Tidak bisa mengubah jumlah tampilan petak di
+                        tampilan ini</span>
+                </div>
+                <div class="layout-modal-content-2-content">
+                    <div class="layout-option" data-option="6">
+                        <img class="mini-radio" src="/assets/icons/mini_radio_active.svg" alt="mini_radio" />
+                        <span>6</span>
+                    </div>
+                    <div class="layout-option" data-option="9">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>9</span>
+                    </div>
+                    <div class="layout-option" data-option="12">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>12</span>
+                    </div>
+                    <div class="layout-option" data-option="16">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>16</span>
+                    </div>
+                </div>
+            </div>
+            <div class="layout-modal-footer"></div>
+        </div>
+        <div class="block-container d-none" id="block-container"></div>
+        <section class="upper-container">
+            <div id="audio-collection"></div>
+            <div class="video-container-normal-view" id="video-container">
+                <div class="cc-container d-none" id="cc-container">
+                    <!-- Text CC -->
+                    <div class="cc-content">
+                        <img class="cc-profile-picture" src="/assets/icons/example_user.svg" alt="cc-profile">
+                        <div class="cc-message">
+                            <div class="cc-username">
+                                <span>Budi Santoso</span>
+                            </div>
+                            <div class="cc-message-content">
+                                <span>Bagaimana dengan hasil rapat kemarin? bagaimana
+                                    dengan hasil rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan
+                                    hasil
+                                    rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan hasil rapat
+                                    kemarin?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cc-content">
+                        <img class="cc-profile-picture" src="/assets/icons/example_user.svg" alt="cc-profile">
+                        <div class="cc-message">
+                            <div class="cc-username">
+                                <span>Budi Santoso</span>
+                            </div>
+                            <div class="cc-message-content">
+                                <span>Bagaimana dengan hasil rapat kemarin? bagaimana
+                                    dengan hasil rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan
+                                    hasil
+                                    rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan hasil rapat
+                                    kemarin?</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="side-bar-container side-bar-container-hide" id="side-bar-container">
+                <section class="user-list-container d-none" id="user-list-container">
+                    <div class="user-list-header">
+                        <div class="user-list-header-title">
+                            <span>Anggota (<span id="user-list-total">1</span>)</span>
+                            <i><img src="/assets/icons/close_button.svg" alt="close"></i>
+                        </div>
+                        <div class="user-list-header-search">
+                            <div class="search-user">
+                                <img class="search-icon" src="/assets/icons/search.svg" alt="search">
+                                <input type="text" class="custom-input" placeholder="Cari Anggota" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="users-list-content">
+                        <div class="raise-hand-list-container d-none" id="raise-hand-list-container">
+                            <div class="raise-hand-list-header">
+                                <span>Angkat Tangan</span>
+                            </div>
+                            <div class="liner-top">
+                                <hr />
+                            </div>
+                            <div class="users-list-container">
+                                <div class="user-list-content">
+                                    <div class="user-list-profile">
+                                        <img src="/assets/icons/example_user.svg" alt="user-list-picture"
+                                            class="user-list-picture" />
+                                        <span class="user-list-username">Rara Riri</span>
+                                    </div>
+                                    <div class="user-list-icons">
+                                        <img src="/assets/icons/raise_hand_list.svg" alt="user-list-icon"
+                                            class="user-list-icon">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="waiting-list-container d-none" id="waiting-list-container">
+                            <div class="raise-hand-list-header">
+                                <span>Ruang Tunggu</span>
+                            </div>
+                            <div class="liner-top">
+                                <hr />
+                            </div>
+                            <div class="users-list-container" id="waiting-list-users">
+                            </div>
+                        </div>
+                        <div class="users-list-container" id="users-list-container">
+                        </div>
+                    </div>
+                    <div class="user-list-footer">
+                        <button class="share-link-button">Share</button>
+                        <button class="mute-all-button" id="mute-all-button">Mute All</button>
+                    </div>
+                </section>
+                <section class="chat-container d-none" id="chat-container">
+                    <div class="chat-content" id="chat-content">
+                    </div>
+                    <div class="chat-footer">
+                        <div class="file-attachment">
+                            <hr class="line-top">
+                            <img class="file-attachment-icon" src="/assets/icons/file_attachment.svg"
+                                alt="attachment-file-icon">
+                            <span class="file-attachment-title">FILE.pdf</span>
+                            <hr class="line-bottom">
+                        </div>
+                        <div class="input-chat-container">
+                            <input id="message-input" type="text" class="custom-input" placeholder="Tulis pesan..." />
+                            <img class="send-message-button" src="/assets/icons/send_message.svg" alt="" srcset="" />
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+        <section class="bottom-container">
+            <div class="bottom-content">
+                <section class="left-button-collection">
+                    <button class="button-container" id="mic-button">
+                        <img id="mic-icon" class="icons" src="/assets/icons/mic.svg" alt="mic-icons">
+                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up">
+                    </button>
+                    <button class="button-container" id="camera-button">
+                        <img id="camera-icon" class="icons" src="/assets/icons/camera_off.svg" alt="camera-icons">
+                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up">
+                    </button>
+                    <div class="record-container d-none" id="record-container">
+                        <span id="timer-title">Merekam :</span>&nbsp;<span
+                            id="timer-span">00:00:00</span>&nbsp;&nbsp;&nbsp;<img id="pause-record" class="record-icons"
+                            src="/assets/icons/pause_record.svg" alt="pause_button" /><img id="resume-record"
+                            class="record-icons d-none" src="/assets/icons/resume_record.svg"
+                            alt="pause_button" />&nbsp;&nbsp;<img id="stop-record" class="record-icons"
+                            src="/assets/icons/stop_record.svg" alt="stop_button" />
+                    </div>
+                </section>
+                <section class="middle-button-collection">
+                    <button class="button-container" id="user-list-button">
+                        <img class="icons" src="/assets/icons/people.svg" alt="user-list-icons">
+                    </button>
+                    <button class="button-container" id="chat-button">
+                        <img class="icons" src="/assets/icons/chat.svg" alt="chat-icons">
+                    </button>
+                    <button class="button-container" id="raise-hand-button">
+                        <img class="icons" src="/assets/icons/raise_hand.svg" alt="raise-hand-icons">
+                    </button>
+                    <button class="button-container" id="screen-sharing-button">
+                        <img class="icons" src="/assets/icons/screen_sharing.svg" alt="screen-sharing-icons">
+                    </button>
+                    <button class="button-container" id="cc-button">
+                        <img class="icons" src="/assets/icons/cc.svg" alt="cc-icons">
+                    </button>
+                    <button class="button-container" id="option-button">
+                        <img class="icons" src="/assets/icons/option.svg" alt="option-icons">
+                        <div class="option-container d-none" id="option-container">
+                            <div class="option-list" id="record-button">
+                                <img src="/assets/icons/record.svg" alt="record-icon">
+                                <span>Mulai Merekam</span>
+                            </div>
+                            <div class="option-list">
+                                <img src="/assets/icons/video_quality.svg" alt="record-icon">
+                                <span>Kualitas Video</span>
+                            </div>
+                            <div class="option-list" style="position: relative;" id="video-layout-button">
+                                <img src="/assets/icons/video_layout.svg" alt="record-icon">
+                                <span>Ubah Susunan</span>
+                                <hr />
+                            </div>
+                            <div class="option-list">
+                                <img src="/assets/icons/setting.svg" alt="record-icon">
+                                <span>Pengaturan</span>
+                            </div>
+                        </div>
+                    </button>
+                </section>
+                <section class="right-button-collection">
+                    <button class="button-container" id="hang-up-button">
+                        <img class="icons" src="/assets/icons/hang_up.svg" alt="hang-up-icons">
+                    </button>
+                </section>
+            </div>
+        </section>
+    </div>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="/javascript/room/roombundle.js"></script>
+</body>
+
+</html>

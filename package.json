@@ -1,0 +1,27 @@
+{
+  "name": "siram",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch-home": "watchify public/javascript//home/home.js -o public/javascript/home/homebundle.js -v",
+    "watch-room": "watchify public/javascript//room/room.js -o public/javascript/room/roombundle.js -v",
+    "watch-socket": "watchify public/javascript//socket/socket.js -o public/javascript/socket/socketbundle.js -v"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "httpolyglot": "^0.1.2",
+    "mediasoup": "^3.14.9",
+    "mediasoup-client": "^3.7.14",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "sweetalert2": "^11.12.2",
+    "url-parse": "^1.5.10"
+  }
+}
