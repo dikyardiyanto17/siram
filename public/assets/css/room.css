@@ -210,8 +210,8 @@ input:focus {
 }
 
 .video-mic-image {
-    width: 20px;
-    height: 30px;
+    width: 15px;
+    height: 25px;
 }
 
 .user-container {
@@ -224,6 +224,16 @@ input:focus {
 }
 
 .video-container-normal-view {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    transition: 1s;
+    justify-content: center;
+    align-items: center;
+}
+
+#video-collection {
     width: 100%;
     height: 100%;
     display: flex;
@@ -309,6 +319,116 @@ input:focus {
     padding: 10px;
 }
 
+.video-user-container-7 {
+    width: 33%;
+    height: 33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+
+.video-user-container-8 {
+    width: 33%;
+    height: 33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-9 {
+    width: 33%;
+    height: 33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-10 {
+    width: 25%;
+    height: 33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-11 {
+    width: 25%;
+    height: 33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-12 {
+    width: 25%;
+    height: 33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-13 {
+    width: 25%;
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-14 {
+    width: 25%;
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-15 {
+    width: 25%;
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
+
+.video-user-container-16 {
+    width: 25%;
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: 1s;
+    padding: 10px;
+}
 
 .people-image {
     object-fit: cover;
@@ -383,6 +503,66 @@ input:focus {
     word-wrap: break-word;
     word-break: break-word;
     white-space: pre-wrap; */
+}
+
+.previous-page {
+    position: absolute;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 100px;
+    width: 50px;
+    z-index: 2;
+    background-color: #3333337d;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    color: #9CA3AF71;
+    cursor: pointer;
+}
+
+.next-page {
+    position: absolute;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    height: 100px;
+    width: 50px;
+    z-index: 2;
+    background-color: #3333337d;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    color: #9ca3af71;
+    cursor: pointer;
+}
+
+.previous-page>p,
+.previous-page>p>span {
+    color: inherit;
+}
+
+.next-page>p,
+.next-page>p>span {
+    color: inherit;
+}
+
+.previous-page:hover {
+    background-color: #171717b0;
+    color: #ffffff;
+}
+
+.next-page:hover {
+    background-color: #171717b0;
+    color: #ffffff;
 }
 
 /* .cc-message {

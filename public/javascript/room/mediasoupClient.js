@@ -1,6 +1,42 @@
 const mediasoupClient = require("mediasoup-client")
 
-class MediaSoupClient {
+class StaticEvent {
+	static async changeMicButton({ id, isActive }) {
+		try {
+			const myUserLicMic = document.getElementById(`mic-ul-${id}`)
+			const microphoneButton = document.getElementById("mic-icon")
+			if (isActive) {
+				myUserLicMic.src = "/assets/icons/user_list_mic_active.svg"
+				microphoneButton.src = "/assets/icons/mic.svg"
+			} else {
+				myUserLicMic.src = "/assets/icons/user_list_mic.svg"
+				microphoneButton.src = "/assets/icons/mic_muted.svg"
+			}
+		} catch (error) {
+			console.log("- Error Change Mic Button : ", error)
+		}
+	}
+
+	static changeUserList({ type, id, isActive }) {
+		try {
+			if (type == "mic") {
+				const targetElement = document.getElementById(`mic-ul-${id}`)
+				if (isActive) {
+					targetElement.src = "/assets/icons/user_list_mic_active.svg"
+				} else {
+					targetElement.src = "/assets/icons/user_list_mic.svg"
+				}
+			}
+		} catch (error) {
+			console.log("- Error : ", error)
+		}
+	}
+}
+
+class MediaSoupClient extends StaticEvent {
+	constructor() {
+		super()
+	}
 	#consumingTransport = []
 	#mystream = null
 	#audioSetting = {
@@ -46,6 +82,22 @@ class MediaSoupClient {
 
 	set rtpCapabilities(capabilities) {
 		this.#rtpCapabilities = capabilities
+	}
+
+	get audioProducer() {
+		return this.#audioProducer
+	}
+
+	set audioProducer(newAudioProducer) {
+		this.#audioProducer = newAudioProducer
+	}
+
+	get consumers() {
+		return this.#consumers
+	}
+
+	set consumers(newConsumers) {
+		this.#consumers = newConsumers
 	}
 
 	get myStream() {
@@ -94,9 +146,17 @@ class MediaSoupClient {
 	async getProducers({ socket, roomId, userId, usersVariable }) {
 		try {
 			socket.emit("get-producers", { roomId: roomId, userId }, async ({ producerList }) => {
-				producerList.forEach((p) => {
-					this.signalNewConsumerTransport({ remoteProducerId: p.producerId, socket, userId: p.userId, roomId, usersVariable, socketId: p.socketId })
-				})
+				await producerList.reduce(async (previousPromise, p) => {
+					await previousPromise
+					return this.signalNewConsumerTransport({
+						remoteProducerId: p.producerId,
+						socket,
+						userId: p.userId,
+						roomId,
+						usersVariable,
+						socketId: p.socketId,
+					})
+				}, Promise.resolve())
 			})
 		} catch (error) {
 			console.log("- Error Get Producer : ", error)
@@ -290,6 +350,7 @@ class MediaSoupClient {
 				},
 				async ({ params }) => {
 					try {
+						const { appData } = params
 						const streamId = params.kind == "audio" ? `audio-${params.userId}` : `video-${params.userId}`
 						const consumer = await this.#consumerTransport.consume({
 							id: params.id,
@@ -300,6 +361,7 @@ class MediaSoupClient {
 						})
 
 						const { track } = consumer
+
 						consumer.on("transportclose", () => {
 							try {
 								console.log("- Transport Consumer Closed ")
@@ -307,9 +369,49 @@ class MediaSoupClient {
 								console.log("- Error Transport Consumer Close : ", error)
 							}
 						})
+
+						consumer.observer.on("close", () => {
+							try {
+								console.log("Consumer Observer (closer) => ", consumer.id)
+								// this.#consumers = this.#consumers.filter((c) => )
+							} catch (error) {
+								console.log("- Error Consumer Observer (close) : ", error)
+							}
+						})
+						consumer.observer.on("pause", () => {
+							try {
+								console.log("Consumer Observer (pauser) => ", consumer.id)
+							} catch (error) {
+								console.log("- Error Consumer Observer (pause) : ", error)
+							}
+						})
+						consumer.observer.on("resume", () => {
+							try {
+								console.log("Consumer Observer (resumer) => ", consumer.id)
+							} catch (error) {
+								console.log("- Error Consumer Observer (resume) : ", error)
+							}
+						})
+						consumer.observer.on("trackended", () => {
+							try {
+								console.log("Consumer Observer (trackended) => ", consumer.id)
+							} catch (error) {
+								console.log("- Error Consumer Observer (trackended) : ", error)
+							}
+						})
 						this.#consumers.push({ userId, consumer })
 						await usersVariable.addAllUser({ userId, admin: params.admin, consumerId: consumer.id, kind: params.kind, track, socketId })
-						socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						if (params.kind == "audio" && !appData.isActive) {
+							this.reverseConsumerTrack({ userId: userId, isActive: false })
+						}
+
+						let checkVideo = await usersVariable.checkVideo({ userId })
+						if (checkVideo && params.kind == "video") {
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						}
+						if (params.kind == "audio") {
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						}
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
 					}
@@ -338,6 +440,29 @@ class MediaSoupClient {
 			})
 		} catch (error) {
 			console.log("- Error Close Consumer : ", error)
+		}
+	}
+
+	async reverseMicrophone({ userId }) {
+		try {
+			this.#mystream.getAudioTracks()[0].enabled = !this.#mystream.getAudioTracks()[0].enabled
+			this.#audioProducer.appData.isActive = this.#mystream.getAudioTracks()[0].enabled
+			await this.constructor.changeMicButton({ id: userId, isActive: this.#mystream.getAudioTracks()[0].enabled })
+			return this.#mystream.getAudioTracks()[0].enabled
+		} catch (error) {
+			console.log("- Error Reverse Microphone : ", error)
+		}
+	}
+
+	async reverseConsumerTrack({ userId, isActive }) {
+		try {
+			const audioTrackElement = document.getElementById(`a-${userId}`)
+			if (audioTrackElement) {
+				audioTrackElement.srcObject.getAudioTracks()[0].enabled = isActive
+				this.constructor.changeUserList({ type: "mic", id: userId, isActive })
+			}
+		} catch (error) {
+			console.log("- Error Reverse Consumer Track : ", error)
 		}
 	}
 }

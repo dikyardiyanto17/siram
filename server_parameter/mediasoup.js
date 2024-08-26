@@ -97,20 +97,6 @@ class MediaSoup {
 		return this.#consumers
 	}
 
-	async addTransport({ transport }) {
-		try {
-		} catch (error) {
-			console.log("- Error Add Transport : ", error)
-		}
-	}
-
-	async checkRouter({ roomId }) {
-		try {
-		} catch (error) {
-			console.log("Error Check Router : ", error)
-		}
-	}
-
 	async createWorker() {
 		try {
 			const worker = await mediasoup.createWorker()
@@ -171,7 +157,7 @@ class MediaSoup {
 				// Handling If Router is Closed
 				newRouter.observer.on("close", () => {
 					try {
-						console.log("Router (close)")
+						console.log("Router (close) => ", newRouter.id)
 						this.#transports = this.#transports.filter((t) => {
 							if (t.routerId == newRouter.id) {
 								t.transport.close()
@@ -180,7 +166,6 @@ class MediaSoup {
 								return t
 							}
 						})
-
 						this.#routers = this.#routers.filter((r) => r.router.id != newRouter.id)
 					} catch (error) {
 						console.log("- Error Router close : ", error)
@@ -295,6 +280,10 @@ class MediaSoup {
 				try {
 					console.log(`Transport Observer (close) ${transport.id}`)
 					this.#transports = this.#transports.filter((t) => t.transport.id != transport.id)
+					const checkRoom = this.#transports.findIndex((t) => t.transport.appData.roomId == transport.appData.roomId)
+					if (checkRoom == -1) {
+						router.router.close()
+					}
 				} catch (error) {
 					console.log(`- Error Transport Observer (close) ${transport.id} : `, error)
 				}
@@ -403,7 +392,6 @@ class MediaSoup {
 						console.log("- Error Producer Observer (resume) : ", error)
 					}
 				})
-
 				return producer
 			}
 		} catch (error) {
@@ -570,6 +558,15 @@ class MediaSoup {
 		}
 	}
 
+	async pauseConsumer({ consumerId }) {
+		try {
+			const consumer = this.#consumers.find((c) => c.consumer.id == consumerId)
+			await consumer.consumer.pause()
+		} catch (error) {
+			console.log("- Error Get Consumer : ", error)
+		}
+	}
+
 	async connectRecvTransport({ dtlsParameters, serverConsumerTransportId }) {
 		try {
 			const consumerTransport = this.#transports.find((t) => t.transport.id == serverConsumerTransportId && t.transport.appData.consumer)
@@ -578,6 +575,17 @@ class MediaSoup {
 			}
 		} catch (error) {
 			console.log("- Error Connect Receive Transport : ", error)
+		}
+	}
+
+	async changeProducerAppData({ producerId, isActive }) {
+		try {
+			const producer = this.#producers.find((p) => p.producer.id == producerId)
+			if (producer) {
+				producer.producer.appData.isActive = isActive
+			}
+		} catch (error) {
+			console.log("- Error CHange Producer App Data : ", error)
 		}
 	}
 }

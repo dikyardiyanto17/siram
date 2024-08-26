@@ -51,7 +51,6 @@ io.on("connection", async (socket) => {
 				throw { name: "Not Found", message: "User is Not Found" }
 			}
 
-
 			await mediasoupVariable.deleteAndCloseUser({ userId: user.id })
 
 			usersVariable.users.forEach((u) => {
@@ -62,7 +61,6 @@ io.on("connection", async (socket) => {
 
 			await usersVariable.deleteUser({ userId: user.id })
 			await roomsVariable.deleteUserInTheRoom({ userId: user.id })
-			// await mediasoupVariable.checkRouter({ roomId: user.roomId })
 			console.log("- Deleting : ", user.id)
 		} catch (error) {
 			console.log("- Error Disconnecting Socket : ", error)
@@ -134,7 +132,15 @@ io.on("connection", async (socket) => {
 		}
 	})
 
-	socket.on("user-list", ({ type, userId, to, isActive }) => {
+	socket.on("producer-app-data", async ({ producerId, isActive }) => {
+		try {
+			await mediasoupVariable.changeProducerAppData({ producerId, isActive })
+		} catch (error) {
+			console.log("- Error Producer App Data : ", error)
+		}
+	})
+
+	socket.on("user-list", async ({ type, userId, to, isActive }) => {
 		try {
 			socket.to(to).emit("user-list", { type, userId, isActive })
 		} catch (error) {
@@ -240,6 +246,14 @@ io.on("connection", async (socket) => {
 	socket.on("consumer-resume", async ({ serverConsumerId }) => {
 		try {
 			await mediasoupVariable.resumeConsumer({ consumerId: serverConsumerId })
+		} catch (error) {
+			console.log("- Error Resuming Consumer : ", error)
+		}
+	})
+
+	socket.on("consumer-pause", async ({ serverConsumerId }) => {
+		try {
+			await mediasoupVariable.pauseConsumer({ consumerId: serverConsumerId })
 		} catch (error) {
 			console.log("- Error Resuming Consumer : ", error)
 		}

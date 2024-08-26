@@ -22,15 +22,21 @@ socket.emit(
 				let filteredRtpCapabilities = { ...rtpCapabilities }
 				filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter((ext) => ext.uri !== "urn:3gpp:video-orientation")
 				usersVariable.userId = userId
+				const devices = await navigator.mediaDevices.enumerateDevices()
+
+
 
 				mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 				await mediasoupClientVariable.createDevice()
 				await mediasoupClientVariable.setEncoding()
 				await mediasoupClientVariable.getMyStream()
-				await usersVariable.addMyVideo({ stream: mediasoupClientVariable.myStream })
+				await usersVariable.audioDevicesOutput({ stream: mediasoupClientVariable.myStream })
 
 				localStorage.setItem("user_id", userId)
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id })
+				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
+				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
+				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "audio", track: audioTrack })
+				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "video", track: videoTrack })
 				await mediasoupClientVariable.createSendTransport({ socket, roomId: roomName, userId: userId, usersVariable })
 			} else {
 				window.location.href = window.location.origin
@@ -59,7 +65,7 @@ socket.on("cancel-waiting", ({ socketId, userId }) => {
 
 socket.on("user-list", ({ type, userId, isActive }) => {
 	try {
-		eventListenerCollection.changeUserList({ type, id: userId, isActive })
+		mediasoupClientVariable.reverseConsumerTrack({ userId, isActive })
 	} catch (error) {
 		console.log("- Error On User List : ", error)
 	}
@@ -70,6 +76,9 @@ socket.on("user-logout", ({ userId }) => {
 		eventListenerCollection.deleteUserList({ id: userId })
 		usersVariable.decreaseUsers()
 		usersVariable.deleteVideo({ userId })
+		usersVariable.deleteAudio({ userId })
+		usersVariable.deleteAllUser({ userId })
+		usersVariable.updateVideo({ socket })
 	} catch (error) {
 		console.log("- Error User Log Out : ", error)
 	}
@@ -123,13 +132,15 @@ socket.on("close-consumer", async ({ consumerId }) => {
 
 // Microphone Button
 let microphoneButton = document.getElementById("mic-icon")
-microphoneButton.addEventListener("click", () => {
+microphoneButton.addEventListener("click", async () => {
 	try {
 		const userId = usersVariable.userId
-		eventListenerCollection.changeMicButton({ id: userId })
+		const isActive = await mediasoupClientVariable.reverseMicrophone({ userId })
+		const producerId = mediasoupClientVariable.audioProducer.id
+		socket.emit("producer-app-data", { isActive, producerId })
 		usersVariable.allUsers.forEach((user) => {
 			if (user.userId != userId) {
-				socket.emit("user-list", { type: "mic", userId: user.userId, to: user.socketId, isActive: eventListenerCollection.microphoneStatus })
+				socket.emit("user-list", { type: "mic", userId: userId, to: user.socketId, isActive })
 			}
 		})
 	} catch (error) {
@@ -279,6 +290,7 @@ layoutVideoOptions.forEach((container) => {
 	try {
 		container.addEventListener("click", () => {
 			try {
+				// usersVariable.selectVideoLayout({ container })
 				eventListenerCollection.selectVideoLayout({ container })
 			} catch (error) {
 				console.log("- Error Select Video Layout : ", error)
@@ -294,13 +306,30 @@ layoutCount.forEach((container) => {
 	try {
 		container.addEventListener("click", () => {
 			try {
-				eventListenerCollection.selectLayoutCount({ container })
+				usersVariable.selectLayoutCount({ container, socket })
 			} catch (error) {
 				console.log("- Error Select Video Layout : ", error)
 			}
 		})
 	} catch (error) {
 		console.log("- Error Looping Select Video Layout : ", error)
+	}
+})
+
+let previousButton = document.getElementById("previous-page")
+previousButton.addEventListener("click", () => {
+	try {
+		usersVariable.previousVideo({ socket })
+	} catch (error) {
+		console.log("- Error Click Previous Button : ", error)
+	}
+})
+let nextButton = document.getElementById("next-page")
+nextButton.addEventListener("click", () => {
+	try {
+		usersVariable.nextVideo({ socket })
+	} catch (error) {
+		console.log("- Error Click Next Button : ", error)
 	}
 })
 

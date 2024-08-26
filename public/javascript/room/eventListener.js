@@ -564,8 +564,6 @@ class EventListener {
 	}
 
 	// Method Join
-
-
 	async methodAddWaitingUser({ id, username, socket }) {
 		try {
 			let userWaitingListElement = document.createElement("div")
@@ -700,22 +698,6 @@ class EventListener {
 			}
 		} catch (error) {
 			console.log("- Error Delete User List : ", error)
-		}
-	}
-
-	// Method Change User List
-	async changeUserList({ type, id, isActive }) {
-		try {
-			if (type == "mic") {
-				const targetElement = document.getElementById(`mic-ul-${id}`)
-				if (isActive) {
-					targetElement.src = "/assets/icons/user_list_mic_active.svg"
-				} else {
-					targetElement.src = "/assets/icons/user_list_mic.svg"
-				}
-			}
-		} catch (error) {
-			console.log("- Error : ", error)
 		}
 	}
 

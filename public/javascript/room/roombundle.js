@@ -28471,8 +28471,6 @@ class EventListener {
 	}
 
 	// Method Join
-
-
 	async methodAddWaitingUser({ id, username, socket }) {
 		try {
 			let userWaitingListElement = document.createElement("div")
@@ -28610,22 +28608,6 @@ class EventListener {
 		}
 	}
 
-	// Method Change User List
-	async changeUserList({ type, id, isActive }) {
-		try {
-			if (type == "mic") {
-				const targetElement = document.getElementById(`mic-ul-${id}`)
-				if (isActive) {
-					targetElement.src = "/assets/icons/user_list_mic_active.svg"
-				} else {
-					targetElement.src = "/assets/icons/user_list_mic.svg"
-				}
-			}
-		} catch (error) {
-			console.log("- Error : ", error)
-		}
-	}
-
 	// Method Send Message
 	async messageTemplate({ isSender, username, messageDate, message }) {
 		try {
@@ -28737,7 +28719,43 @@ module.exports = {
 },{}],102:[function(require,module,exports){
 const mediasoupClient = require("mediasoup-client")
 
-class MediaSoupClient {
+class StaticEvent {
+	static async changeMicButton({ id, isActive }) {
+		try {
+			const myUserLicMic = document.getElementById(`mic-ul-${id}`)
+			const microphoneButton = document.getElementById("mic-icon")
+			if (isActive) {
+				myUserLicMic.src = "/assets/icons/user_list_mic_active.svg"
+				microphoneButton.src = "/assets/icons/mic.svg"
+			} else {
+				myUserLicMic.src = "/assets/icons/user_list_mic.svg"
+				microphoneButton.src = "/assets/icons/mic_muted.svg"
+			}
+		} catch (error) {
+			console.log("- Error Change Mic Button : ", error)
+		}
+	}
+
+	static changeUserList({ type, id, isActive }) {
+		try {
+			if (type == "mic") {
+				const targetElement = document.getElementById(`mic-ul-${id}`)
+				if (isActive) {
+					targetElement.src = "/assets/icons/user_list_mic_active.svg"
+				} else {
+					targetElement.src = "/assets/icons/user_list_mic.svg"
+				}
+			}
+		} catch (error) {
+			console.log("- Error : ", error)
+		}
+	}
+}
+
+class MediaSoupClient extends StaticEvent {
+	constructor() {
+		super()
+	}
 	#consumingTransport = []
 	#mystream = null
 	#audioSetting = {
@@ -28783,6 +28801,22 @@ class MediaSoupClient {
 
 	set rtpCapabilities(capabilities) {
 		this.#rtpCapabilities = capabilities
+	}
+
+	get audioProducer() {
+		return this.#audioProducer
+	}
+
+	set audioProducer(newAudioProducer) {
+		this.#audioProducer = newAudioProducer
+	}
+
+	get consumers() {
+		return this.#consumers
+	}
+
+	set consumers(newConsumers) {
+		this.#consumers = newConsumers
 	}
 
 	get myStream() {
@@ -28831,9 +28865,17 @@ class MediaSoupClient {
 	async getProducers({ socket, roomId, userId, usersVariable }) {
 		try {
 			socket.emit("get-producers", { roomId: roomId, userId }, async ({ producerList }) => {
-				producerList.forEach((p) => {
-					this.signalNewConsumerTransport({ remoteProducerId: p.producerId, socket, userId: p.userId, roomId, usersVariable, socketId: p.socketId })
-				})
+				await producerList.reduce(async (previousPromise, p) => {
+					await previousPromise
+					return this.signalNewConsumerTransport({
+						remoteProducerId: p.producerId,
+						socket,
+						userId: p.userId,
+						roomId,
+						usersVariable,
+						socketId: p.socketId,
+					})
+				}, Promise.resolve())
 			})
 		} catch (error) {
 			console.log("- Error Get Producer : ", error)
@@ -29027,6 +29069,7 @@ class MediaSoupClient {
 				},
 				async ({ params }) => {
 					try {
+						const { appData } = params
 						const streamId = params.kind == "audio" ? `audio-${params.userId}` : `video-${params.userId}`
 						const consumer = await this.#consumerTransport.consume({
 							id: params.id,
@@ -29037,6 +29080,7 @@ class MediaSoupClient {
 						})
 
 						const { track } = consumer
+
 						consumer.on("transportclose", () => {
 							try {
 								console.log("- Transport Consumer Closed ")
@@ -29044,9 +29088,49 @@ class MediaSoupClient {
 								console.log("- Error Transport Consumer Close : ", error)
 							}
 						})
+
+						consumer.observer.on("close", () => {
+							try {
+								console.log("Consumer Observer (closer) => ", consumer.id)
+								// this.#consumers = this.#consumers.filter((c) => )
+							} catch (error) {
+								console.log("- Error Consumer Observer (close) : ", error)
+							}
+						})
+						consumer.observer.on("pause", () => {
+							try {
+								console.log("Consumer Observer (pauser) => ", consumer.id)
+							} catch (error) {
+								console.log("- Error Consumer Observer (pause) : ", error)
+							}
+						})
+						consumer.observer.on("resume", () => {
+							try {
+								console.log("Consumer Observer (resumer) => ", consumer.id)
+							} catch (error) {
+								console.log("- Error Consumer Observer (resume) : ", error)
+							}
+						})
+						consumer.observer.on("trackended", () => {
+							try {
+								console.log("Consumer Observer (trackended) => ", consumer.id)
+							} catch (error) {
+								console.log("- Error Consumer Observer (trackended) : ", error)
+							}
+						})
 						this.#consumers.push({ userId, consumer })
 						await usersVariable.addAllUser({ userId, admin: params.admin, consumerId: consumer.id, kind: params.kind, track, socketId })
-						socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						if (params.kind == "audio" && !appData.isActive) {
+							this.reverseConsumerTrack({ userId: userId, isActive: false })
+						}
+
+						let checkVideo = await usersVariable.checkVideo({ userId })
+						if (checkVideo && params.kind == "video") {
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						}
+						if (params.kind == "audio") {
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						}
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
 					}
@@ -29075,6 +29159,29 @@ class MediaSoupClient {
 			})
 		} catch (error) {
 			console.log("- Error Close Consumer : ", error)
+		}
+	}
+
+	async reverseMicrophone({ userId }) {
+		try {
+			this.#mystream.getAudioTracks()[0].enabled = !this.#mystream.getAudioTracks()[0].enabled
+			this.#audioProducer.appData.isActive = this.#mystream.getAudioTracks()[0].enabled
+			await this.constructor.changeMicButton({ id: userId, isActive: this.#mystream.getAudioTracks()[0].enabled })
+			return this.#mystream.getAudioTracks()[0].enabled
+		} catch (error) {
+			console.log("- Error Reverse Microphone : ", error)
+		}
+	}
+
+	async reverseConsumerTrack({ userId, isActive }) {
+		try {
+			const audioTrackElement = document.getElementById(`a-${userId}`)
+			if (audioTrackElement) {
+				audioTrackElement.srcObject.getAudioTracks()[0].enabled = isActive
+				this.constructor.changeUserList({ type: "mic", id: userId, isActive })
+			}
+		} catch (error) {
+			console.log("- Error Reverse Consumer Track : ", error)
 		}
 	}
 }
@@ -29108,15 +29215,21 @@ socket.emit(
 				let filteredRtpCapabilities = { ...rtpCapabilities }
 				filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter((ext) => ext.uri !== "urn:3gpp:video-orientation")
 				usersVariable.userId = userId
+				const devices = await navigator.mediaDevices.enumerateDevices()
+
+
 
 				mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 				await mediasoupClientVariable.createDevice()
 				await mediasoupClientVariable.setEncoding()
 				await mediasoupClientVariable.getMyStream()
-				await usersVariable.addMyVideo({ stream: mediasoupClientVariable.myStream })
+				await usersVariable.audioDevicesOutput({ stream: mediasoupClientVariable.myStream })
 
 				localStorage.setItem("user_id", userId)
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id })
+				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
+				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
+				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "audio", track: audioTrack })
+				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "video", track: videoTrack })
 				await mediasoupClientVariable.createSendTransport({ socket, roomId: roomName, userId: userId, usersVariable })
 			} else {
 				window.location.href = window.location.origin
@@ -29145,7 +29258,7 @@ socket.on("cancel-waiting", ({ socketId, userId }) => {
 
 socket.on("user-list", ({ type, userId, isActive }) => {
 	try {
-		eventListenerCollection.changeUserList({ type, id: userId, isActive })
+		mediasoupClientVariable.reverseConsumerTrack({ userId, isActive })
 	} catch (error) {
 		console.log("- Error On User List : ", error)
 	}
@@ -29156,6 +29269,9 @@ socket.on("user-logout", ({ userId }) => {
 		eventListenerCollection.deleteUserList({ id: userId })
 		usersVariable.decreaseUsers()
 		usersVariable.deleteVideo({ userId })
+		usersVariable.deleteAudio({ userId })
+		usersVariable.deleteAllUser({ userId })
+		usersVariable.updateVideo({ socket })
 	} catch (error) {
 		console.log("- Error User Log Out : ", error)
 	}
@@ -29209,13 +29325,15 @@ socket.on("close-consumer", async ({ consumerId }) => {
 
 // Microphone Button
 let microphoneButton = document.getElementById("mic-icon")
-microphoneButton.addEventListener("click", () => {
+microphoneButton.addEventListener("click", async () => {
 	try {
 		const userId = usersVariable.userId
-		eventListenerCollection.changeMicButton({ id: userId })
+		const isActive = await mediasoupClientVariable.reverseMicrophone({ userId })
+		const producerId = mediasoupClientVariable.audioProducer.id
+		socket.emit("producer-app-data", { isActive, producerId })
 		usersVariable.allUsers.forEach((user) => {
 			if (user.userId != userId) {
-				socket.emit("user-list", { type: "mic", userId: user.userId, to: user.socketId, isActive: eventListenerCollection.microphoneStatus })
+				socket.emit("user-list", { type: "mic", userId: userId, to: user.socketId, isActive })
 			}
 		})
 	} catch (error) {
@@ -29365,6 +29483,7 @@ layoutVideoOptions.forEach((container) => {
 	try {
 		container.addEventListener("click", () => {
 			try {
+				// usersVariable.selectVideoLayout({ container })
 				eventListenerCollection.selectVideoLayout({ container })
 			} catch (error) {
 				console.log("- Error Select Video Layout : ", error)
@@ -29380,13 +29499,30 @@ layoutCount.forEach((container) => {
 	try {
 		container.addEventListener("click", () => {
 			try {
-				eventListenerCollection.selectLayoutCount({ container })
+				usersVariable.selectLayoutCount({ container, socket })
 			} catch (error) {
 				console.log("- Error Select Video Layout : ", error)
 			}
 		})
 	} catch (error) {
 		console.log("- Error Looping Select Video Layout : ", error)
+	}
+})
+
+let previousButton = document.getElementById("previous-page")
+previousButton.addEventListener("click", () => {
+	try {
+		usersVariable.previousVideo({ socket })
+	} catch (error) {
+		console.log("- Error Click Previous Button : ", error)
+	}
+})
+let nextButton = document.getElementById("next-page")
+nextButton.addEventListener("click", () => {
+	try {
+		usersVariable.nextVideo({ socket })
+	} catch (error) {
+		console.log("- Error Click Next Button : ", error)
 	}
 })
 
@@ -29431,7 +29567,7 @@ document.addEventListener("click", function (e) {
 
 },{"../socket/socket":105,"./eventListener":101,"./mediasoupClient":102,"./user":104,"sweetalert2":99}],104:[function(require,module,exports){
 class StaticEvent {
-	static async methodAddUserList({ id, username, isAdmin }) {
+	static methodAddUserList({ id, username, isAdmin }) {
 		try {
 			let userListElement = document.createElement("div")
 			userListElement.className = "user-list-content"
@@ -29472,19 +29608,43 @@ class Users extends StaticEvent {
 	#users
 	#videoContainer
 	#allUsers = []
-	#currentLayout
+	#currentLayout = 0
+	#totalLayout = 6
+	#totalPage = 1
+	#currentPage = 1
+	#totalSidePage = 1
+	#currentSidePage = 1
 	#currentVideoClass
 	#previousVideoClass
 	#userId
 	#sinkId
+	#previousButton
+	#nextButton
+	#totalDisplayedVideo
 
+	// Layout Video
+	#layoutVideoOptions
+	#layoutCountContainer
 	constructor() {
 		super()
+		// Layout Petak = 0, pembicara = 1, layout petaksamping = 2
 		this.#currentLayout = 0
+		this.#totalLayout = 6
+		this.#totalDisplayedVideo = 0
 		this.#users = 1
-		this.#videoContainer = document.getElementById("video-container")
+		this.#totalPage = 1
+		this.#currentPage = 1
+		this.#totalSidePage = 1
+		this.#currentSidePage = 1
+		this.#videoContainer = document.getElementById("video-collection")
 		this.#currentVideoClass = `video-user-container-1`
 		this.#previousVideoClass = `video-user-container-1`
+		this.#previousButton = document.getElementById("previous-page")
+		this.#nextButton = document.getElementById("next-page")
+
+		// Layout Video
+		this.#layoutVideoOptions = document.querySelectorAll(".layout-option-container")
+		this.#layoutCountContainer = document.querySelectorAll(".layout-option")
 	}
 
 	get userId() {
@@ -29495,7 +29655,83 @@ class Users extends StaticEvent {
 		this.#userId = id
 	}
 
-	async addMyVideo({ stream }) {
+	get totalDisplayedVideo() {
+		return this.#totalDisplayedVideo
+	}
+
+	async checkVideo({ userId }) {
+		try {
+			if (document.getElementById(`v-${userId}`)) {
+				return true
+			} else {
+				return false
+			}
+		} catch (error) {
+			console.log("- Error Check Video : ", error)
+		}
+	}
+
+	async hidePreviousNextButton() {
+		try {
+			if (!this.#previousButton.classList.contains("d-none")) {
+				this.#previousButton.classList.add("d-none")
+			}
+
+			if (!this.#nextButton.classList.contains("d-none")) {
+				this.#nextButton.classList.add("d-none")
+			}
+		} catch (error) {
+			console.log("- Error Hide Previous Next Button : ", error)
+		}
+	}
+
+	async changeMaxPage() {
+		try {
+			document.getElementById("previous-number-total").innerHTML = this.#totalPage
+			document.getElementById("next-number-total").innerHTML = this.#totalPage
+			await this.changeCurrentPage()
+		} catch (error) {
+			console.log("- Error Change Max Page : ", error)
+		}
+	}
+
+	async changeCurrentPage() {
+		try {
+			document.getElementById("previous-number").innerHTML = this.#currentPage == 1 ? 1 : this.#currentPage - 1
+			document.getElementById("next-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
+		} catch (error) {
+			console.log("- Error Change Max Page : ", error)
+		}
+	}
+
+	async updatePageInformation() {
+		try {
+			if (this.#currentLayout == 0) {
+				this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
+				await this.changeMaxPage()
+			} else if (this.#currentLayout == 1) {
+				console.log("- Do Nothing")
+			} else if (this.#currentLayout == 2) {
+				console.log("- Do Nothing")
+			}
+		} catch (error) {
+			console.log("- Error Check Page : ", error)
+		}
+	}
+
+	async checkLayout() {
+		try {
+			if (this.#totalDisplayedVideo >= this.#totalLayout) {
+				return false
+			} else {
+				return true
+			}
+		} catch (error) {
+			console.log("- Error Check Layout : ", error)
+		}
+	}
+
+	async audioDevicesOutput({ stream }) {
 		try {
 			let audioDevicesOutput = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "audiooutput")
 			audioDevicesOutput.forEach((audioDevices, index) => {
@@ -29503,37 +29739,6 @@ class Users extends StaticEvent {
 					this.#sinkId = audioDevices.deviceId
 				}
 			})
-			await this.updateVideoCurrentClass()
-			const checkUserElement = document.getElementById(`vc-${this.#userId}`)
-			if (!checkUserElement) {
-				let videoContainerElement = document.createElement("div")
-				videoContainerElement.id = `vc-${this.#userId}`
-				videoContainerElement.className = this.#currentVideoClass
-
-				let userVideoElement = document.createElement("div")
-				userVideoElement.className = "user-container"
-				userVideoElement.innerHTML = `<video id="v-${this.#userId}" muted autoplay class="user-video"></video>`
-				videoContainerElement.appendChild(userVideoElement)
-				this.#videoContainer.appendChild(videoContainerElement)
-
-				let usernameElement = document.createElement("span")
-				usernameElement.id = `vu-${this.#userId}`
-				usernameElement.className = "video-username"
-				usernameElement.innerHTML = this.#userId
-				userVideoElement.appendChild(usernameElement)
-
-				let microphoneElement = document.createElement("div")
-				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${
-					this.#userId
-				}" alt="mic_icon"/>`
-				userVideoElement.appendChild(microphoneElement)
-
-				document.getElementById(`v-${this.#userId}`).srcObject = stream
-			}
-			await this.updateAllVideo()
-			await this.updateVideoPreviousClass()
-			await this.updateVideoContainer()
 		} catch (error) {
 			console.log("- Error Add My Video : ", error)
 		}
@@ -29541,7 +29746,10 @@ class Users extends StaticEvent {
 
 	async addVideo({ userId, track }) {
 		try {
-			await this.updateVideoCurrentClass()
+			let check = await this.checkLayout()
+			if (!check) {
+				return
+			}
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			if (!checkUserElement) {
 				let videoContainerElement = document.createElement("div")
@@ -29567,10 +29775,11 @@ class Users extends StaticEvent {
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.insertVideo({ track, id: userId })
+				this.#totalDisplayedVideo = this.#totalDisplayedVideo + 1
 			}
+			await this.updateVideoCurrentClass()
 			await this.updateAllVideo()
 			await this.updateVideoPreviousClass()
-			await this.updateVideoContainer()
 		} catch (error) {
 			console.log("- Error Add My Video : ", error)
 		}
@@ -29646,16 +29855,37 @@ class Users extends StaticEvent {
 
 	async deleteVideo({ userId }) {
 		try {
-			await this.updateVideoCurrentClass()
 			const checkUserElement = document.getElementById(`vc-${userId}`)
+
 			if (checkUserElement) {
+				const tracks = await document.getElementById(`v-${userId}`).srcObject.getTracks()
+
+				tracks.forEach((track) => {
+					track.stop()
+				})
 				checkUserElement.remove()
+				await this.updateVideoCurrentClass()
 				await this.updateAllVideo()
 				await this.updateVideoPreviousClass()
-				await this.updateVideoContainer()
 			}
 		} catch (error) {
 			console.log("- Error Add Video : ", error)
+		}
+	}
+
+	async deleteAudio({ userId }) {
+		try {
+			const checkUserElement = document.getElementById(`a-${userId}`)
+			if (checkUserElement) {
+				const tracks = await checkUserElement.srcObject.getTracks()
+				tracks.forEach((track) => {
+					console.log(track)
+					track.stop()
+				})
+				checkUserElement.remove()
+			}
+		} catch (error) {
+			console.log("- Error Delete Audio : ", error)
 		}
 	}
 
@@ -29672,7 +29902,11 @@ class Users extends StaticEvent {
 
 	async updateVideoCurrentClass() {
 		try {
-			this.#currentVideoClass = `video-user-container-${this.#users}`
+			if (this.#users < this.#totalLayout) {
+				this.#currentVideoClass = `video-user-container-${this.#users}`
+			} else {
+				this.#currentVideoClass = `video-user-container-${this.#totalLayout}`
+			}
 		} catch (error) {
 			console.log("- Error Update Video Class : ", error)
 		}
@@ -29680,7 +29914,11 @@ class Users extends StaticEvent {
 
 	async updateVideoPreviousClass() {
 		try {
-			this.#previousVideoClass = `video-user-container-${this.#users}`
+			if (this.#users < this.#totalLayout) {
+				this.#previousVideoClass = `video-user-container-${this.#users}`
+			} else {
+				this.#previousVideoClass = `video-user-container-${this.#totalLayout}`
+			}
 		} catch (error) {
 			console.log("- Error Update Video Class : ", error)
 		}
@@ -29690,19 +29928,20 @@ class Users extends StaticEvent {
 		try {
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
 				this.#allUsers.push({ userId, admin, socketId, consumer: [{ kind, id: consumerId, track }] })
-				if (track) {
+				if (consumerId != null) {
 					await this.increaseUsers()
 				}
-				if (kind == "audio") {
+				if (kind == "audio" && consumerId != null) {
 					await this.createAudio({ id: userId, track })
 				}
 				if (kind == "video") {
 					await this.addVideo({ userId, track })
 				}
 				await this.constructor.methodAddUserList({ id: userId, username: userId, isAdmin: admin })
+				await this.updatePageInformation()
 				return
 			}
-			if (kind == "audio") {
+			if (kind == "audio" && consumerId != null) {
 				await this.createAudio({ id: userId, track })
 			}
 			if (kind == "video") {
@@ -29712,6 +29951,14 @@ class Users extends StaticEvent {
 			user.consumer.push({ kind, id: consumerId, track })
 		} catch (error) {
 			console.log("- Error Add User : ", error)
+		}
+	}
+
+	async deleteAllUser({ userId }) {
+		try {
+			this.#allUsers = this.#allUsers.filter((u) => u.userId != userId)
+		} catch (error) {
+			console.log("- Error Delete All User : ", error)
 		}
 	}
 
@@ -29743,9 +29990,99 @@ class Users extends StaticEvent {
 
 	async updateVideoContainer() {
 		try {
-			this.#videoContainer = document.getElementById("video-container")
+			this.#videoContainer = document.getElementById("video-collection")
 		} catch (error) {
 			console.log("- Error Update Video Container : ", error)
+		}
+	}
+
+	async emptyVideoContainer() {
+		try {
+			document.getElementById("video-collection").innerHTML = ""
+		} catch (error) {
+			console.log("- Error Update Video Container : ", error)
+		}
+	}
+
+	async selectLayoutCount({ container, socket }) {
+		try {
+			if (this.#currentLayout != 0) {
+				return
+			}
+			this.#layoutCountContainer.forEach((c) => {
+				const radio = c.querySelector(".mini-radio")
+				if (c === container) {
+					radio.src = "/assets/icons/mini_radio_active.svg"
+					this.#totalLayout = c.dataset.option
+				} else {
+					radio.src = "/assets/icons/mini_radio.svg"
+				}
+			})
+
+			this.#currentPage = 1
+			await this.updateVideo({ socket })
+		} catch (error) {
+			console.log("- Error Select Video Layout : ", error)
+		}
+	}
+
+	async previousVideo({ socket }) {
+		try {
+			await this.updatePageInformation()
+			if (this.#currentPage == 1) {
+				return
+			}
+			this.#currentPage = this.#currentPage - 1
+			await this.updateVideo({ socket })
+		} catch (error) {
+			console.log("- Error Previous Video : ", error)
+		}
+	}
+
+	async nextVideo({ socket }) {
+		try {
+			await this.updatePageInformation()
+			if (this.#currentPage == this.#totalPage) {
+				return
+			}
+			this.#currentPage = this.#currentPage + 1
+			await this.updateVideo({ socket })
+		} catch (error) {
+			console.log("- Error Next Video : ", error)
+		}
+	}
+
+	async updateVideo({ socket }) {
+		try {
+			await this.updatePageInformation()
+			await this.emptyVideoContainer()
+			await this.updateVideoContainer()
+			this.#totalDisplayedVideo = 0
+
+			const promises = this.#allUsers.map(async (u, index) => {
+				const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
+				const max = this.#currentPage * this.#totalLayout
+				let track = u.consumer.find((t) => t.kind == "video")
+
+				if (index + 1 >= min && index + 1 <= max) {
+					await this.addVideo({ userId: u.userId, track: track.track })
+					if (track.id != null) {
+						socket.emit("consumer-resume", { serverConsumerId: track.id })
+					}
+				} else {
+					if (track.id != null) {
+						socket.emit("consumer-pause", { serverConsumerId: track.id })
+					}
+				}
+			})
+
+			await Promise.all(promises)
+
+			if (this.#totalDisplayedVideo == 0) {
+				await this.previousVideo({ socket })
+			}
+		} catch (error) {
+			console.log("- Error Update Video : ", error)
 		}
 	}
 }
