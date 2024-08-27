@@ -400,7 +400,16 @@ class MediaSoupClient extends StaticEvent {
 							}
 						})
 						this.#consumers.push({ userId, consumer })
-						await usersVariable.addAllUser({ userId, admin: params.admin, consumerId: consumer.id, kind: params.kind, track, socketId })
+						await usersVariable.addAllUser({
+							userId,
+							admin: params.admin,
+							consumerId: consumer.id,
+							kind: params.kind,
+							track,
+							socketId,
+							focus: false,
+							socket,
+						})
 						if (params.kind == "audio" && !appData.isActive) {
 							this.reverseConsumerTrack({ userId: userId, isActive: false })
 						}

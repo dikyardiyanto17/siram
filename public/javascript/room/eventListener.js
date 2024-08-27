@@ -321,6 +321,23 @@ class EventListener {
 		}
 	}
 
+	async hideUserOptionButtion() {
+		try {
+			const allOptionUserList = document.querySelectorAll(".user-list-icons-option")
+			allOptionUserList.forEach((e) => {
+				try {
+					if (!e.classList.contains("d-none")) {
+						e.classList.add("d-none")
+					}
+				} catch (error) {
+					console.log("- Error Hide It : ", error)
+				}
+			})
+		} catch (error) {
+			console.log("- Error Hide User Option Button : ", error)
+		}
+	}
+
 	async changeSideBarContainer() {
 		try {
 			if (this.#sideBarStatus) {

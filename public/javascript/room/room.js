@@ -24,8 +24,6 @@ socket.emit(
 				usersVariable.userId = userId
 				const devices = await navigator.mediaDevices.enumerateDevices()
 
-
-
 				mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 				await mediasoupClientVariable.createDevice()
 				await mediasoupClientVariable.setEncoding()
@@ -35,8 +33,8 @@ socket.emit(
 				localStorage.setItem("user_id", userId)
 				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
 				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "audio", track: audioTrack })
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "video", track: videoTrack })
+				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "audio", track: audioTrack, focus: true, socket })
+				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "video", track: videoTrack, focus: true, socket })
 				await mediasoupClientVariable.createSendTransport({ socket, roomId: roomName, userId: userId, usersVariable })
 			} else {
 				window.location.href = window.location.origin
@@ -290,8 +288,7 @@ layoutVideoOptions.forEach((container) => {
 	try {
 		container.addEventListener("click", () => {
 			try {
-				// usersVariable.selectVideoLayout({ container })
-				eventListenerCollection.selectVideoLayout({ container })
+				usersVariable.selectVideoLayout({ container, socket })
 			} catch (error) {
 				console.log("- Error Select Video Layout : ", error)
 			}
@@ -367,6 +364,7 @@ messageInput.addEventListener("keyup", async (event) => {
 document.addEventListener("click", function (e) {
 	try {
 		eventListenerCollection.hideButton()
+		eventListenerCollection.hideUserOptionButtion()
 	} catch (error) {
 		console.log("- Error HideAll Button : ", error)
 	}
