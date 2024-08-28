@@ -28882,17 +28882,29 @@ class MediaSoupClient extends StaticEvent {
 	async getProducers({ socket, roomId, userId, usersVariable }) {
 		try {
 			socket.emit("get-producers", { roomId: roomId, userId }, async ({ producerList }) => {
-				await producerList.reduce(async (previousPromise, p) => {
-					await previousPromise
-					return this.signalNewConsumerTransport({
+				producerList.forEach((p, index) => {
+					this.signalNewConsumerTransport({
 						remoteProducerId: p.producerId,
 						socket,
 						userId: p.userId,
 						roomId,
 						usersVariable,
 						socketId: p.socketId,
+						index: p.indexing,
 					})
-				}, Promise.resolve())
+				})
+
+				// await producerList.reduce(async (previousPromise, p) => {
+				// 	await previousPromise
+				// 	return this.signalNewConsumerTransport({
+				// 		remoteProducerId: p.producerId,
+				// 		socket,
+				// 		userId: p.userId,
+				// 		roomId,
+				// 		usersVariable,
+				// 		socketId: p.socketId,
+				// 	})
+				// }, Promise.resolve())
 			})
 		} catch (error) {
 			console.log("- Error Get Producer : ", error)
@@ -28931,6 +28943,8 @@ class MediaSoupClient extends StaticEvent {
 								callback({ id })
 								if (producersExist && kind == "audio") {
 									await this.getProducers({ socket, roomId, userId, usersVariable })
+								} else {
+									usersVariable.flagRecentlyJoined = false
 								}
 							}
 						)
@@ -29042,8 +29056,9 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId }) {
+	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId, index = null }) {
 		try {
+			console.log(index)
 			if (this.#consumingTransport.includes(remoteProducerId)) return
 			this.#consumingTransport.push(remoteProducerId)
 			let totalReconnecting = 0
@@ -29063,6 +29078,7 @@ class MediaSoupClient extends StaticEvent {
 						userId,
 						usersVariable,
 						socketId,
+						index,
 					})
 				}
 			}
@@ -29073,7 +29089,7 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async connectRecvTransport({ socket, remoteProducerId, roomId, userId, usersVariable, socketId }) {
+	async connectRecvTransport({ socket, remoteProducerId, roomId, userId, usersVariable, socketId, index }) {
 		try {
 			await socket.emit(
 				"consume",
@@ -29136,6 +29152,7 @@ class MediaSoupClient extends StaticEvent {
 							}
 						})
 						this.#consumers.push({ userId, consumer })
+
 						await usersVariable.addAllUser({
 							userId,
 							admin: params.admin,
@@ -29145,7 +29162,9 @@ class MediaSoupClient extends StaticEvent {
 							socketId,
 							focus: false,
 							socket,
+							index,
 						})
+
 						if (params.kind == "audio" && !appData.isActive) {
 							this.reverseConsumerTrack({ userId: userId, isActive: false })
 						}
@@ -29646,6 +29665,8 @@ class Users extends StaticEvent {
 	#sinkId
 	#previousButton
 	#nextButton
+	#upButton
+	#downButton
 	#totalDisplayedVideo
 
 	// Layout Video
@@ -29668,6 +29689,8 @@ class Users extends StaticEvent {
 		this.#previousVideoClass = `video-user-container-1`
 		this.#previousButton = document.getElementById("previous-page")
 		this.#nextButton = document.getElementById("next-page")
+		this.#upButton = document.getElementById("arrow-up")
+		this.#downButton = document.getElementById("arrow-down")
 
 		// Layout Video
 		this.#layoutVideoOptions = document.querySelectorAll(".layout-option-container")
@@ -29684,6 +29707,10 @@ class Users extends StaticEvent {
 
 	get totalDisplayedVideo() {
 		return this.#totalDisplayedVideo
+	}
+
+	async increaseTotalDisplayedVodeo() {
+		this.#totalDisplayedVideo++
 	}
 
 	async checkVideo({ userId }) {
@@ -29717,10 +29744,31 @@ class Users extends StaticEvent {
 		}
 	}
 
+	hideShowUpDownButton({ status }) {
+		try {
+			if (status) {
+				this.#upButton.classList.remove("d-none")
+				this.#downButton.classList.remove("d-none")
+			} else {
+				if (!this.#downButton.classList.contains("d-none")) {
+					this.#downButton.classList.add("d-none")
+				}
+
+				if (!this.#upButton.classList.contains("d-none")) {
+					this.#upButton.classList.add("d-none")
+				}
+			}
+		} catch (error) {
+			console.log("- Error Hide Up Down Button : ", error)
+		}
+	}
+
 	async changeMaxPage() {
 		try {
 			document.getElementById("previous-number-total").innerHTML = this.#totalPage
 			document.getElementById("next-number-total").innerHTML = this.#totalPage
+			document.getElementById("up-number-total").innerHTML = this.#totalPage
+			document.getElementById("down-number-total").innerHTML = this.#totalPage
 			await this.changeCurrentPage()
 		} catch (error) {
 			console.log("- Error Change Max Page : ", error)
@@ -29731,6 +29779,8 @@ class Users extends StaticEvent {
 		try {
 			document.getElementById("previous-number").innerHTML = this.#currentPage == 1 ? 1 : this.#currentPage - 1
 			document.getElementById("next-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
+			document.getElementById("down-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
+			document.getElementById("up-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage - 1
 		} catch (error) {
 			console.log("- Error Change Max Page : ", error)
 		}
@@ -29744,6 +29794,7 @@ class Users extends StaticEvent {
 			} else if (this.#currentLayout == 2) {
 				console.log("- Do Nothing")
 			} else if (this.#currentLayout == 3) {
+				this.#totalLayout = 5
 				this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
 				await this.changeMaxPage()
 			}
@@ -29752,8 +29803,15 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async checkLayout() {
+	async checkLayout({ index = null }) {
 		try {
+			if (index) {
+				if (index >= this.#totalLayout) {
+					return false
+				} else {
+					return true
+				}
+			}
 			if (this.#totalDisplayedVideo >= this.#totalLayout) {
 				return false
 			} else {
@@ -29777,13 +29835,13 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addVideo({ userId, track }) {
+	async addVideo({ userId, track, index = null }) {
 		try {
-			let check = await this.checkLayout()
-			if (!check) {
+			let check = await this.checkLayout({ index })
+			if (!check || this.#currentLayout == 2) {
 				return
 			}
-			if (!this.#videoContainerFocus.classList.contains("d-none")) {
+			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
 				this.#videoContainerFocus.classList.add("d-none")
 			}
 			const checkUserElement = document.getElementById(`vc-${userId}`)
@@ -29811,10 +29869,12 @@ class Users extends StaticEvent {
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.insertVideo({ track, id: userId })
-				this.#totalDisplayedVideo = this.#totalDisplayedVideo + 1
+				await this.increaseTotalDisplayedVodeo()
 			}
 			await this.updateVideoCurrentClass()
-			await this.updateAllVideo()
+			if (this.#currentLayout == 1) {
+				await this.updateAllVideo()
+			}
 			await this.updateVideoPreviousClass()
 		} catch (error) {
 			console.log("- Error Add My Video : ", error)
@@ -29823,10 +29883,6 @@ class Users extends StaticEvent {
 
 	async addFocusVideo({ userId, track }) {
 		try {
-			let check = await this.checkLayout()
-			if (!check) {
-				return
-			}
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			this.#videoContainerFocus.classList.remove("d-none")
 			if (!checkUserElement) {
@@ -30043,7 +30099,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addAllUser({ userId, admin, consumerId = null, kind = null, track = null, socketId, focus = false, socket }) {
+	async addAllUser({ userId, admin, consumerId = null, kind = null, track = null, socketId, focus = false, socket, index = null }) {
 		try {
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
 				this.#allUsers.push({ userId, admin, socketId, consumer: [{ kind, id: consumerId, track }], focus })
@@ -30054,7 +30110,7 @@ class Users extends StaticEvent {
 					await this.createAudio({ id: userId, track })
 				}
 				if (kind == "video") {
-					await this.addVideo({ userId, track })
+					await this.addVideo({ userId, track, displayedVideo, index })
 				}
 				await this.constructor.methodAddUserList({ id: userId, username: userId, isAdmin: admin })
 				await this.updatePageInformation()
@@ -30089,7 +30145,7 @@ class Users extends StaticEvent {
 				await this.createAudio({ id: userId, track })
 			}
 			if (kind == "video") {
-				await this.addVideo({ userId, track })
+				await this.addVideo({ userId, track, index })
 			}
 			const user = this.#allUsers.find((u) => u.userId == userId)
 			user.consumer.push({ kind, id: consumerId, track })
@@ -30213,17 +30269,21 @@ class Users extends StaticEvent {
 			if (this.#currentLayout == 3) {
 				this.#videoContainer.classList.remove("d-none")
 				this.#videoContainer.style.width = "20%"
+				this.#videoContainer.style.alignContent = "center"
 				this.#videoContainerFocus.style.width = "80%"
+				this.#videoContainerFocus.classList.remove("d-none")
 			} else if (this.#currentLayout == 1) {
-				this.#videoContainerFocus.removeAttribute("style")
 				this.#videoContainer.removeAttribute("style")
-				if (!this.#videoContainer.classList.contains("d-none")) {
-					this.#videoContainer.classList.add("d-none")
+				this.#videoContainer.classList.remove("d-none")
+				this.#videoContainerFocus.removeAttribute("style")
+				if (!this.#videoContainerFocus.classList.contains("d-none")) {
+					this.#videoContainerFocus.classList.add("d-none")
 				}
 			} else if (this.#currentLayout == 2) {
 				if (!this.#videoContainer.classList.contains("d-none")) {
 					this.#videoContainer.classList.add("d-none")
 				}
+				this.#videoContainerFocus.classList.remove("d-none")
 				this.#videoContainerFocus.removeAttribute("style")
 				this.#videoContainer.removeAttribute("style")
 			}
@@ -30237,7 +30297,14 @@ class Users extends StaticEvent {
 			await this.emptyVideoContainer()
 			await this.updateVideoContainerLayout()
 			if (this.#currentLayout == 1) {
+				if (this.#totalLayout == 5) {
+					this.#totalLayout = 6
+				}
+				if (this.#videoContainer.classList.contains("d-none")) {
+					this.#videoContainer.classList.remove("d-none")
+				}
 				await this.hideShowPreviousNextButton({ status: true })
+				await this.hideShowUpDownButton({ status: false })
 				await this.updatePageInformation()
 				await this.updateVideoContainer()
 				this.#totalDisplayedVideo = 0
@@ -30266,6 +30333,7 @@ class Users extends StaticEvent {
 				}
 			} else if (this.#currentLayout == 2) {
 				this.hideShowPreviousNextButton({ status: false })
+				await this.hideShowUpDownButton({ status: false })
 				this.#allUsers.forEach(async (u) => {
 					let track = u.consumer.find((t) => t.kind == "video")
 					if (u.focus) {
@@ -30277,6 +30345,7 @@ class Users extends StaticEvent {
 				})
 			} else if (this.#currentLayout == 3) {
 				await this.hideShowPreviousNextButton({ status: false })
+				await this.hideShowUpDownButton({ status: true })
 				this.#totalDisplayedVideo = 0
 				await this.updatePageInformation()
 				await this.updateVideoContainer()

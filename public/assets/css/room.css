@@ -245,15 +245,15 @@ input:focus {
 }
 
 #arrow-up {
-    width: 100%;
+    width: 20%;
     z-index: 5;
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
     padding: 10px;
     font-size: 10px;
     background-color: #3333337d;
-    height: 100px;
+    height: 50px;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
     text-align: center;
@@ -279,15 +279,15 @@ input:focus {
 
 
 #arrow-down {
-    width: 100%;
+    width: 20%;
     z-index: 5;
     position: absolute;
     bottom: 0;
-    left: 0;
+    right: 0;
     padding: 10px;
     font-size: 10px;
     background-color: #3333337d;
-    height: 100px;
+    height: 50px;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
     text-align: center;

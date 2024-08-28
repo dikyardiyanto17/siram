@@ -146,17 +146,29 @@ class MediaSoupClient extends StaticEvent {
 	async getProducers({ socket, roomId, userId, usersVariable }) {
 		try {
 			socket.emit("get-producers", { roomId: roomId, userId }, async ({ producerList }) => {
-				await producerList.reduce(async (previousPromise, p) => {
-					await previousPromise
-					return this.signalNewConsumerTransport({
+				producerList.forEach((p, index) => {
+					this.signalNewConsumerTransport({
 						remoteProducerId: p.producerId,
 						socket,
 						userId: p.userId,
 						roomId,
 						usersVariable,
 						socketId: p.socketId,
+						index: p.indexing,
 					})
-				}, Promise.resolve())
+				})
+
+				// await producerList.reduce(async (previousPromise, p) => {
+				// 	await previousPromise
+				// 	return this.signalNewConsumerTransport({
+				// 		remoteProducerId: p.producerId,
+				// 		socket,
+				// 		userId: p.userId,
+				// 		roomId,
+				// 		usersVariable,
+				// 		socketId: p.socketId,
+				// 	})
+				// }, Promise.resolve())
 			})
 		} catch (error) {
 			console.log("- Error Get Producer : ", error)
@@ -195,6 +207,8 @@ class MediaSoupClient extends StaticEvent {
 								callback({ id })
 								if (producersExist && kind == "audio") {
 									await this.getProducers({ socket, roomId, userId, usersVariable })
+								} else {
+									usersVariable.flagRecentlyJoined = false
 								}
 							}
 						)
@@ -306,8 +320,9 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId }) {
+	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId, index = null }) {
 		try {
+			console.log(index)
 			if (this.#consumingTransport.includes(remoteProducerId)) return
 			this.#consumingTransport.push(remoteProducerId)
 			let totalReconnecting = 0
@@ -327,6 +342,7 @@ class MediaSoupClient extends StaticEvent {
 						userId,
 						usersVariable,
 						socketId,
+						index,
 					})
 				}
 			}
@@ -337,7 +353,7 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async connectRecvTransport({ socket, remoteProducerId, roomId, userId, usersVariable, socketId }) {
+	async connectRecvTransport({ socket, remoteProducerId, roomId, userId, usersVariable, socketId, index }) {
 		try {
 			await socket.emit(
 				"consume",
@@ -400,6 +416,7 @@ class MediaSoupClient extends StaticEvent {
 							}
 						})
 						this.#consumers.push({ userId, consumer })
+
 						await usersVariable.addAllUser({
 							userId,
 							admin: params.admin,
@@ -409,7 +426,9 @@ class MediaSoupClient extends StaticEvent {
 							socketId,
 							focus: false,
 							socket,
+							index,
 						})
+
 						if (params.kind == "audio" && !appData.isActive) {
 							this.reverseConsumerTrack({ userId: userId, isActive: false })
 						}

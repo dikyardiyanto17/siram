@@ -2,7 +2,7 @@ const express = require("express")
 const cors = require("cors")
 const router = require("./routes/index.js")
 const app = express()
-const port = 80
+const port = 9188
 // const port = 9188
 const { options } = require("./certif")
 const http = require("http")
@@ -263,8 +263,26 @@ io.on("connection", async (socket) => {
 	socket.on("get-producers", async ({ roomId, userId }, callback) => {
 		try {
 			const producerData = await mediasoupVariable.getProducers({ userId, roomId })
+			let customIndex = 0
 			const producerList = producerData.map((p) => {
-				return { producerId: p.producer.id, userId: p.producer.appData.userId, socketId: p.producer.appData.socketId }
+				if (p.producer.appData.kind == "video") {
+					customIndex++
+					return {
+						producerId: p.producer.id,
+						userId: p.producer.appData.userId,
+						socketId: p.producer.appData.socketId,
+						kind: "video",
+						indexing: customIndex,
+					}
+				} else {
+					return {
+						producerId: p.producer.id,
+						userId: p.producer.appData.userId,
+						socketId: p.producer.appData.socketId,
+						kind: "audio",
+						indexing: false,
+					}
+				}
 			})
 
 			callback({ producerList })
