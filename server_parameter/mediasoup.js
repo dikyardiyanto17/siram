@@ -478,7 +478,7 @@ class MediaSoup {
 			consumer.on("producerclose", () => {
 				try {
 					console.log(`Consumer (producerclose) ${consumerTransport.id} => ${consumer.id}`)
-					socket.emit("close-consumer", { consumerId: consumer.id })
+					socket.emit("close-consumer", { consumerId: consumer.id, appData })
 					consumer.close()
 					this.#consumers = this.#consumers.filter((c) => c.consumer.id != consumer.id)
 				} catch (error) {
@@ -587,6 +587,20 @@ class MediaSoup {
 			}
 		} catch (error) {
 			console.log("- Error CHange Producer App Data : ", error)
+		}
+	}
+
+	async closeScreenSharing({ producerId }) {
+		try {
+			this.#producers = this.#producers.filter((p) => {
+				if (p.producer.id != producerId) {
+					return p
+				} else {
+					p.producer.close()
+				}
+			})
+		} catch (error) {
+			console.log("- Erorr Closing Screensharing Producer : ", error)
 		}
 	}
 }

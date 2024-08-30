@@ -1183,3 +1183,9 @@ input:focus {
     background-color: #CB2233 !important;
     border: none !important;
 }
+
+[id^="v-ssv_"] {
+    transform: rotateY(0);
+    -webkit-transform: rotateY(0);
+    -moz-transform: rotateY(0);
+}

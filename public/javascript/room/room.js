@@ -19,9 +19,11 @@ socket.emit(
 	async ({ userId, roomId, status, isAdmin, rtpCapabilities }) => {
 		try {
 			if (status) {
+				console.log("socket id : ", socket.id)
 				let filteredRtpCapabilities = { ...rtpCapabilities }
 				filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter((ext) => ext.uri !== "urn:3gpp:video-orientation")
 				usersVariable.userId = userId
+				usersVariable.isAdmin = isAdmin
 				const devices = await navigator.mediaDevices.enumerateDevices()
 
 				mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
@@ -33,8 +35,40 @@ socket.emit(
 				localStorage.setItem("user_id", userId)
 				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
 				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "audio", track: audioTrack, focus: true, socket })
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "video", track: videoTrack, focus: true, socket })
+				await usersVariable.addAllUser({
+					userId,
+					admin: isAdmin,
+					socketId: socket.id,
+					kind: "audio",
+					track: audioTrack,
+					focus: true,
+					socket,
+					appData: {
+						label: "audio",
+						isActive: true,
+						kind: "audio",
+						roomId: roomId,
+						socketId: socket.id,
+						userId,
+					},
+				})
+				await usersVariable.addAllUser({
+					userId,
+					admin: isAdmin,
+					socketId: socket.id,
+					kind: "video",
+					track: videoTrack,
+					focus: true,
+					socket,
+					appData: {
+						label: "video",
+						isActive: true,
+						kind: "audio",
+						roomId: roomId,
+						socketId: socket.id,
+						userId,
+					},
+				})
 				await mediasoupClientVariable.createSendTransport({ socket, roomId: roomName, userId: userId, usersVariable })
 			} else {
 				window.location.href = window.location.origin
@@ -120,11 +154,22 @@ socket.on("producer-closed", async ({ producerId }) => {
 	}
 })
 
-socket.on("close-consumer", async ({ consumerId }) => {
+socket.on("close-consumer", async ({ consumerId, appData }) => {
 	try {
 		await mediasoupClientVariable.closeConsumer({ consumerId })
 	} catch (error) {
 		console.log("- Error Close Consumer : ", error)
+	}
+})
+
+socket.on("stop-screensharing", async ({ producerId, label }) => {
+	try {
+		if (label){
+			await mediasoupClientVariable.closeScreenSharing({ producerId })
+			await usersVariable.closeConsumer({ label, userId: usersVariable.userId, consumerId: undefined, socket })
+		}
+	} catch (error) {
+		console.log("- Error Stop Screen Sharing Video : ", error)
 	}
 })
 
@@ -188,9 +233,35 @@ raiseHandButton.addEventListener("click", () => {
 
 // Screen Sharing Button
 let screenSharingButton = document.getElementById("screen-sharing-button")
-screenSharingButton.addEventListener("click", () => {
+screenSharingButton.addEventListener("click", async () => {
 	try {
-		eventListenerCollection.changeScreenSharingButton()
+		const checkPermission = await usersVariable.checkPermissionScreenSharing()
+		if (!checkPermission) {
+			console.log("IS NOT ADMIN")
+			return
+		}
+		const screenSharingStatus = await mediasoupClientVariable.changeScreenSharingButton({ socket })
+		if (screenSharingStatus) {
+			const videoTrack = await screenSharingStatus.getVideoTracks()[0]
+			await usersVariable.addAllUser({
+				userId: usersVariable.userId,
+				admin: usersVariable.isAdmin,
+				socketId: socket.id,
+				kind: "video",
+				track: videoTrack,
+				focus: true,
+				socket,
+				appData: {
+					label: "screensharing_video",
+					isActive: true,
+					kind: "video",
+					roomId: roomName,
+					socketId: socket.id,
+					userId: usersVariable.userId,
+				},
+			})
+			await usersVariable.screenSharingMode({ status: true, userId: usersVariable.userId, socket })
+		}
 	} catch (error) {
 		console.log("- Error Screen Sharing Button : ", error)
 	}

@@ -27931,10 +27931,6 @@ class EventListener {
 	#raiseHandButton
 	#raiseHandStatus
 
-	// Screen Sharing
-	#screenSharingButton
-	#screenSharingStatus
-
 	// CC
 	#ccButton
 	#ccStatus
@@ -28016,9 +28012,6 @@ class EventListener {
 		this.#raiseHandButton = document.getElementById("raise-hand-button")
 		this.#raiseHandStatus = false
 
-		// Screen Sharing
-		this.#screenSharingButton = document.getElementById("screen-sharing-button")
-		this.#screenSharingStatus = false
 
 		// CC
 		this.#ccButton = document.getElementById("cc-button")
@@ -28165,21 +28158,6 @@ class EventListener {
 				this.#raiseHandButton.classList.add("active")
 			}
 			this.#raiseHandStatus = !this.#raiseHandStatus
-		} catch (error) {
-			console.log("- Error Change Raise Hand Button : ", error)
-		}
-	}
-
-	async changeScreenSharingButton() {
-		try {
-			if (this.#screenSharingStatus) {
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
-				this.#screenSharingButton.classList.remove("active")
-			} else {
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing_active.svg"
-				this.#screenSharingButton.classList.add("active")
-			}
-			this.#screenSharingStatus = !this.#screenSharingStatus
 		} catch (error) {
 			console.log("- Error Change Raise Hand Button : ", error)
 		}
@@ -28770,11 +28748,9 @@ class StaticEvent {
 }
 
 class MediaSoupClient extends StaticEvent {
-	constructor() {
-		super()
-	}
 	#consumingTransport = []
 	#mystream = null
+	#screenSharingStream = null
 	#audioSetting = {
 		autoGainControl: false,
 		noiseSuppression: true,
@@ -28806,11 +28782,33 @@ class MediaSoupClient extends StaticEvent {
 		appData: { label: "video", isActive: true },
 	}
 
+	#screenSharingVideoParams = {
+		track: null,
+		appData: { label: "screensharing_video", isActive: true },
+	}
+
+	#screenSharingAudioParams = {
+		track: null,
+		appData: { label: "screensharing_audio", isActive: true },
+	}
+
 	#producerTransport = null
 	#consumerTransport = null
 	#audioProducer = null
 	#videoProducer = null
+	#screenSharingAudioProducer = null
+	#screenSharingVideoProducer = null
 	#consumers = []
+	#screenSharingMode = false
+	#screenSharingButton = false
+	#screenSharingStatus = document.getElementById("screen-sharing-button")
+	constructor() {
+		super()
+		// Screen Sharing
+		this.#screenSharingMode = false
+		this.#screenSharingStatus = false
+		this.#screenSharingButton = document.getElementById("screen-sharing-button")
+	}
 
 	get rtpCapabilities() {
 		return this.#rtpCapabilities
@@ -28893,18 +28891,6 @@ class MediaSoupClient extends StaticEvent {
 						index: p.indexing,
 					})
 				})
-
-				// await producerList.reduce(async (previousPromise, p) => {
-				// 	await previousPromise
-				// 	return this.signalNewConsumerTransport({
-				// 		remoteProducerId: p.producerId,
-				// 		socket,
-				// 		userId: p.userId,
-				// 		roomId,
-				// 		usersVariable,
-				// 		socketId: p.socketId,
-				// 	})
-				// }, Promise.resolve())
 			})
 		} catch (error) {
 			console.log("- Error Get Producer : ", error)
@@ -29044,12 +29030,20 @@ class MediaSoupClient extends StaticEvent {
 				console.log("video transport ended")
 			})
 
+			this.#videoProducer.observer.on("close", () => {
+				console.log("video observer close")
+			})
+
 			this.#audioProducer.on("trackended", () => {
 				console.log("audio track ended")
 			})
 
 			this.#audioProducer.on("transportclose", () => {
 				console.log("audio transport ended")
+			})
+
+			this.#audioProducer.observer.on("close", () => {
+				console.log("audio observer close")
 			})
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
@@ -29058,7 +29052,6 @@ class MediaSoupClient extends StaticEvent {
 
 	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId, index = null }) {
 		try {
-			console.log(index)
 			if (this.#consumingTransport.includes(remoteProducerId)) return
 			this.#consumingTransport.push(remoteProducerId)
 			let totalReconnecting = 0
@@ -29124,8 +29117,8 @@ class MediaSoupClient extends StaticEvent {
 
 						consumer.observer.on("close", () => {
 							try {
+								usersVariable.closeConsumer({ ...appData, consumerId: consumer.id, socket })
 								console.log("Consumer Observer (closer) => ", consumer.id)
-								// this.#consumers = this.#consumers.filter((c) => )
 							} catch (error) {
 								console.log("- Error Consumer Observer (close) : ", error)
 							}
@@ -29163,6 +29156,7 @@ class MediaSoupClient extends StaticEvent {
 							focus: false,
 							socket,
 							index,
+							appData,
 						})
 
 						if (params.kind == "audio" && !appData.isActive) {
@@ -29171,6 +29165,11 @@ class MediaSoupClient extends StaticEvent {
 
 						let checkVideo = await usersVariable.checkVideo({ userId })
 						if (checkVideo && params.kind == "video") {
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						}
+
+						if (appData.label == "screensharing_video") {
+							usersVariable.screenSharingMode({ status: true, userId, socket })
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
 						}
 						if (params.kind == "audio") {
@@ -29229,6 +29228,98 @@ class MediaSoupClient extends StaticEvent {
 			console.log("- Error Reverse Consumer Track : ", error)
 		}
 	}
+
+	async changeScreenSharingButton({ socket }) {
+		try {
+			console.log(this.#screenSharingStatus)
+			if (this.#screenSharingStatus) {
+				this.#screenSharingStatus = false
+				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+				this.#screenSharingButton.classList.remove("active")
+				socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer?.id, label: "screensharing_video" })
+				return null
+			} else {
+				this.#screenSharingStatus = true
+				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing_active.svg"
+				this.#screenSharingButton.classList.add("active")
+				return await this.getScreenSharing({ socket })
+			}
+		} catch (error) {
+			console.log("- Error Change Raise Hand Button : ", error)
+		}
+	}
+
+	async getScreenSharing({ socket }) {
+		try {
+			let config = {
+				video: {
+					cursor: "always",
+					displaySurface: "window",
+					chromeMediaSource: "desktop",
+				},
+				audio: true,
+			}
+
+			this.#screenSharingStream = await navigator.mediaDevices.getDisplayMedia(config)
+
+			this.#screenSharingVideoParams.track = await this.#screenSharingStream.getVideoTracks()[0]
+
+			this.#screenSharingVideoProducer = await this.#producerTransport.produce(this.#screenSharingVideoParams)
+
+			this.#screenSharingStream.getVideoTracks()[0].onended = () => {
+				try {
+					socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer.id, label: "screensharing_video" })
+					console.log("stream screensharing track ended")
+				} catch (error) {
+					console.log("- Error onended screensharing : ", error)
+				}
+			}
+
+			this.#screenSharingVideoProducer.on("trackended", () => {
+				socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer.id, label: "screensharing_video" })
+				console.log("screensharing track ended")
+			})
+
+			this.#screenSharingVideoProducer.observer.on("close", () => {
+				console.log("-> screensharing producer close")
+			})
+
+			this.#screenSharingVideoProducer.on("transportclose", () => {
+				console.log("screensharing transport ended")
+			})
+
+			this.#screenSharingVideoProducer.observer.on("close", () => {
+				console.log("screensharing observer close")
+			})
+
+			this.#screenSharingMode = true
+			return this.#screenSharingStream
+		} catch (error) {
+			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.classList.remove("active")
+			console.log("- Error Getting Screen Sharing : ", error)
+		}
+	}
+
+	async closeScreenSharing({ producerId }) {
+		try {
+			this.#screenSharingMode = false
+			this.#screenSharingStatus = false
+			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.classList.remove("active")
+			if (this.#screenSharingAudioProducer != null && this.#screenSharingAudioProducer.id == producerId) {
+				this.#screenSharingAudioProducer.close()
+				this.#screenSharingAudioProducer = null
+			}
+
+			if (this.#screenSharingVideoProducer != null && this.#screenSharingVideoProducer.id == producerId) {
+				this.#screenSharingVideoProducer.close()
+				this.#screenSharingVideoProducer = null
+			}
+		} catch (error) {
+			console.log("- Error Close Screen Sharing : ", error)
+		}
+	}
 }
 
 module.exports = {
@@ -29257,9 +29348,11 @@ socket.emit(
 	async ({ userId, roomId, status, isAdmin, rtpCapabilities }) => {
 		try {
 			if (status) {
+				console.log("socket id : ", socket.id)
 				let filteredRtpCapabilities = { ...rtpCapabilities }
 				filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter((ext) => ext.uri !== "urn:3gpp:video-orientation")
 				usersVariable.userId = userId
+				usersVariable.isAdmin = isAdmin
 				const devices = await navigator.mediaDevices.enumerateDevices()
 
 				mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
@@ -29271,8 +29364,40 @@ socket.emit(
 				localStorage.setItem("user_id", userId)
 				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
 				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "audio", track: audioTrack, focus: true, socket })
-				await usersVariable.addAllUser({ userId, admin: isAdmin, socketId: socket.id, kind: "video", track: videoTrack, focus: true, socket })
+				await usersVariable.addAllUser({
+					userId,
+					admin: isAdmin,
+					socketId: socket.id,
+					kind: "audio",
+					track: audioTrack,
+					focus: true,
+					socket,
+					appData: {
+						label: "audio",
+						isActive: true,
+						kind: "audio",
+						roomId: roomId,
+						socketId: socket.id,
+						userId,
+					},
+				})
+				await usersVariable.addAllUser({
+					userId,
+					admin: isAdmin,
+					socketId: socket.id,
+					kind: "video",
+					track: videoTrack,
+					focus: true,
+					socket,
+					appData: {
+						label: "video",
+						isActive: true,
+						kind: "audio",
+						roomId: roomId,
+						socketId: socket.id,
+						userId,
+					},
+				})
 				await mediasoupClientVariable.createSendTransport({ socket, roomId: roomName, userId: userId, usersVariable })
 			} else {
 				window.location.href = window.location.origin
@@ -29358,11 +29483,22 @@ socket.on("producer-closed", async ({ producerId }) => {
 	}
 })
 
-socket.on("close-consumer", async ({ consumerId }) => {
+socket.on("close-consumer", async ({ consumerId, appData }) => {
 	try {
 		await mediasoupClientVariable.closeConsumer({ consumerId })
 	} catch (error) {
 		console.log("- Error Close Consumer : ", error)
+	}
+})
+
+socket.on("stop-screensharing", async ({ producerId, label }) => {
+	try {
+		if (label){
+			await mediasoupClientVariable.closeScreenSharing({ producerId })
+			await usersVariable.closeConsumer({ label, userId: usersVariable.userId, consumerId: undefined, socket })
+		}
+	} catch (error) {
+		console.log("- Error Stop Screen Sharing Video : ", error)
 	}
 })
 
@@ -29426,9 +29562,35 @@ raiseHandButton.addEventListener("click", () => {
 
 // Screen Sharing Button
 let screenSharingButton = document.getElementById("screen-sharing-button")
-screenSharingButton.addEventListener("click", () => {
+screenSharingButton.addEventListener("click", async () => {
 	try {
-		eventListenerCollection.changeScreenSharingButton()
+		const checkPermission = await usersVariable.checkPermissionScreenSharing()
+		if (!checkPermission) {
+			console.log("IS NOT ADMIN")
+			return
+		}
+		const screenSharingStatus = await mediasoupClientVariable.changeScreenSharingButton({ socket })
+		if (screenSharingStatus) {
+			const videoTrack = await screenSharingStatus.getVideoTracks()[0]
+			await usersVariable.addAllUser({
+				userId: usersVariable.userId,
+				admin: usersVariable.isAdmin,
+				socketId: socket.id,
+				kind: "video",
+				track: videoTrack,
+				focus: true,
+				socket,
+				appData: {
+					label: "screensharing_video",
+					isActive: true,
+					kind: "video",
+					roomId: roomName,
+					socketId: socket.id,
+					userId: usersVariable.userId,
+				},
+			})
+			await usersVariable.screenSharingMode({ status: true, userId: usersVariable.userId, socket })
+		}
 	} catch (error) {
 		console.log("- Error Screen Sharing Button : ", error)
 	}
@@ -29650,6 +29812,7 @@ class StaticEvent {
 
 class Users extends StaticEvent {
 	#users
+	#isAdmin
 	#videoContainer
 	#videoContainerFocus
 	#allUsers = []
@@ -29668,6 +29831,8 @@ class Users extends StaticEvent {
 	#upButton
 	#downButton
 	#totalDisplayedVideo
+	#screenSharingMode = false
+	#isScreensharing = false
 
 	// Layout Video
 	#layoutVideoOptions
@@ -29695,6 +29860,8 @@ class Users extends StaticEvent {
 		// Layout Video
 		this.#layoutVideoOptions = document.querySelectorAll(".layout-option-container")
 		this.#layoutCountContainer = document.querySelectorAll(".layout-option")
+		this.#screenSharingMode = false
+		this.#isScreensharing = false
 	}
 
 	get userId() {
@@ -29705,8 +29872,25 @@ class Users extends StaticEvent {
 		this.#userId = id
 	}
 
+	get isAdmin() {
+		return this.#isAdmin
+	}
+
+	set isAdmin(adminStatus) {
+		this.#isAdmin = adminStatus
+	}
+
 	get totalDisplayedVideo() {
 		return this.#totalDisplayedVideo
+	}
+
+	async checkPermissionScreenSharing() {
+		try {
+			const isAdmin = this.#allUsers.find((u) => u.userId == this.#userId)
+			return isAdmin
+		} catch (error) {
+			console.log("- Error Check Permission Screen Sharing : ", error)
+		}
 	}
 
 	async increaseTotalDisplayedVodeo() {
@@ -30099,18 +30283,26 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addAllUser({ userId, admin, consumerId = null, kind = null, track = null, socketId, focus = false, socket, index = null }) {
+	async addAllUser({ userId, admin, consumerId = null, kind = null, track = null, socketId, focus = false, socket, index = null, appData = null }) {
 		try {
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
-				this.#allUsers.push({ userId, admin, socketId, consumer: [{ kind, id: consumerId, track }], focus })
+				this.#allUsers.push({ userId, admin, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }] })
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
-				if (kind == "audio" && consumerId != null) {
+				if (kind == "audio" && consumerId != null && appData.label == "audio") {
 					await this.createAudio({ id: userId, track })
 				}
-				if (kind == "video") {
+				if (kind == "video" && appData.label == "video") {
 					await this.addVideo({ userId, track, displayedVideo, index })
+				}
+				if (appData && appData.label == "screensharing_audio") {
+					await this.createAudio({ id: "ssa_" + userId, track })
+				}
+
+				if (appData && appData.label == "screensharing_video") {
+					await this.increaseUsers()
+					await this.addVideo({ userId: "ssv_" + userId, track, index })
 				}
 				await this.constructor.methodAddUserList({ id: userId, username: userId, isAdmin: admin })
 				await this.updatePageInformation()
@@ -30129,9 +30321,13 @@ class Users extends StaticEvent {
 					try {
 						this.#allUsers.forEach((u) => {
 							if (u.userId == userId) {
-								u.focus = true
+								u.consumer.forEach((c) => {
+									c.focus = true
+								})
 							} else {
-								u.focus = false
+								u.consumer.forEach((c) => {
+									c.focus = false
+								})
 							}
 						})
 						await this.updateVideo({ socket })
@@ -30141,14 +30337,23 @@ class Users extends StaticEvent {
 				})
 				return
 			}
-			if (kind == "audio" && consumerId != null) {
+			const user = this.#allUsers.find((u) => u.userId == userId)
+			user.consumer.push({ kind, id: consumerId, track, appData, focus })
+			if (kind == "audio" && consumerId != null && appData.label == "audio") {
 				await this.createAudio({ id: userId, track })
 			}
-			if (kind == "video") {
+			if (kind == "video" && appData.label == "video") {
 				await this.addVideo({ userId, track, index })
 			}
-			const user = this.#allUsers.find((u) => u.userId == userId)
-			user.consumer.push({ kind, id: consumerId, track })
+
+			if (appData && appData.label == "screensharing_audio") {
+				await this.createAudio({ id: "ssa_" + userId, track })
+			}
+
+			if (appData && appData.label == "screensharing_video") {
+				await this.increaseUsers()
+				await this.addVideo({ userId: "ssv_" + userId, track, index })
+			}
 		} catch (error) {
 			console.log("- Error Add User : ", error)
 		}
@@ -30294,6 +30499,7 @@ class Users extends StaticEvent {
 
 	async updateVideo({ socket }) {
 		try {
+			let customIndex = 0
 			await this.emptyVideoContainer()
 			await this.updateVideoContainerLayout()
 			if (this.#currentLayout == 1) {
@@ -30312,17 +30518,21 @@ class Users extends StaticEvent {
 				const promises = this.#allUsers.map(async (u, index) => {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
-					let track = u.consumer.find((t) => t.kind == "video")
+					let tracks = u.consumer.filter((t) => t.kind == "video")
 
-					if (index + 1 >= min && index + 1 <= max) {
-						await this.addVideo({ userId: u.userId, track: track.track })
-						if (track.id != null) {
-							socket.emit("consumer-resume", { serverConsumerId: track.id })
+					// let track = u.consumer.find((t) => t.kind == "video")
+					for (const track of tracks) {
+						if (customIndex + 1 >= min && customIndex + 1 <= max) {
+							await this.addVideo({ userId: u.userId, track: track.track })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
+						} else {
+							if (track.id != null) {
+								socket.emit("consumer-pause", { serverConsumerId: track.id })
+							}
 						}
-					} else {
-						if (track.id != null) {
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
-						}
+						customIndex++
 					}
 				})
 
@@ -30335,12 +30545,17 @@ class Users extends StaticEvent {
 				this.hideShowPreviousNextButton({ status: false })
 				await this.hideShowUpDownButton({ status: false })
 				this.#allUsers.forEach(async (u) => {
-					let track = u.consumer.find((t) => t.kind == "video")
-					if (u.focus) {
-						await this.addFocusVideo({ track: track.track, userId: u.userId })
-						socket.emit("consumer-resume", { serverConsumerId: track.id })
-					} else {
-						socket.emit("consumer-pause", { serverConsumerId: track.id })
+					let tracks = u.consumer.filter((t) => t.kind == "video")
+
+					for (const track of tracks) {
+						if (track.focus) {
+							await this.addFocusVideo({ userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId, track: track.track })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
+						} else {
+							socket.emit("consumer-pause", { serverConsumerId: track.id })
+						}
 					}
 				})
 			} else if (this.#currentLayout == 3) {
@@ -30350,28 +30565,91 @@ class Users extends StaticEvent {
 				await this.updatePageInformation()
 				await this.updateVideoContainer()
 
-				let customIndex = 0
 				this.#allUsers.forEach(async (u) => {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
-					let track = u.consumer.find((t) => t.kind == "video")
-					if (u.focus) {
-						await this.addFocusVideo({ track: track.track, userId: u.userId })
-						socket.emit("consumer-resume", { serverConsumerId: track.id })
-					} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
-						customIndex++
-						await this.addVideo({ userId: u.userId, track: track.track })
-						if (track.id != null) {
+					let tracks = u.consumer.filter((t) => t.kind == "video")
+					for (const track of tracks) {
+						if (track.focus) {
+							await this.addFocusVideo({ track: track.track, userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId })
 							socket.emit("consumer-resume", { serverConsumerId: track.id })
+						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
+							customIndex++
+							await this.addVideo({ userId: u.userId, track: track.track })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
+						} else {
+							customIndex++
+							socket.emit("consumer-pause", { serverConsumerId: track.id })
 						}
-					} else {
-						customIndex++
-						socket.emit("consumer-pause", { serverConsumerId: track.id })
 					}
 				})
 			}
 		} catch (error) {
 			console.log("- Error Update Video : ", error)
+		}
+	}
+
+	async screenSharingMode({ status, userId, socket }) {
+		try {
+			if (status) {
+				this.#screenSharingMode = true
+				this.#currentLayout = 3
+				this.#allUsers.forEach((u) => {
+					if (u.userId == userId) {
+						u.consumer.forEach((c) => {
+							if (c.appData.label == "screensharing_video") {
+								c.focus = true
+							} else {
+								c.focus = false
+							}
+						})
+					} else {
+						u.consumer.forEach((c) => {
+							c.focus = false
+						})
+					}
+				})
+				await this.updateVideo({ socket })
+			} else {
+				this.#screenSharingMode = false
+				await this.updateVideo({ socket })
+			}
+		} catch (error) {
+			console.log("- Error Change Screen Sharing Mode : ", error)
+		}
+	}
+
+	async closeConsumer({ label, userId, consumerId = null, socket }) {
+		try {
+			const user = this.#allUsers.find((u) => u.userId == userId)
+			if (user) {
+				if (label == "screensharing_video" || label == "screensharing_audio") {
+					if (label == "screensharing_video") {
+						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_video")
+						await this.decreaseUsers()
+						user.consumer.forEach((c) => {
+							if (c.kind == "video" && c.appData.label == "video") {
+								c.focus = true
+							}
+						})
+						this.screenSharingMode({ status: false, userId, socket })
+					}
+					if (label == "screensharing_audio") {
+						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_audio")
+						user.consumer.forEach((c) => {
+							if (c.kind == "video" && c.appData.label == "video") {
+								c.focus = true
+							}
+						})
+					}
+				} else {
+					user.consumer = user.consumer.filter((c) => c.id != consumerId)
+				}
+			}
+		} catch (error) {
+			console.log("- Error Close Consumer : ", error)
 		}
 	}
 }

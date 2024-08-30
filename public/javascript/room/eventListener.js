@@ -24,10 +24,6 @@ class EventListener {
 	#raiseHandButton
 	#raiseHandStatus
 
-	// Screen Sharing
-	#screenSharingButton
-	#screenSharingStatus
-
 	// CC
 	#ccButton
 	#ccStatus
@@ -109,9 +105,6 @@ class EventListener {
 		this.#raiseHandButton = document.getElementById("raise-hand-button")
 		this.#raiseHandStatus = false
 
-		// Screen Sharing
-		this.#screenSharingButton = document.getElementById("screen-sharing-button")
-		this.#screenSharingStatus = false
 
 		// CC
 		this.#ccButton = document.getElementById("cc-button")
@@ -258,21 +251,6 @@ class EventListener {
 				this.#raiseHandButton.classList.add("active")
 			}
 			this.#raiseHandStatus = !this.#raiseHandStatus
-		} catch (error) {
-			console.log("- Error Change Raise Hand Button : ", error)
-		}
-	}
-
-	async changeScreenSharingButton() {
-		try {
-			if (this.#screenSharingStatus) {
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
-				this.#screenSharingButton.classList.remove("active")
-			} else {
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing_active.svg"
-				this.#screenSharingButton.classList.add("active")
-			}
-			this.#screenSharingStatus = !this.#screenSharingStatus
 		} catch (error) {
 			console.log("- Error Change Raise Hand Button : ", error)
 		}

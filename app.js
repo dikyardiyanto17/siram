@@ -305,6 +305,15 @@ io.on("connection", async (socket) => {
 			console.log("- Error Connecting Transport Receive : ", error)
 		}
 	})
+
+	socket.on("stop-screensharing", async ({ producerId, label }) => {
+		try {
+			await mediasoupVariable.closeScreenSharing({ producerId })
+			socket.emit("stop-screensharing", { producerId, label })
+		} catch (error) {
+			console.log("- Error Stop Screen Sharing Video : ", error)
+		}
+	})
 })
 
 app.get("/rooms", async (req, res, next) => {

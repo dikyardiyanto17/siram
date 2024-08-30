@@ -34,11 +34,9 @@ class StaticEvent {
 }
 
 class MediaSoupClient extends StaticEvent {
-	constructor() {
-		super()
-	}
 	#consumingTransport = []
 	#mystream = null
+	#screenSharingStream = null
 	#audioSetting = {
 		autoGainControl: false,
 		noiseSuppression: true,
@@ -70,11 +68,33 @@ class MediaSoupClient extends StaticEvent {
 		appData: { label: "video", isActive: true },
 	}
 
+	#screenSharingVideoParams = {
+		track: null,
+		appData: { label: "screensharing_video", isActive: true },
+	}
+
+	#screenSharingAudioParams = {
+		track: null,
+		appData: { label: "screensharing_audio", isActive: true },
+	}
+
 	#producerTransport = null
 	#consumerTransport = null
 	#audioProducer = null
 	#videoProducer = null
+	#screenSharingAudioProducer = null
+	#screenSharingVideoProducer = null
 	#consumers = []
+	#screenSharingMode = false
+	#screenSharingButton = false
+	#screenSharingStatus = document.getElementById("screen-sharing-button")
+	constructor() {
+		super()
+		// Screen Sharing
+		this.#screenSharingMode = false
+		this.#screenSharingStatus = false
+		this.#screenSharingButton = document.getElementById("screen-sharing-button")
+	}
 
 	get rtpCapabilities() {
 		return this.#rtpCapabilities
@@ -157,18 +177,6 @@ class MediaSoupClient extends StaticEvent {
 						index: p.indexing,
 					})
 				})
-
-				// await producerList.reduce(async (previousPromise, p) => {
-				// 	await previousPromise
-				// 	return this.signalNewConsumerTransport({
-				// 		remoteProducerId: p.producerId,
-				// 		socket,
-				// 		userId: p.userId,
-				// 		roomId,
-				// 		usersVariable,
-				// 		socketId: p.socketId,
-				// 	})
-				// }, Promise.resolve())
 			})
 		} catch (error) {
 			console.log("- Error Get Producer : ", error)
@@ -308,12 +316,20 @@ class MediaSoupClient extends StaticEvent {
 				console.log("video transport ended")
 			})
 
+			this.#videoProducer.observer.on("close", () => {
+				console.log("video observer close")
+			})
+
 			this.#audioProducer.on("trackended", () => {
 				console.log("audio track ended")
 			})
 
 			this.#audioProducer.on("transportclose", () => {
 				console.log("audio transport ended")
+			})
+
+			this.#audioProducer.observer.on("close", () => {
+				console.log("audio observer close")
 			})
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
@@ -322,7 +338,6 @@ class MediaSoupClient extends StaticEvent {
 
 	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId, index = null }) {
 		try {
-			console.log(index)
 			if (this.#consumingTransport.includes(remoteProducerId)) return
 			this.#consumingTransport.push(remoteProducerId)
 			let totalReconnecting = 0
@@ -388,8 +403,8 @@ class MediaSoupClient extends StaticEvent {
 
 						consumer.observer.on("close", () => {
 							try {
+								usersVariable.closeConsumer({ ...appData, consumerId: consumer.id, socket })
 								console.log("Consumer Observer (closer) => ", consumer.id)
-								// this.#consumers = this.#consumers.filter((c) => )
 							} catch (error) {
 								console.log("- Error Consumer Observer (close) : ", error)
 							}
@@ -427,6 +442,7 @@ class MediaSoupClient extends StaticEvent {
 							focus: false,
 							socket,
 							index,
+							appData,
 						})
 
 						if (params.kind == "audio" && !appData.isActive) {
@@ -435,6 +451,11 @@ class MediaSoupClient extends StaticEvent {
 
 						let checkVideo = await usersVariable.checkVideo({ userId })
 						if (checkVideo && params.kind == "video") {
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+						}
+
+						if (appData.label == "screensharing_video") {
+							usersVariable.screenSharingMode({ status: true, userId, socket })
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
 						}
 						if (params.kind == "audio") {
@@ -491,6 +512,98 @@ class MediaSoupClient extends StaticEvent {
 			}
 		} catch (error) {
 			console.log("- Error Reverse Consumer Track : ", error)
+		}
+	}
+
+	async changeScreenSharingButton({ socket }) {
+		try {
+			console.log(this.#screenSharingStatus)
+			if (this.#screenSharingStatus) {
+				this.#screenSharingStatus = false
+				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+				this.#screenSharingButton.classList.remove("active")
+				socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer?.id, label: "screensharing_video" })
+				return null
+			} else {
+				this.#screenSharingStatus = true
+				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing_active.svg"
+				this.#screenSharingButton.classList.add("active")
+				return await this.getScreenSharing({ socket })
+			}
+		} catch (error) {
+			console.log("- Error Change Raise Hand Button : ", error)
+		}
+	}
+
+	async getScreenSharing({ socket }) {
+		try {
+			let config = {
+				video: {
+					cursor: "always",
+					displaySurface: "window",
+					chromeMediaSource: "desktop",
+				},
+				audio: true,
+			}
+
+			this.#screenSharingStream = await navigator.mediaDevices.getDisplayMedia(config)
+
+			this.#screenSharingVideoParams.track = await this.#screenSharingStream.getVideoTracks()[0]
+
+			this.#screenSharingVideoProducer = await this.#producerTransport.produce(this.#screenSharingVideoParams)
+
+			this.#screenSharingStream.getVideoTracks()[0].onended = () => {
+				try {
+					socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer.id, label: "screensharing_video" })
+					console.log("stream screensharing track ended")
+				} catch (error) {
+					console.log("- Error onended screensharing : ", error)
+				}
+			}
+
+			this.#screenSharingVideoProducer.on("trackended", () => {
+				socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer.id, label: "screensharing_video" })
+				console.log("screensharing track ended")
+			})
+
+			this.#screenSharingVideoProducer.observer.on("close", () => {
+				console.log("-> screensharing producer close")
+			})
+
+			this.#screenSharingVideoProducer.on("transportclose", () => {
+				console.log("screensharing transport ended")
+			})
+
+			this.#screenSharingVideoProducer.observer.on("close", () => {
+				console.log("screensharing observer close")
+			})
+
+			this.#screenSharingMode = true
+			return this.#screenSharingStream
+		} catch (error) {
+			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.classList.remove("active")
+			console.log("- Error Getting Screen Sharing : ", error)
+		}
+	}
+
+	async closeScreenSharing({ producerId }) {
+		try {
+			this.#screenSharingMode = false
+			this.#screenSharingStatus = false
+			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.classList.remove("active")
+			if (this.#screenSharingAudioProducer != null && this.#screenSharingAudioProducer.id == producerId) {
+				this.#screenSharingAudioProducer.close()
+				this.#screenSharingAudioProducer = null
+			}
+
+			if (this.#screenSharingVideoProducer != null && this.#screenSharingVideoProducer.id == producerId) {
+				this.#screenSharingVideoProducer.close()
+				this.#screenSharingVideoProducer = null
+			}
+		} catch (error) {
+			console.log("- Error Close Screen Sharing : ", error)
 		}
 	}
 }
