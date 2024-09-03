@@ -35,6 +35,24 @@ class StaticEvent {
 			console.log("- Error Update Total User List : ", error)
 		}
 	}
+
+	static warning({ message }) {
+		try {
+			document.getElementById("warning-container").style.top = "50px"
+			document.getElementById("warning-message").innerHTML = message
+			setTimeout(() => {
+				document.getElementById("warning-container").style.top = "-100%"
+				// if (!document.getElementById("warning-container").classList.contains("d-none")) {
+				// 	document.getElementById("warning-container").classList.add("d-none")
+				// }
+				setTimeout(() => {
+					document.getElementById("warning-message").innerHTML = ""
+				}, 500)
+			}, 3000)
+		} catch (error) {
+			console.log("- Error Warning Message : ", error)
+		}
+	}
 }
 
 class Users extends StaticEvent {
@@ -59,7 +77,9 @@ class Users extends StaticEvent {
 	#downButton
 	#totalDisplayedVideo
 	#screenSharingMode = false
-	#isScreensharing = false
+	#screenSharingPermission = false
+	#screenSharingRequestPermission = false
+	#userIdScreenSharing = ""
 
 	// Layout Video
 	#layoutVideoOptions
@@ -88,7 +108,9 @@ class Users extends StaticEvent {
 		this.#layoutVideoOptions = document.querySelectorAll(".layout-option-container")
 		this.#layoutCountContainer = document.querySelectorAll(".layout-option")
 		this.#screenSharingMode = false
-		this.#isScreensharing = false
+		this.#screenSharingPermission = false
+		this.#screenSharingRequestPermission = false
+		this.#userIdScreenSharing = ""
 	}
 
 	get userId() {
@@ -111,9 +133,41 @@ class Users extends StaticEvent {
 		return this.#totalDisplayedVideo
 	}
 
-	async checkPermissionScreenSharing() {
+	get screenSharingPermission() {
+		return this.#screenSharingPermission
+	}
+
+	set screenSharingPermission(permission) {
+		this.#screenSharingPermission = permission
+	}
+
+	get screenSharingMode() {
+		return this.#screenSharingMode
+	}
+
+	set screenSharingMode(condition) {
+		this.#screenSharingMode = condition
+	}
+
+	get userIdScreenSharing() {
+		return this.#userIdScreenSharing
+	}
+
+	set userIdScreenSharing(userId) {
+		this.#userIdScreenSharing = userId
+	}
+
+	get screenSharingRequestPermission() {
+		return this.#screenSharingRequestPermission
+	}
+
+	set screenSharingRequestPermission(permission) {
+		this.#screenSharingRequestPermission = permission
+	}
+
+	async findAdmin() {
 		try {
-			const isAdmin = this.#allUsers.find((u) => u.userId == this.#userId)
+			const isAdmin = this.#allUsers.find((u) => u.admin)
 			return isAdmin
 		} catch (error) {
 			console.log("- Error Check Permission Screen Sharing : ", error)
@@ -155,7 +209,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	hideShowUpDownButton({ status }) {
+	async hideShowUpDownButton({ status }) {
 		try {
 			if (status) {
 				this.#upButton.classList.remove("d-none")
@@ -466,6 +520,10 @@ class Users extends StaticEvent {
 
 	async selectVideoLayout({ container, socket }) {
 		try {
+			if (container.dataset.option == 1 && this.#screenSharingMode) {
+				this.constructor.warning({ message: "Cannot change to the selected layout" })
+				return
+			}
 			document.querySelectorAll(".layout-option-container").forEach((c) => {
 				const radio = c.querySelector(".radio")
 				if (c === container) {
@@ -588,17 +646,29 @@ class Users extends StaticEvent {
 
 	async deleteAllUser({ userId }) {
 		try {
+			let isScreenSharing = false
 			let changeFocus = false
-			this.#allUsers = this.#allUsers.filter((u) => {
-				if (u.focus && u.userId == userId) {
-					changeFocus = true
-				}
-				if (u.userId != userId) {
-					return u
-				}
+
+			this.#allUsers.forEach((u) => {
+				u.consumer.forEach((c) => {
+					if (c.focus && u.userId == userId) {
+						changeFocus = true
+					}
+
+					if (c.focus && u.userId == userId && c.appData.label == "screensharing_video") {
+						isScreenSharing = true
+					}
+				})
 			})
-			if (changeFocus) {
-				this.#allUsers[0].focus = true
+
+			this.#allUsers = this.#allUsers.filter((u) => u.userId != userId)
+
+			if (changeFocus && this.#allUsers.length > 0) {
+				this.#allUsers[0].consumer.forEach((c) => {
+					if (c.kind == "video") {
+						c.focus = true
+					}
+				})
 			}
 		} catch (error) {
 			console.log("- Error Delete All User : ", error)
@@ -818,9 +888,45 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async screenSharingMode({ status, userId, socket }) {
+	async addForceCloseList({ socket, userId }) {
+		try {
+			let userListElement = document.createElement("div")
+			const userListContainerElement = document.getElementById("users-list-container")
+			userListElement.className = "user-list-content"
+			userListElement.id = `ul-ss-${userId}`
+			userListElement.innerHTML = `
+                                <div class="user-list-profile">
+                                    <img src="/assets/icons/example_user.svg" alt="user-list-picture"
+                                        class="user-list-picture" />
+                                    <span class="user-list-username">${userId}</span>
+                                </div>
+                                <div class="user-list-icons">
+									<span class="user-list-tag">Layar</span>
+									${this.#isAdmin ? `<span id="stop-ss-${userId}" class="user-list-tag-ss">Stop</span>` : ""}
+                                </div>
+                            `
+			await userListContainerElement.insertBefore(userListElement, userListContainerElement.firstChild)
+			if (this.#isAdmin && userId != this.#userId) {
+				document.getElementById(`ul-ss-${userId}`).addEventListener("click", () => {
+					try {
+						const user = this.#allUsers.find((u) => u.userId == userId)
+						socket.emit("force-stop-screensharing", { to: user.socketId })
+					} catch (error) {
+						console.log("- Error Stopping Screen Sharing : ", error)
+					}
+				})
+			}
+		} catch (error) {
+			console.log("- Error Add Force Close List : ", error)
+		}
+	}
+
+	async changeScreenSharingMode({ status, userId, socket }) {
 		try {
 			if (status) {
+				// I forgot what i wanted to do :)
+				await this.addForceCloseList({ socket, userId })
+				this.#userIdScreenSharing = userId
 				this.#screenSharingMode = true
 				this.#currentLayout = 3
 				this.#allUsers.forEach((u) => {
@@ -838,10 +944,17 @@ class Users extends StaticEvent {
 						})
 					}
 				})
-				await this.updateVideo({ socket })
+				await document.getElementById("layout-3").click()
 			} else {
+				this.#userIdScreenSharing = ""
 				this.#screenSharingMode = false
 				await this.updateVideo({ socket })
+				if (!this.#isAdmin && this.#screenSharingPermission) {
+					this.#screenSharingPermission = false
+				}
+				if (document.getElementById(`ul-ss-${userId}`)) {
+					document.getElementById(`ul-ss-${userId}`).remove()
+				}
 			}
 		} catch (error) {
 			console.log("- Error Change Screen Sharing Mode : ", error)
@@ -861,7 +974,7 @@ class Users extends StaticEvent {
 								c.focus = true
 							}
 						})
-						this.screenSharingMode({ status: false, userId, socket })
+						this.changeScreenSharingMode({ status: false, userId, socket })
 					}
 					if (label == "screensharing_audio") {
 						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_audio")
@@ -877,6 +990,93 @@ class Users extends StaticEvent {
 			}
 		} catch (error) {
 			console.log("- Error Close Consumer : ", error)
+		}
+	}
+
+	async screenSharingPermissionForAdmin({ socket, userId, socketId }) {
+		try {
+			const permissionContainer = document.getElementById("screensharing-permissions")
+
+			const newPermission = document.createElement("div")
+			newPermission.className = "screensharing-permission"
+			newPermission.id = `screensharing-permission-${userId}`
+
+			const permissionTitle = document.createElement("div")
+			permissionTitle.className = "permission-title"
+			permissionTitle.innerHTML = `${userId} ingin berbagi layar`
+
+			const permissionButton = document.createElement("div")
+			permissionButton.className = "permission-button"
+
+			const permitButton = document.createElement("button")
+			permitButton.className = "accept-ss"
+			permitButton.innerHTML = "Izinkan"
+
+			const rejectButton = document.createElement("button")
+			rejectButton.className = "reject-ss"
+			rejectButton.innerHTML = "Tolak"
+
+			permissionContainer.appendChild(newPermission)
+
+			newPermission.appendChild(permissionTitle)
+			newPermission.appendChild(permissionButton)
+
+			permissionButton.appendChild(rejectButton)
+			permissionButton.appendChild(permitButton)
+
+			const responseReject = async ({ socket }) => {
+				try {
+					socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: socketId, type: "response", response: false })
+				} catch (error) {
+					console.log("- Error Socket Emit Screen Sharing Permission : ", error)
+				}
+			}
+
+			const responseAccept = async ({ socket }) => {
+				try {
+					socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: socketId, type: "response", response: true })
+				} catch (error) {
+					console.log("- Error Socket Emit Screen Sharing Permission : ", error)
+				}
+			}
+
+			rejectButton.addEventListener("click", async () => {
+				try {
+					await responseReject({ socket })
+					await newPermission.remove()
+				} catch (error) {
+					console.log("- Error Accept Permission Screen Sharing : ", error)
+				}
+			})
+
+			permitButton.addEventListener("click", async () => {
+				try {
+					await responseAccept({ socket })
+					await newPermission.remove()
+				} catch (error) {
+					console.log("- Error Accept Permission Screen Sharing : ", error)
+				}
+			})
+		} catch (error) {
+			console.log("- Error Screen Sharing Permission : ", error)
+		}
+	}
+
+	async screenSharingPermissionForUser({ socket }) {
+		try {
+			const admin = await this.findAdmin()
+			socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: admin.socketId, type: "request", response: false })
+			const permissionContainer = document.getElementById("screensharing-permissions")
+
+			const newPermission = document.createElement("div")
+			newPermission.className = "screensharing-permission"
+			newPermission.innerHTML = "Meminta izin untuk berbagi layar ke admin"
+			newPermission.id = `screensharing-permission-${this.#userId}`
+
+			permissionContainer.appendChild(newPermission)
+			this.#screenSharingRequestPermission = true
+		} catch (error) {
+			console.log("- Error Screen Sharing Permission : ", error)
 		}
 	}
 }

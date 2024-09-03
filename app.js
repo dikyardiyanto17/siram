@@ -314,6 +314,22 @@ io.on("connection", async (socket) => {
 			console.log("- Error Stop Screen Sharing Video : ", error)
 		}
 	})
+
+	socket.on("screensharing-permission", async ({ socketId, userId, to, type, response }) => {
+		try {
+			socket.to(to).emit("screensharing-permission", { socketId, userId, to, type, response })
+		} catch (error) {
+			console.log("- Error Getting Screen Sharing Permission : ", error)
+		}
+	})
+
+	socket.on("force-stop-screensharing", async ({ to }) => {
+		try {
+			socket.to(to).emit("force-stop-screensharing", { message: "Berbagi layar diberhentikan oleh admin" })
+		} catch (error) {
+			console.log("- Error Force Stop Screen Sharing : ", error)
+		}
+	})
 })
 
 app.get("/rooms", async (req, res, next) => {

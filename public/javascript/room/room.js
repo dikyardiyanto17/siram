@@ -35,6 +35,7 @@ socket.emit(
 				localStorage.setItem("user_id", userId)
 				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
 				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
+				usersVariable.screenSharingPermission = isAdmin
 				await usersVariable.addAllUser({
 					userId,
 					admin: isAdmin,
@@ -164,7 +165,7 @@ socket.on("close-consumer", async ({ consumerId, appData }) => {
 
 socket.on("stop-screensharing", async ({ producerId, label }) => {
 	try {
-		if (label){
+		if (label) {
 			await mediasoupClientVariable.closeScreenSharing({ producerId })
 			await usersVariable.closeConsumer({ label, userId: usersVariable.userId, consumerId: undefined, socket })
 		}
@@ -173,6 +174,35 @@ socket.on("stop-screensharing", async ({ producerId, label }) => {
 	}
 })
 
+socket.on("screensharing-permission", async ({ socketId, userId, to, type, response }) => {
+	try {
+		if (type == "request") {
+			await usersVariable.screenSharingPermissionForAdmin({ socket, userId, socketId })
+		} else if (type == "response") {
+			if (document.getElementById(`screensharing-permission-${usersVariable.userId}`)) {
+				document.getElementById(`screensharing-permission-${usersVariable.userId}`).remove()
+			}
+
+			let message = response ? "Izin berbagi layar anda diterima oleh admin!" : "Izin berbagi layar anda ditolak oleh admin!"
+
+			Users.warning({ message })
+			usersVariable.screenSharingPermission = response
+			usersVariable.screenSharingRequestPermission = false
+		}
+	} catch (error) {
+		console.log("- Error Screen Sharing Permission : ", error)
+	}
+})
+
+socket.on("force-stop-screensharing", async ({ message }) => {
+	try {
+		await Users.warning({ message })
+		let screenSharingButton = document.getElementById("screen-sharing-button")
+		await screenSharingButton.click()
+	} catch (error) {
+		console.log("- Error Force Stop Screen Sharing : ", error)
+	}
+})
 // Microphone Button
 let microphoneButton = document.getElementById("mic-icon")
 microphoneButton.addEventListener("click", async () => {
@@ -235,11 +265,21 @@ raiseHandButton.addEventListener("click", () => {
 let screenSharingButton = document.getElementById("screen-sharing-button")
 screenSharingButton.addEventListener("click", async () => {
 	try {
-		const checkPermission = await usersVariable.checkPermissionScreenSharing()
-		if (!checkPermission) {
-			console.log("IS NOT ADMIN")
+		if (usersVariable.screenSharingMode && usersVariable.userIdScreenSharing != usersVariable.userId && usersVariable.userIdScreenSharing != "") {
+			Users.warning({ message: "Berbagi layar sedang berjalan" })
 			return
 		}
+
+		if (usersVariable.screenSharingRequestPermission) {
+			Users.warning({ message: "Sudah minta izin berbagi layar ke admin" })
+			return
+		}
+
+		if (!usersVariable.screenSharingPermission) {
+			await usersVariable.screenSharingPermissionForUser({ socket })
+			return
+		}
+
 		const screenSharingStatus = await mediasoupClientVariable.changeScreenSharingButton({ socket })
 		if (screenSharingStatus) {
 			const videoTrack = await screenSharingStatus.getVideoTracks()[0]
@@ -260,7 +300,7 @@ screenSharingButton.addEventListener("click", async () => {
 					userId: usersVariable.userId,
 				},
 			})
-			await usersVariable.screenSharingMode({ status: true, userId: usersVariable.userId, socket })
+			await usersVariable.changeScreenSharingMode({ status: true, userId: usersVariable.userId, socket })
 		}
 	} catch (error) {
 		console.log("- Error Screen Sharing Button : ", error)
@@ -398,6 +438,23 @@ nextButton.addEventListener("click", () => {
 		usersVariable.nextVideo({ socket })
 	} catch (error) {
 		console.log("- Error Click Next Button : ", error)
+	}
+})
+
+let upButton = document.getElementById("arrow-up")
+upButton.addEventListener("click", () => {
+	try {
+		usersVariable.previousVideo({ socket })
+	} catch (error) {
+		console.log("- Error Up Button Video : ", error)
+	}
+})
+let downButton = document.getElementById("arrow-down")
+downButton.addEventListener("click", () => {
+	try {
+		usersVariable.nextVideo({ socket })
+	} catch (error) {
+		console.log("- Error Down Button Video : ", error)
 	}
 })
 

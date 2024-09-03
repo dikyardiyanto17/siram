@@ -105,7 +105,6 @@ class EventListener {
 		this.#raiseHandButton = document.getElementById("raise-hand-button")
 		this.#raiseHandStatus = false
 
-
 		// CC
 		this.#ccButton = document.getElementById("cc-button")
 		this.#ccContainer = document.getElementById("cc-container")
@@ -746,13 +745,14 @@ class EventListener {
 					const usernameLastMessage = chatContent?.lastElementChild?.lastElementChild?.firstElementChild?.firstElementChild?.innerHTML
 					const dateLastMessage = chatContent?.lastElementChild?.lastElementChild?.firstElementChild?.lastElementChild?.innerHTML
 					if (usernameLastMessage == username && messageDate == dateLastMessage) {
+						console.log(usernameLastMessage, "<><><><>", dateLastMessage)
 						return `
 						<div class="message-profile">
 							<img class="message-profile-photo d-none" src="/assets/icons/example_user.svg"
 								alt="profile-picture" />
 						</div>
 						<div class="message-content">
-							<div class="message-header">
+							<div class="message-header d-none">
 								<span>${username}</span>
 								<span>${messageDate}</span>
 							</div>
