@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/assets/css/dashboard_siram.css">
+    <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/daterangepicker-master/daterangepicker.css" />
+    <title>Telepati</title>
+</head>
+
+<body>
+    <div class="full-container">
+        <div id="warning-modal" class="alert alert-danger warning-modal" role="alert">
+            <span id="warning-message">
+            </span>
+        </div>
+
+        <div id="success-modal" class="alert alert-success success-modal" role="alert">
+            <span id="success-message">
+            </span>
+        </div>
+        <div id="create-modal" class="create-meeting-container">
+            <div class="create-meeting">
+                <div class="create-meeting-header-container">
+                    <div class="create-meeting-header">
+                        <input placeholder="Masukkan Judul Rapat" type="text" name="room_name" id="room_name">
+                    </div>
+                </div>
+                <div class="create-meeting-content-container">
+                    <div class="create-meeting-content-card">
+                        <div class="input-meeting">
+                            <span>Tipe Rapat</span>
+                            <select name="meeting_type" id="meeting_type" readonly>
+                                <option value="2">Non Perkara</option>
+                            </select>
+                        </div>
+                        <div class="input-meeting">
+                            <span>No Perkara</span>
+                            <input type="text" id="no_perkara" class="no_perkara" value="-" readonly>
+                        </div>
+                        <div class="input-meeting">
+                            <span>Waktu Mulai</span>
+                            <input type="text" id="start_date" class="start_date" value="" name="start_date">
+                        </div>
+                        <div class="input-meeting">
+                            <span>Waktu Selesai</span>
+                            <input type="text" id="end_date" class="end_date" value="" name="end_date" disabled>
+                        </div>
+                        <div class="input-meeting">
+                            <span>Lokasi Sidang</span>
+                            <textarea name="location" id="location" placeholder="Lokasi Sidang"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="create-meeting-footer-container">
+                    <button type="button" id="save-create-modal-button">Simpan</button>
+                    <button type="button" id="close-create-modal-button">Tutup</button>
+                </div>
+            </div>
+        </div>
+        <div id="modal-detail" class="detail-meeting-container">
+            <div class="detail-meeting">
+                <div class="detail-meeting-header-container">
+                    <div class="detail-meeting-header">
+                        <span>Sidang Pengadilan Militer Terkait Pelanggaran Disiplin Anggota TNI</span>
+                    </div>
+                </div>
+                <div class="detail-meeting-content-container">
+                    <div class="detail-meeting-content-left">
+                        <div class="detail-meeting-content-card">
+                            <div class="type-case">
+                                <span>Tipe Rapat</span>
+                                <div class="info-wrapper">
+                                    <span>Perkara</span>
+                                </div>
+                            </div>
+                            <div class="no-type">
+                                <span>No. Perkara</span>
+                                <div class="info-wrapper">
+                                    <span>5-P/PMT-II/AD/VII/2024</span>
+                                </div>
+                            </div>
+                            <div class="start-time">
+                                <span>Waktu Mulai</span>
+                                <div class="wrapper-time">
+                                    <div class="wrapper-date">
+                                        <div class="info-wrapper">
+                                            <img style="width: 12px;" src="/assets/icons/date-icon.svg" alt="calender"
+                                                srcset="">&nbsp;&nbsp;<span>Hari ini</span>
+                                        </div>
+                                    </div>
+                                    <div class="wrapper-clock">
+                                        <div class="info-wrapper">
+                                            <img style="width: 12px;" src="/assets/icons/clock_meeting.svg" alt="clock"
+                                                srcset="">&nbsp;&nbsp;<span>09:00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="end-time">
+                                <span>Waktu Selesai</span>
+                                <div class="wrapper-time">
+                                    <div class="wrapper-date">
+                                        <div class="info-wrapper">
+                                            <img style="width: 12px;" src="/assets/icons/date-icon.svg" alt="calender"
+                                                srcset="">&nbsp;&nbsp;<span>Hari ini</span>
+                                        </div>
+                                    </div>
+                                    <div class="wrapper-clock">
+                                        <div class="info-wrapper">
+                                            <img style="width: 12px;" src="/assets/icons/clock_meeting.svg" alt="clock"
+                                                srcset="">&nbsp;&nbsp;<span>12:00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="meeting-location">
+                                <span>Lokasi Persidangan</span>
+                                <div class="info-wrapper">
+                                    <span>Jl. Tanah Abang III No.27, RT.3/RW.3, Petojo Sel., Kecamatan Gambir, Kota
+                                        Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10160</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-meeting-content-right">
+                        <div class="detail-meeting-content-card">
+                            <div class="meeting-member">
+                                <span>Peserta Rapat</span>
+                                <hr>
+                            </div>
+                            <div class="meeting-member-list">
+                                <table style="width: 100%;" class="table table-borderless">
+                                    <thead style="width: 100%;" class="thead-light">
+                                        <tr style="width: 100%;">
+                                            <th scope="col" style="width: 10px;">No</th>
+                                            <th scope="col">ID Peserta</th>
+                                            <th scope="col">Nama</th>
+                                            <th scope="col">Role</th>
+                                            <!-- <th scope="col" style="width: 10px;">No</th>
+                                            <th scope="col" style="width: calc(20% - 10px);">ID Peserta</th>
+                                            <th scope="col" style="width: 80%;">Nama</th>
+                                            <th scope="col" style="width: 20%;">Role</th> -->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>P_00000001</td>
+                                            <td>Taufik Hidayat</td>
+                                            <td>Host</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>P_00000002</td>
+                                            <td>Budi Santoso</td>
+                                            <td>Co-Host</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-meeting-footer-container">
+                    <button id="close-detail-modal-button">Tutup</button>
+                </div>
+            </div>
+        </div>
+        <div id="blocker" class="blocker d-none"></div>
+        [/- include('partial/header') /]
+        <div class="main-container">
+            <div class="content-container">
+                <div class="menu-option-container">
+                    <div class="card-containers" id="new-meeting">
+                        <div class="card-icons">
+                            <img src="/assets/icons/add_meeting.svg" alt="meet-icons">
+                        </div>
+                        <h3>Rapat Baru</h3>
+                    </div>
+                    <a class="card-containers" href="/participant">
+                        <div class="card-icons">
+                            <img src="/assets/icons/participant_list.svg" alt="meet-icons">
+                        </div>
+                        <h3>Daftar Peserta</h3>
+                    </a>
+                    <a class="card-containers" href="/room">
+                        <div class="card-icons">
+                            <img src="/assets/icons/meeting_list.svg" alt="meet-icons">
+                        </div>
+                        <h3>Daftar Rapat</h3>
+                    </a>
+                </div>
+                <div class="today-overview">
+                    <div class="live-clock-container">
+                        <div class="live-clock">
+                            <h1 id="live-clock"></h1>
+                            <h3 id="live-date"></h3>
+                        </div>
+                    </div>
+                    <div class="today-overview-meeting-container">
+                        <div class="today-overview-meeting">
+                            <div class="overview-header">
+                                <div class="total-meetings">
+                                    <span>Anda memiliki [/= meetings.length /] jadwal rapat hari ini.</span>
+                                </div>
+                                <div class="filter-meetings">
+
+                                    <div id="overview-meetings"
+                                        style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                                        <img style="width: 15px;" src="/assets/icons/date-icon.svg" alt="calender"
+                                            srcset="">&nbsp;&nbsp;
+                                        <span></span>&nbsp;&nbsp;<img style="width: 15px;"
+                                            src="/assets/icons/arrow_drop.svg" alt="arrowdrop" srcset="">
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div id="overview-content">
+                                <!-- <div class="card-meetings">
+                                    <div class="left-line"></div>
+                                    <div>
+                                        <span>Tipe Rapat : Perkara</span>&nbsp;&nbsp;&nbsp;&nbsp;<span>No. Perkara :
+                                            123/12/345/23</span>
+                                    </div>
+                                    <div>
+                                        <h3>Sidang Pengadilan Militer Terkait Pelanggaran Disiplin Anggota TNI</h3>
+                                    </div>
+                                    <div>
+                                        <hr>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/date-icon.svg" alt="calender"
+                                            srcset="">&nbsp;&nbsp;<span>Hari ini</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/clock_meeting.svg" alt="clock"
+                                            srcset="">&nbsp;&nbsp;<span>09:00 - 12:00</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/institution_meeting.svg"
+                                            alt="institution" srcset="">&nbsp;&nbsp;<span>Pengadilan Militer
+                                            Jakarta</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/participant_meeting.svg"
+                                            alt="participant" srcset="">&nbsp;&nbsp;<span>15 Peserta</span>
+                                    </div>
+                                </div> -->
+                                [/ if (meetings.length == 0){ /]
+                                <span>Tidak ada meeting hari ini</span>
+                                [/ } else { /]
+                                [/ for( let index = 0; index < meetings.length; index++ ) { /] <div
+                                    class="card-meetings">
+                                    <div class="left-line"></div>
+                                    <div>
+                                        <span>Tipe Rapat : [/ if (meetings[index].meeting_type == 1) { /]
+                                            Perkara
+                                            [/ } else if (meetings[index].meeting_type == 2){ /]
+                                            Non Perkara
+                                            [/ } else { /]
+                                            Lainnya
+                                            [/ } /]</span>&nbsp;&nbsp;&nbsp;&nbsp;<span>No. Perkara :
+                                            [/ if (meetings[index].meeting_type == 1) { /]
+                                            [/= meetings[index].no_perkara /]
+                                            [/ } else if (meetings[index].meeting_type == 2){ /]
+                                            -
+                                            [/ } else { /]
+                                            -
+                                            [/ } /]</span>
+                                    </div>
+                                    <div>
+                                        <h3>[/= meetings[index].room_name /]</h3>
+                                    </div>
+                                    <div>
+                                        <hr>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/date-icon.svg" alt="calender"
+                                            srcset="">&nbsp;&nbsp;<span>
+                                            [/ const today = new Date(); /]
+                                            [/ today.setHours(0, 0, 0, 0); /] <!-- Start of today -->
+                                            [/ const endOfToday = new Date(); /]
+                                            [/ endOfToday.setHours(23, 59, 59, 999); /] <!-- End of today -->
+                                            [/ if (meetings[index].start_date >= today && meetings[index].start_date <=
+                                                endOfToday){/] Hari ini [/ } else {/] [/=meetings[index].start_date /]
+                                                [/ } /] </span>
+                                    </div>
+                                    <div>
+                                        [/ const startTime = meetings[index].start_date.toLocaleTimeString([], { hour:
+                                        '2-digit', minute: '2-digit' }) /]
+                                        [/ const endTime = meetings[index].end_date.toLocaleTimeString([], { hour:
+                                        '2-digit', minute: '2-digit' }) /]
+                                        <img style="width: 10px;" src="/assets/icons/clock_meeting.svg" alt="clock"
+                                            srcset="">&nbsp;&nbsp;<span>[/= startTime /] - [/= endTime /]</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/institution_meeting.svg"
+                                            alt="institution" srcset="">&nbsp;&nbsp;<span>[/= meetings[index].location
+                                            /]</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/participant_meeting.svg"
+                                            alt="participant" srcset="">&nbsp;&nbsp;<span>[/ if
+                                            (meetings[index].meeting_type == 1) { /]
+                                            Peserta Pekara
+                                            [/ } else if (meetings[index].meeting_type == 2){ /]
+                                            Publik
+                                            [/ } else { /]
+                                            Lainnya
+                                            [/ } /]</span>
+                                    </div>
+                            </div>
+                            [/ } /]
+                            [/ } /]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="/assets/plugins/jquery/jquery-3.7.1.min.js"></script>
+    <script src="/assets/plugins/daterangepicker-master/moment.min.js"></script>
+    <script src="/assets/plugins/daterangepicker-master/daterangepicker.js"></script>
+    <script src="/javascript/dashboard/dashboard.js"></script>
+</body>
+
+</html>

@@ -571,7 +571,37 @@ class MediaSoupClient extends StaticEvent {
 			this.#screenSharingStream = await navigator.mediaDevices.getDisplayMedia(config)
 
 			if (this.#screenSharingStream) {
-				console.log("PRODUCING")
+				if (await this.#screenSharingStream.getAudioTracks()[0]) {
+					this.#screenSharingAudioParams.track = await this.#screenSharingStream.getAudioTracks()[0]
+
+					this.#screenSharingAudioProducer = await this.#producerTransport.produce(this.#screenSharingAudioParams)
+
+					this.#screenSharingStream.getAudioTracks()[0].onended = () => {
+						try {
+							socket.emit("stop-screensharing", { producerId: this.#screenSharingAudioProducer.id, label: "screensharing_audio" })
+							console.log("stream screensharing track ended")
+						} catch (error) {
+							console.log("- Error onended screensharing : ", error)
+						}
+					}
+
+					this.#screenSharingAudioProducer.on("trackended", () => {
+						socket.emit("stop-screensharing", { producerId: this.#screenSharingAudioProducer.id, label: "screensharing_audio" })
+						console.log("screensharing track ended")
+					})
+
+					this.#screenSharingAudioProducer.observer.on("close", () => {
+						console.log("-> screensharing producer close")
+					})
+
+					this.#screenSharingAudioProducer.on("transportclose", () => {
+						console.log("screensharing transport ended")
+					})
+
+					this.#screenSharingAudioProducer.observer.on("close", () => {
+						console.log("screensharing observer close")
+					})
+				}
 				this.#screenSharingVideoParams.track = await this.#screenSharingStream.getVideoTracks()[0]
 
 				this.#screenSharingVideoProducer = await this.#producerTransport.produce(this.#screenSharingVideoParams)

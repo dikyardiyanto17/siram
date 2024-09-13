@@ -288,3 +288,20 @@
 .swal-wide {
     padding: 50px;
 }
+
+.join-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.join-container>button {
+    background: none;
+    outline: none;
+    background-color: #31A8FF;
+    border: 1px solid #31A8FF;
+    border-radius: 7px;
+    padding: 10px 15px;
+    color: #ffffff;
+}

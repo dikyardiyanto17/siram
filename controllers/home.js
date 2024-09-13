@@ -1,7 +1,10 @@
+const { todayMeeting } = require("./room_siram")
+
 class ControllerHome {
-	static home(req, res) {
+	static async index(req, res) {
 		try {
-			res.render("home")
+			const meetings = await todayMeeting()
+			await res.render("home", { meetings })
 		} catch (error) {
 			console.log(error)
 		}

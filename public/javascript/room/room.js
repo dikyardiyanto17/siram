@@ -6,6 +6,7 @@ const { MediaSoupClient } = require("./mediasoupClient")
 const url = window.location.pathname
 const parts = url.split("/")
 const roomName = parts[2]
+const RecordRTC = require("recordrtc")
 
 const eventListenerCollection = new EventListener({ micStatus: false, cameraStatus: false, roomId: roomName })
 const usersVariable = new Users()
@@ -352,7 +353,7 @@ videoLayoutButton.addEventListener("click", () => {
 let recordButton = document.getElementById("record-button")
 recordButton.addEventListener("click", () => {
 	try {
-		eventListenerCollection.recordMeeting({ from: false })
+		usersVariable.recordMeeting({ from: false, RecordRTC })
 	} catch (error) {
 		console.log("- Error Record : ", error)
 	}
@@ -379,7 +380,7 @@ resumeRecord.addEventListener("click", () => {
 let stopRecord = document.getElementById("stop-record")
 stopRecord.addEventListener("click", () => {
 	try {
-		eventListenerCollection.recordMeeting({ from: true })
+		usersVariable.recordMeeting({ from: true, RecordRTC })
 	} catch (error) {
 		console.log("- Error Stop Record : ", error)
 	}

@@ -1,5 +1,13 @@
+require("dotenv").config()
+
+const ejs = require("ejs")
+ejs.delimiter = "/"
+ejs.openDelimiter = "["
+ejs.closeDelimiter = "]"
+
 const express = require("express")
 const cors = require("cors")
+const session = require("express-session")
 const router = require("./routes/index.js")
 const app = express()
 const port = 9188
@@ -12,6 +20,9 @@ const { Server } = require("socket.io")
 const { Rooms } = require("./server_parameter/rooms.js")
 const { Users } = require("./server_parameter/users.js")
 const { MediaSoup } = require("./server_parameter/mediasoup.js")
+const errorHandler = require("./middlewares/errorHandler.js")
+const ControllerRoom = require("./controllers/room.js")
+const { decodeToken } = require("./helper/jwt.js")
 
 app.use(cors())
 app.set("view engine", "ejs")
@@ -21,6 +32,18 @@ app.use(express.json())
 
 app.use(express.static("public"))
 app.use(express.static(path.join(__dirname, "public")))
+
+const sessionMiddleware = session({
+	secret: process.env.EXPRESS_SESSION_SECRET,
+	resave: false,
+	saveUninitialized: false,
+	cookie: {
+		secure: true,
+		sameSite: true,
+	},
+})
+
+app.use(sessionMiddleware)
 
 let mediasoupVariable = new MediaSoup()
 let roomsVariable = new Rooms()
@@ -34,7 +57,13 @@ const io = new Server(httpsServer, {
 	path: "/socket",
 })
 
+io.use((socket, next) => {
+	sessionMiddleware(socket.request, socket.request.res || {}, next)
+})
+
 io.on("connection", async (socket) => {
+	const userSession = socket.request.session
+
 	socket.on("disconnect", async () => {
 		try {
 			console.log("- Disconnected : ", socket.id)
@@ -68,7 +97,7 @@ io.on("connection", async (socket) => {
 		}
 	})
 
-	socket.on("joining-room", async ({ roomId, userId, position }, callback) => {
+	socket.on("joining-room", async ({ roomId, position }, callback) => {
 		try {
 			if (mediasoupVariable.workers.length == 0) {
 				await mediasoupVariable.createWorker()
@@ -109,6 +138,41 @@ io.on("connection", async (socket) => {
 			} else {
 				throw { name: "Invalid", message: "Invalid Login" }
 			}
+
+			// -- Connecting to Database -- //
+
+			// const decodedToken = await decodeToken(userSession.token)
+			// const { participant_id, full_name } = decodedToken
+			// if (!decodedToken) {
+			// 	throw { name: "Invalid", message: "User tidak valid!" }
+			// }
+
+			// const meetingRoom = await ControllerRoom.joinRoom({ room_id: roomId, participant_id })
+			// if (!meetingRoom) {
+			// 	throw { name: "Invalid", message: "User tidak valid!" }
+			// }
+
+			// if (position == "home") {
+			// 	console.log("Home")
+			// } else if (position == "room") {
+			// 	console.log("ruangan")
+			// } else {
+			// 	throw { name: "Invalid", message: "User tidak valid!" }
+			// }
+
+			// if (mediasoupVariable.workers.length == 0) {
+			// 	await mediasoupVariable.createWorker()
+			// }
+
+			// const { user, room } = meetingRoom
+
+			// if (user.authority == 1 || user.authority == 2) {
+			// 	callback({status: true})
+			// } else if (user.authority == 3) {
+			// 	console.log("User Biasa")
+			// } else {
+			// 	throw { name: "Invalid", message: "User tidak valid!" }
+			// }
 		} catch (error) {
 			console.log("- Error Joining Room : ", error)
 		}
@@ -397,3 +461,5 @@ app.get("/mediasoup/consumers", async (req, res, next) => {
 })
 
 app.use(router)
+
+app.use(errorHandler)

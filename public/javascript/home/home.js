@@ -3,11 +3,12 @@ const { socket } = require("../socket/socket")
 const url = window.location
 
 const joinForm = document.getElementById("join-form")
+const joinSubmit = document.getElementById("submit-join")
 const modalTitle = document.getElementById("modal-title")
 const waitingModal = document.getElementById("waiting-modal-container")
-joinForm.addEventListener("submit", (e) => {
+joinSubmit.addEventListener("click", (e) => {
 	e.preventDefault()
-	const roomId = document.getElementById("room-id").value
+	const roomId = document.getElementById("room_id").value
 	if (!roomId) {
 		return
 	}
@@ -23,8 +24,8 @@ socket.on("response-member-waiting", async ({ response, roomId }) => {
 			waitingModal.classList.add("d-none")
 			setFormStyle({ status: true })
 			Swal.fire({
-				title: "Rejected!",
-				text: "You're not allowed to join the room",
+				title: "Ditolak!",
+				text: "Anda tidak diperkanankan masuk ruangan!",
 				icon: "error",
 			})
 		}
@@ -73,9 +74,9 @@ const generateRandomId = (length, separator = "-", separatorInterval = 4) => {
 // 	joiningRoom({ roomId: id })
 // })
 
-const roomId = document.getElementById("room-id")
-roomId.addEventListener("input", (e) => {
-	localStorage.setItem("room-id", e.target.value)
+const roomId = document.getElementById("room_id")
+roomId.addEventListener("change", (e) => {
+	localStorage.setItem("room_id", e.target.value)
 })
 
 // const rightBar = document.getElementById('right-bar-id')

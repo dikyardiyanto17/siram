@@ -53,6 +53,20 @@ class StaticEvent {
 			console.log("- Error Warning Message : ", error)
 		}
 	}
+
+	static normalHideAndDisplay({ element, status }) {
+		try {
+			if (status) {
+				element.classList.remove("d-none")
+			} else {
+				if (!element.classList.contains("d-none")) {
+					element.classList.add("d-none")
+				}
+			}
+		} catch (error) {
+			console.log("- Error Normal Hide/Display : ", error)
+		}
+	}
 }
 
 class Users extends StaticEvent {
@@ -80,6 +94,14 @@ class Users extends StaticEvent {
 	#screenSharingPermission = false
 	#screenSharingRequestPermission = false
 	#userIdScreenSharing = ""
+
+	#record = null
+
+	// Record
+	#timerCounter
+	#timerFunction
+	#startTime
+	#elapsedTime
 
 	// Layout Video
 	#layoutVideoOptions
@@ -111,6 +133,19 @@ class Users extends StaticEvent {
 		this.#screenSharingPermission = false
 		this.#screenSharingRequestPermission = false
 		this.#userIdScreenSharing = ""
+
+		this.#record = {
+			isRecording: false,
+			stream: null,
+			audioContext: null,
+			audioDestination: null,
+			recordedStream: null,
+			recordedMedia: null,
+		}
+
+		// Record
+		this.#timerCounter = "00:00:00"
+		this.#elapsedTime = 0
 	}
 
 	get userId() {
@@ -633,6 +668,8 @@ class Users extends StaticEvent {
 
 			if (appData && appData.label == "screensharing_audio") {
 				await this.createAudio({ id: "ssa_" + userId, track })
+				const audioSource = this.#record.audioContext.createMediaStreamSource(new MediaStream([track]))
+				audioSource.connect(this.#record.audioDestination)
 			}
 
 			if (appData && appData.label == "screensharing_video") {
@@ -924,7 +961,6 @@ class Users extends StaticEvent {
 	async changeScreenSharingMode({ status, userId, socket }) {
 		try {
 			if (status) {
-				// I forgot what i wanted to do :)
 				await this.addForceCloseList({ socket, userId })
 				this.#userIdScreenSharing = userId
 				this.#screenSharingMode = true
@@ -954,6 +990,9 @@ class Users extends StaticEvent {
 				}
 				if (document.getElementById(`ul-ss-${userId}`)) {
 					document.getElementById(`ul-ss-${userId}`).remove()
+				}
+				if (document.getElementById(`ssa-${userId}`)) {
+					document.getElementById(`ssa-${userId}`).remove()
 				}
 			}
 		} catch (error) {
@@ -1077,6 +1116,188 @@ class Users extends StaticEvent {
 			this.#screenSharingRequestPermission = true
 		} catch (error) {
 			console.log("- Error Screen Sharing Permission : ", error)
+		}
+	}
+
+	async recordMeeting({ from, RecordRTC }) {
+		try {
+			if (!from && this.#record.isRecording) {
+				return
+			}
+			const recordButton = document.getElementById("record-button")
+			if (this.#record.isRecording) {
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
+				recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				recordButton.lastElementChild.innerHTML = "Mulai Merekam"
+				recordButton.removeAttribute("pointer-events")
+			} else {
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: true })
+				recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
+				recordButton.lastElementChild.innerHTML = "Berhenti Merekam"
+				recordButton.setAttribute("pointer-events", "none")
+			}
+			this.#record.isRecording = !this.#record.isRecording
+			await this.timer()
+			await this.recordMeetingVideo({ RecordRTC })
+		} catch (error) {
+			console.log("- Error Record Meeting : ", error)
+		}
+	}
+
+	async resetTimer() {
+		try {
+			const recordButton = document.getElementById("record-button")
+			recordButton.firstElementChild.src = "/assets/icons/record.svg"
+			recordButton.lastElementChild.innerHTML = "Mulai Merekam"
+			recordButton.removeAttribute("pointer-events")
+			await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
+		} catch (error) {
+			console.log("- Error Reset Timer : ", error)
+		}
+	}
+
+	async timer() {
+		try {
+			if (!this.#elapsedTime) {
+				this.#elapsedTime = 0
+			}
+			if (this.#record.isRecording) {
+				this.#startTime = Date.now() - this.#elapsedTime // Adjust startTime by the elapsed time
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: false })
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: true })
+
+				this.#timerFunction = setInterval(() => {
+					let currentTime = Date.now()
+					this.#elapsedTime = currentTime - this.#startTime // Update elapsed time
+					let hours = Math.floor(this.#elapsedTime / 3600000)
+					let minutes = Math.floor((this.#elapsedTime % 3600000) / 60000)
+					let seconds = Math.floor((this.#elapsedTime % 60000) / 1000)
+
+					this.#timerCounter = (hours < 10 ? "0" : "") + hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds
+
+					document.getElementById("timer-span").innerHTML = this.#timerCounter
+				}, 1000)
+			} else {
+				this.#elapsedTime = undefined
+				clearInterval(this.#timerFunction)
+				document.getElementById("timer-title").innerHTML = "Merekam :"
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: false })
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: true })
+				this.#timerCounter = "00:00:00"
+				document.getElementById("timer-span").innerHTML = this.#timerCounter
+				await this.resetTimer()
+			}
+		} catch (error) {
+			console.log("- Error Start Timer : ", error)
+		}
+	}
+
+	async recordMeetingVideo({ RecordRTC }) {
+		try {
+			if (this.#record.isRecording) {
+				const videoStream = await navigator.mediaDevices.getDisplayMedia({
+					video: {
+						cursor: "always",
+						displaySurface: "monitor",
+						chromeMediaSource: "desktop",
+					},
+				})
+
+				let screenSharingStream = new MediaStream()
+				videoStream.getVideoTracks().forEach((track) => screenSharingStream.addTrack(track))
+
+				let allAudio = []
+
+				this.#allUsers.forEach((u) => {
+					u.consumer.forEach((c) => {
+						if (c.track.kind == "audio") {
+							allAudio.push(c.track)
+						}
+					})
+				})
+				let allAudioFlat = allAudio.flatMap((track) => track)
+				this.#record.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+				this.#record.audioDestination = this.#record.audioContext.createMediaStreamDestination()
+
+				allAudioFlat.forEach((track) => {
+					const audioSource = this.#record.audioContext.createMediaStreamSource(new MediaStream([track]))
+					audioSource.connect(this.#record.audioDestination)
+				})
+
+				screenSharingStream.addTrack(this.#record.audioDestination.stream.getAudioTracks()[0])
+				this.#record.recordedStream = screenSharingStream
+				this.#record.recordedMedia = new RecordRTC(this.#record.recordedStream, {
+					type: "video",
+					getNativeBlob: true,
+					timeSlice: 5000,
+					ondataavailable: (blob) => {
+						// socket.send({ type: 'collecting', data: blob })
+						console.log("- Blob : ", blob)
+					},
+				})
+
+				this.#record.recordedMedia.startRecording()
+				this.#record.recordedStream.getAudioTracks()[0].onended = () => {
+					console.log("- Reset Audio Recording")
+					this.#record.audioContext = null
+					this.#record.audioDestination = null
+					this.#record.isRecording = false
+					this.timer()
+				}
+
+				this.#record.recordedStream.getVideoTracks()[0].onended = () => {
+					this.#record.recordedMedia.stopRecording(() => {
+						// socket.send({ type: 'uploading' })
+						this.#record.isRecording = false
+						let blob = this.#record.recordedMedia.getBlob()
+
+						const currentDate = new Date()
+						const formattedDate = currentDate
+							.toLocaleDateString("en-GB", {
+								day: "2-digit",
+								month: "2-digit",
+								year: "numeric",
+							})
+							.replace(/\//g, "") // Remove slashes from the formatted date
+
+						const file = new File([blob], formattedDate, {
+							type: "video/mp4",
+						})
+						RecordRTC.invokeSaveAsDialog(file, file.name)
+						this.#record.recordedStream.getTracks().forEach((track) => track.stop())
+						this.#record.recordedStream = null
+						this.#record.recordedMedia.reset()
+						this.#record.recordedMedia = null
+						this.timer()
+					})
+				}
+			} else {
+				this.#record.recordedMedia.stopRecording(() => {
+					this.#record.isRecording = false
+					let blob = this.#record.recordedMedia.getBlob()
+
+					const currentDate = new Date()
+					const formattedDate = currentDate
+						.toLocaleDateString("en-GB", {
+							day: "2-digit",
+							month: "2-digit",
+							year: "numeric",
+						})
+						.replace(/\//g, "") // Remove slashes from the formatted date
+					const file = new File([blob], formattedDate, {
+						type: "video/mp4",
+					})
+					RecordRTC.invokeSaveAsDialog(file, file.name)
+					this.#record.recordedStream.getTracks().forEach((track) => track.stop())
+					this.#record.recordedStream = null
+					this.#record.recordedMedia.reset()
+					this.#record.recordedMedia = null
+					this.timer()
+				})
+			}
+		} catch (error) {
+			await this.resetTimer()
+			console.log("- Error Record Meeting Video : ", error)
 		}
 	}
 }

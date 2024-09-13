@@ -91,6 +91,9 @@ class Users {
 			console.log("- Error Deleting User:", error)
 		}
 	}
+
+	// -- Connection to Socket and Database -- //
+	// static async
 }
 
 module.exports = { Users }
