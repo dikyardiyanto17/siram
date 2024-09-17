@@ -3,7 +3,9 @@ const { Op, where } = require("sequelize")
 class ControllerRoom {
 	static index(req, res) {
 		try {
-			res.render("room")
+			const { roomId } = req.session
+			const { participant_id, authority } = req.user
+			res.render("room", { authority, participant_id, roomId })
 		} catch (error) {
 			console.log(error)
 		}

@@ -84,7 +84,7 @@ class ParticipantSiram {
 			if (!user) {
 				return false
 			}
-			return user
+			return user.dataValues
 		} catch (error) {
 			console.log("- Error Find User : ", error)
 		}

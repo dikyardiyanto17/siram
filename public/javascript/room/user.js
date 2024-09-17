@@ -1,7 +1,13 @@
 class StaticEvent {
-	static methodAddUserList({ id, username, isAdmin }) {
+	static methodAddUserList({ id, username, authority }) {
 		try {
 			let userListElement = document.createElement("div")
+			let authorityElement = ``
+			if (authority == 1) {
+				authorityElement = '<span class="user-list-tag">Host</span>'
+			} else if (authority == 2) {
+				authorityElement = '<span class="user-list-tag">Co-Host</span>'
+			}
 			userListElement.className = "user-list-content"
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
@@ -11,8 +17,7 @@ class StaticEvent {
                                     <span class="user-list-username">${username}</span>
                                 </div>
                                 <div class="user-list-icons">
-								${isAdmin ? '<span class="user-list-tag">Host</span>' : ""}
-                                    
+									${authorityElement}
                                     <img id="mic-ul-${id}" src="/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
                                     <img src="/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
@@ -71,7 +76,7 @@ class StaticEvent {
 
 class Users extends StaticEvent {
 	#users
-	#isAdmin
+	#authority
 	#videoContainer
 	#videoContainerFocus
 	#allUsers = []
@@ -156,12 +161,12 @@ class Users extends StaticEvent {
 		this.#userId = id
 	}
 
-	get isAdmin() {
-		return this.#isAdmin
+	get authority() {
+		return this.#authority
 	}
 
-	set isAdmin(adminStatus) {
-		this.#isAdmin = adminStatus
+	set authority(authorityInput) {
+		this.#authority = authorityInput
 	}
 
 	get totalDisplayedVideo() {
@@ -202,8 +207,8 @@ class Users extends StaticEvent {
 
 	async findAdmin() {
 		try {
-			const isAdmin = this.#allUsers.find((u) => u.admin)
-			return isAdmin
+			const authority = this.#allUsers.filter((u) => u.authority == 1 || u.authority == 2)
+			return authority
 		} catch (error) {
 			console.log("- Error Check Permission Screen Sharing : ", error)
 		}
@@ -603,10 +608,22 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addAllUser({ userId, admin, consumerId = null, kind = null, track = null, socketId, focus = false, socket, index = null, appData = null }) {
+	async addAllUser({
+		userId,
+		authority,
+		username,
+		consumerId = null,
+		kind = null,
+		track = null,
+		socketId,
+		focus = false,
+		socket,
+		index = null,
+		appData = null,
+	}) {
 		try {
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
-				this.#allUsers.push({ userId, admin, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }] })
+				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }] })
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
@@ -624,7 +641,7 @@ class Users extends StaticEvent {
 					await this.increaseUsers()
 					await this.addVideo({ userId: "ssv_" + userId, track, index })
 				}
-				await this.constructor.methodAddUserList({ id: userId, username: userId, isAdmin: admin })
+				await this.constructor.methodAddUserList({ id: userId, username: username, authority: authority })
 				await this.updatePageInformation()
 				const optionUserList = document.getElementById(`ul-o-${userId}`)
 				optionUserList.addEventListener("click", (e) => {
@@ -939,11 +956,11 @@ class Users extends StaticEvent {
                                 </div>
                                 <div class="user-list-icons">
 									<span class="user-list-tag">Layar</span>
-									${this.#isAdmin ? `<span id="stop-ss-${userId}" class="user-list-tag-ss">Stop</span>` : ""}
+									${this.#authority ? `<span id="stop-ss-${userId}" class="user-list-tag-ss">Stop</span>` : ""}
                                 </div>
                             `
 			await userListContainerElement.insertBefore(userListElement, userListContainerElement.firstChild)
-			if (this.#isAdmin && userId != this.#userId) {
+			if (this.#authority && userId != this.#userId) {
 				document.getElementById(`ul-ss-${userId}`).addEventListener("click", () => {
 					try {
 						const user = this.#allUsers.find((u) => u.userId == userId)
@@ -985,7 +1002,7 @@ class Users extends StaticEvent {
 				this.#userIdScreenSharing = ""
 				this.#screenSharingMode = false
 				await this.updateVideo({ socket })
-				if (!this.#isAdmin && this.#screenSharingPermission) {
+				if (!this.#authority && this.#screenSharingPermission) {
 					this.#screenSharingPermission = false
 				}
 				if (document.getElementById(`ul-ss-${userId}`)) {
@@ -1032,7 +1049,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async screenSharingPermissionForAdmin({ socket, userId, socketId }) {
+	async screenSharingPermissionForAdmin({ socket, userId, socketId, roomId }) {
 		try {
 			const permissionContainer = document.getElementById("screensharing-permissions")
 
@@ -1066,6 +1083,7 @@ class Users extends StaticEvent {
 			const responseReject = async ({ socket }) => {
 				try {
 					socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: socketId, type: "response", response: false })
+					socket.emit("admin-response", { type: "screen-sharing-permission", id: userId, roomId: roomId })
 				} catch (error) {
 					console.log("- Error Socket Emit Screen Sharing Permission : ", error)
 				}
@@ -1074,6 +1092,7 @@ class Users extends StaticEvent {
 			const responseAccept = async ({ socket }) => {
 				try {
 					socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: socketId, type: "response", response: true })
+					socket.emit("admin-response", { type: "screen-sharing-permission", id: userId, roomId: roomId })
 				} catch (error) {
 					console.log("- Error Socket Emit Screen Sharing Permission : ", error)
 				}
@@ -1104,7 +1123,11 @@ class Users extends StaticEvent {
 	async screenSharingPermissionForUser({ socket }) {
 		try {
 			const admin = await this.findAdmin()
-			socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: admin.socketId, type: "request", response: false })
+
+			admin.forEach((u) => {
+				socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: u.socketId, type: "request", response: false })
+			})
+
 			const permissionContainer = document.getElementById("screensharing-permissions")
 
 			const newPermission = document.createElement("div")

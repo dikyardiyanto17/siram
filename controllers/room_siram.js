@@ -21,7 +21,7 @@ class RoomSiram {
 		try {
 			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, location } = req.body
 
-			const room_id = await generateRandomId()
+			const room_id = await RoomSiram.generateRoomId()
 			const status = 1
 			const max_participants = 100
 
@@ -87,7 +87,7 @@ class RoomSiram {
 		}
 	}
 
-	static async todayMeeting(req, res, next) {
+	static async todayMeeting() {
 		try {
 			const startOfToday = new Date()
 			startOfToday.setHours(0, 0, 0, 0)
@@ -98,11 +98,45 @@ class RoomSiram {
 				where: {
 					[Op.and]: [{ start_date: { [Op.between]: [startOfToday, endOfToday] } }, { end_date: { [Op.between]: [startOfToday, endOfToday] } }],
 				},
+				order: [["room_id", "ASC"]],
 			})
 
 			return meetings
 		} catch (error) {
-			next(error)
+			console.log("- Error Get Today Meeting : ", error)
+		}
+	}
+
+	static async generateRoomId() {
+		try {
+			const today = new Date()
+			const year = today.getFullYear().toString().slice(2)
+			const month = (today.getMonth() + 1).toString().padStart(2, "0")
+			const day = today.getDate().toString().padStart(2, "0")
+
+			const dateString = `${year}${month}${day}`
+
+			const lastRoom = await Room.findOne({
+				where: {
+					room_id: {
+						[Op.like]: `R_${dateString}%`,
+					},
+				},
+				order: [["room_id", "DESC"]],
+			})
+
+			let nextSequence = "0001"
+
+			if (lastRoom) {
+				const lastRoomId = lastRoom.room_id
+				const lastSequence = lastRoomId.split("_").pop()
+				nextSequence = (parseInt(lastSequence, 10) + 1).toString().padStart(4, "0")
+			}
+
+			const newRoomId = `R_${dateString}_${nextSequence}`
+			return newRoomId
+		} catch (error) {
+			console.log("- Error Generate Room Id: ", error)
 		}
 	}
 }

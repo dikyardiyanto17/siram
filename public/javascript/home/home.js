@@ -37,13 +37,20 @@ socket.on("response-member-waiting", async ({ response, roomId }) => {
 const joiningRoom = async ({ roomId }) => {
 	try {
 		socket.connect()
-		socket.emit("joining-room", { roomId, userId: generateRandomId(20), position: "home" }, ({ userId, status, roomId }) => {
-			localStorage.setItem("user_id", userId)
-			if (!status) {
-				window.location.href = url.origin + "/room/" + roomId
+		socket.emit("joining-room", { roomId, position: "home" }, ({ status, roomName, meetingDate }) => {
+			if (status) {
+				window.location.href = url.origin + "/room/" + roomName.replace(/\s+/g, "-")
 			} else {
+				let hours = new Date(meetingDate).getHours()
+				let minutes = new Date(meetingDate).getMinutes()
+
+				hours = hours < 10 ? "0" + hours : hours
+				minutes = minutes < 10 ? "0" + minutes : minutes
+				const timeString = `${hours}.${minutes}`
+
 				setFormStyle({ status: false })
-				modalTitle.innerHTML = roomId
+				modalTitle.innerHTML = roomName
+				document.getElementById("start_date_modal").innerHTML = timeString
 				waitingModal.classList.remove("d-none")
 			}
 		})

@@ -158,6 +158,10 @@ class EventListener {
 		return this.#microphoneStatus
 	}
 
+	get roomId() {
+		return this.#roomId
+	}
+
 	async changeMicButton({ id }) {
 		try {
 			const myUserLicMic = document.getElementById(`mic-ul-${id}`)
@@ -616,6 +620,7 @@ class EventListener {
 			const acceptEvent = () => {
 				try {
 					socket.emit("response-member-waiting", { response: true, id: id, roomId: this.#roomId })
+					socket.emit("admin-response", { type: "waiting-list", id, roomId: this.#roomId })
 					removeEventListener()
 					this.checkWaitingList()
 				} catch (error) {
@@ -626,6 +631,7 @@ class EventListener {
 			const rejectEvent = () => {
 				try {
 					socket.emit("response-member-waiting", { response: false, id: id, roomId: this.#roomId })
+					socket.emit("admin-response", { type: "waiting-list", id, roomId: this.#roomId })
 					removeEventListener()
 					this.checkWaitingList()
 				} catch (error) {
@@ -655,6 +661,20 @@ class EventListener {
 		}
 	}
 
+	async removeWaitingList({ id }) {
+		try {
+			const waitedUser = document.getElementById(`wait-${id}`)
+
+			if (waitedUser) {
+				waitedUser.remove()
+			}
+
+			await this.checkWaitingList()
+		} catch (error) {
+			console.log("- Error Remove Waiting List : ", error)
+		}
+	}
+
 	async deleteWaitingUser({ id }) {
 		try {
 			const waitingUserList = document.getElementById(`wait-${id}`)
@@ -665,6 +685,17 @@ class EventListener {
 			await this.checkWaitingList()
 		} catch (error) {
 			console.log("- Error Delete Waiting User : ", error)
+		}
+	}
+
+	async removeScreenSharingPermissionUser(id) {
+		try {
+			const screenSharingPermissionElement = document.getElementById(`screensharing-permission-${userId}`)
+			if (screenSharingPermissionElement) {
+				screenSharingPermissionElement.remove()
+			}
+		} catch (error) {
+			console.log("- Error Deleting Screen Sharing User : ", error)
 		}
 	}
 

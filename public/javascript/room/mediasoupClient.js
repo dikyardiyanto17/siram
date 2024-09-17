@@ -255,7 +255,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log("- Error Connecting State Change Producer : ", error)
 					}
 				})
-
 				this.#producerTransport.on("icegatheringstatechange", (iceGatheringState) => {
 					try {
 						console.log("- Gathering Ice State : ", iceGatheringState)
@@ -263,7 +262,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log("- Error Ice Gathering State Producer : ", error)
 					}
 				})
-
 				this.#producerTransport.observer.on("close", () => {
 					try {
 						console.log("- Producer Transport Is Closed : ", this.#producerTransport.id)
@@ -271,7 +269,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log("- Error Close Transport Producer : ", error)
 					}
 				})
-
 				this.#producerTransport.observer.on("newproducer", (producer) => {
 					try {
 						console.log("- Create New Producer : ", producer.id)
@@ -279,7 +276,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log(`- Error Create New Producer ${producer.id}: `, error)
 					}
 				})
-
 				this.#producerTransport.observer.on("newconsumer", (consumer) => {
 					try {
 						console.log("- Create New Consumer : ", consumer.id)
@@ -455,7 +451,8 @@ class MediaSoupClient extends StaticEvent {
 
 						await usersVariable.addAllUser({
 							userId,
-							admin: params.admin,
+							username: params.username,
+							authority: params.authority,
 							consumerId: consumer.id,
 							kind: params.kind,
 							track,

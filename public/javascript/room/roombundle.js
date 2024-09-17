@@ -34280,6 +34280,10 @@ class EventListener {
 		return this.#microphoneStatus
 	}
 
+	get roomId() {
+		return this.#roomId
+	}
+
 	async changeMicButton({ id }) {
 		try {
 			const myUserLicMic = document.getElementById(`mic-ul-${id}`)
@@ -34738,6 +34742,7 @@ class EventListener {
 			const acceptEvent = () => {
 				try {
 					socket.emit("response-member-waiting", { response: true, id: id, roomId: this.#roomId })
+					socket.emit("admin-response", { type: "waiting-list", id, roomId: this.#roomId })
 					removeEventListener()
 					this.checkWaitingList()
 				} catch (error) {
@@ -34748,6 +34753,7 @@ class EventListener {
 			const rejectEvent = () => {
 				try {
 					socket.emit("response-member-waiting", { response: false, id: id, roomId: this.#roomId })
+					socket.emit("admin-response", { type: "waiting-list", id, roomId: this.#roomId })
 					removeEventListener()
 					this.checkWaitingList()
 				} catch (error) {
@@ -34777,6 +34783,20 @@ class EventListener {
 		}
 	}
 
+	async removeWaitingList({ id }) {
+		try {
+			const waitedUser = document.getElementById(`wait-${id}`)
+
+			if (waitedUser) {
+				waitedUser.remove()
+			}
+
+			await this.checkWaitingList()
+		} catch (error) {
+			console.log("- Error Remove Waiting List : ", error)
+		}
+	}
+
 	async deleteWaitingUser({ id }) {
 		try {
 			const waitingUserList = document.getElementById(`wait-${id}`)
@@ -34787,6 +34807,17 @@ class EventListener {
 			await this.checkWaitingList()
 		} catch (error) {
 			console.log("- Error Delete Waiting User : ", error)
+		}
+	}
+
+	async removeScreenSharingPermissionUser(id) {
+		try {
+			const screenSharingPermissionElement = document.getElementById(`screensharing-permission-${userId}`)
+			if (screenSharingPermissionElement) {
+				screenSharingPermissionElement.remove()
+			}
+		} catch (error) {
+			console.log("- Error Deleting Screen Sharing User : ", error)
 		}
 	}
 
@@ -35184,7 +35215,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log("- Error Connecting State Change Producer : ", error)
 					}
 				})
-
 				this.#producerTransport.on("icegatheringstatechange", (iceGatheringState) => {
 					try {
 						console.log("- Gathering Ice State : ", iceGatheringState)
@@ -35192,7 +35222,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log("- Error Ice Gathering State Producer : ", error)
 					}
 				})
-
 				this.#producerTransport.observer.on("close", () => {
 					try {
 						console.log("- Producer Transport Is Closed : ", this.#producerTransport.id)
@@ -35200,7 +35229,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log("- Error Close Transport Producer : ", error)
 					}
 				})
-
 				this.#producerTransport.observer.on("newproducer", (producer) => {
 					try {
 						console.log("- Create New Producer : ", producer.id)
@@ -35208,7 +35236,6 @@ class MediaSoupClient extends StaticEvent {
 						console.log(`- Error Create New Producer ${producer.id}: `, error)
 					}
 				})
-
 				this.#producerTransport.observer.on("newconsumer", (consumer) => {
 					try {
 						console.log("- Create New Consumer : ", consumer.id)
@@ -35384,7 +35411,8 @@ class MediaSoupClient extends StaticEvent {
 
 						await usersVariable.addAllUser({
 							userId,
-							admin: params.admin,
+							username: params.username,
+							authority: params.authority,
 							consumerId: consumer.id,
 							kind: params.kind,
 							track,
@@ -35608,7 +35636,6 @@ const { Users } = require("./user")
 const { MediaSoupClient } = require("./mediasoupClient")
 const url = window.location.pathname
 const parts = url.split("/")
-const roomName = parts[2]
 const RecordRTC = require("recordrtc")
 
 const eventListenerCollection = new EventListener({ micStatus: false, cameraStatus: false, roomId: roomName })
@@ -35620,14 +35647,14 @@ socket.connect()
 socket.emit(
 	"joining-room",
 	{ roomId: roomName, userId: localStorage.getItem("user_id"), position: "room" },
-	async ({ userId, roomId, status, isAdmin, rtpCapabilities }) => {
+	async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
 		try {
 			if (status) {
 				console.log("socket id : ", socket.id)
 				let filteredRtpCapabilities = { ...rtpCapabilities }
 				filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter((ext) => ext.uri !== "urn:3gpp:video-orientation")
 				usersVariable.userId = userId
-				usersVariable.isAdmin = isAdmin
+				usersVariable.authority = authority
 				const devices = await navigator.mediaDevices.enumerateDevices()
 
 				mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
@@ -35636,13 +35663,17 @@ socket.emit(
 				await mediasoupClientVariable.getMyStream()
 				await usersVariable.audioDevicesOutput({ stream: mediasoupClientVariable.myStream })
 
-				localStorage.setItem("user_id", userId)
 				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
 				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
-				usersVariable.screenSharingPermission = isAdmin
+				if (authority == 1 || authority == 2) {
+					usersVariable.screenSharingPermission = true
+				} else {
+					usersVariable.screenSharingPermission = false
+				}
 				await usersVariable.addAllUser({
 					userId,
-					admin: isAdmin,
+					username,
+					authority,
 					socketId: socket.id,
 					kind: "audio",
 					track: audioTrack,
@@ -35659,7 +35690,8 @@ socket.emit(
 				})
 				await usersVariable.addAllUser({
 					userId,
-					admin: isAdmin,
+					username,
+					authority,
 					socketId: socket.id,
 					kind: "video",
 					track: videoTrack,
@@ -35674,7 +35706,12 @@ socket.emit(
 						userId,
 					},
 				})
-				await mediasoupClientVariable.createSendTransport({ socket, roomId: roomName, userId: userId, usersVariable })
+				if ((authority == 1 || authority == 2) && waitingList) {
+					waitingList.forEach((u) => {
+						eventListenerCollection.methodAddWaitingUser({ id: u.participantId, username: u.username, socket })
+					})
+				}
+				await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
 			} else {
 				window.location.href = window.location.origin
 			}
@@ -35684,9 +35721,9 @@ socket.emit(
 	}
 )
 
-socket.on("member-joining-room", ({ id, socketId }) => {
+socket.on("member-joining-room", ({ id, socketId, username }) => {
 	try {
-		eventListenerCollection.methodAddWaitingUser({ id: id, username: id, socket })
+		eventListenerCollection.methodAddWaitingUser({ id: id, username: username, socket })
 	} catch (error) {
 		console.log("- Member Error Join Room : ", error)
 	}
@@ -35781,7 +35818,7 @@ socket.on("stop-screensharing", async ({ producerId, label }) => {
 socket.on("screensharing-permission", async ({ socketId, userId, to, type, response }) => {
 	try {
 		if (type == "request") {
-			await usersVariable.screenSharingPermissionForAdmin({ socket, userId, socketId })
+			await usersVariable.screenSharingPermissionForAdmin({ socket, userId, socketId, roomId: eventListenerCollection.roomId })
 		} else if (type == "response") {
 			if (document.getElementById(`screensharing-permission-${usersVariable.userId}`)) {
 				document.getElementById(`screensharing-permission-${usersVariable.userId}`).remove()
@@ -35805,6 +35842,18 @@ socket.on("force-stop-screensharing", async ({ message }) => {
 		await screenSharingButton.click()
 	} catch (error) {
 		console.log("- Error Force Stop Screen Sharing : ", error)
+	}
+})
+
+socket.on("admin-response", async ({ type, id, roomId }) => {
+	try {
+		if (type == "waiting-list") {
+			eventListenerCollection.removeWaitingList({ id })
+		} else if (type == "screen-sharing-permission") {
+			eventListenerCollection.removeScreenSharingPermissionUser({ id })
+		}
+	} catch (error) {
+		console.log("- Error Admin Response : ", error)
 	}
 })
 // Microphone Button
@@ -35889,7 +35938,7 @@ screenSharingButton.addEventListener("click", async () => {
 			const videoTrack = await screenSharingStatus.getVideoTracks()[0]
 			await usersVariable.addAllUser({
 				userId: usersVariable.userId,
-				admin: usersVariable.isAdmin,
+				authority: usersVariable.authority,
 				socketId: socket.id,
 				kind: "video",
 				track: videoTrack,
@@ -36104,9 +36153,15 @@ document.addEventListener("click", function (e) {
 
 },{"../socket/socket":106,"./eventListener":102,"./mediasoupClient":103,"./user":105,"recordrtc":80,"sweetalert2":100}],105:[function(require,module,exports){
 class StaticEvent {
-	static methodAddUserList({ id, username, isAdmin }) {
+	static methodAddUserList({ id, username, authority }) {
 		try {
 			let userListElement = document.createElement("div")
+			let authorityElement = ``
+			if (authority == 1) {
+				authorityElement = '<span class="user-list-tag">Host</span>'
+			} else if (authority == 2) {
+				authorityElement = '<span class="user-list-tag">Co-Host</span>'
+			}
 			userListElement.className = "user-list-content"
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
@@ -36116,8 +36171,7 @@ class StaticEvent {
                                     <span class="user-list-username">${username}</span>
                                 </div>
                                 <div class="user-list-icons">
-								${isAdmin ? '<span class="user-list-tag">Host</span>' : ""}
-                                    
+									${authorityElement}
                                     <img id="mic-ul-${id}" src="/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
                                     <img src="/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
@@ -36176,7 +36230,7 @@ class StaticEvent {
 
 class Users extends StaticEvent {
 	#users
-	#isAdmin
+	#authority
 	#videoContainer
 	#videoContainerFocus
 	#allUsers = []
@@ -36261,12 +36315,12 @@ class Users extends StaticEvent {
 		this.#userId = id
 	}
 
-	get isAdmin() {
-		return this.#isAdmin
+	get authority() {
+		return this.#authority
 	}
 
-	set isAdmin(adminStatus) {
-		this.#isAdmin = adminStatus
+	set authority(authorityInput) {
+		this.#authority = authorityInput
 	}
 
 	get totalDisplayedVideo() {
@@ -36307,8 +36361,8 @@ class Users extends StaticEvent {
 
 	async findAdmin() {
 		try {
-			const isAdmin = this.#allUsers.find((u) => u.admin)
-			return isAdmin
+			const authority = this.#allUsers.filter((u) => u.authority == 1 || u.authority == 2)
+			return authority
 		} catch (error) {
 			console.log("- Error Check Permission Screen Sharing : ", error)
 		}
@@ -36708,10 +36762,22 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addAllUser({ userId, admin, consumerId = null, kind = null, track = null, socketId, focus = false, socket, index = null, appData = null }) {
+	async addAllUser({
+		userId,
+		authority,
+		username,
+		consumerId = null,
+		kind = null,
+		track = null,
+		socketId,
+		focus = false,
+		socket,
+		index = null,
+		appData = null,
+	}) {
 		try {
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
-				this.#allUsers.push({ userId, admin, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }] })
+				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }] })
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
@@ -36729,7 +36795,7 @@ class Users extends StaticEvent {
 					await this.increaseUsers()
 					await this.addVideo({ userId: "ssv_" + userId, track, index })
 				}
-				await this.constructor.methodAddUserList({ id: userId, username: userId, isAdmin: admin })
+				await this.constructor.methodAddUserList({ id: userId, username: username, authority: authority })
 				await this.updatePageInformation()
 				const optionUserList = document.getElementById(`ul-o-${userId}`)
 				optionUserList.addEventListener("click", (e) => {
@@ -37044,11 +37110,11 @@ class Users extends StaticEvent {
                                 </div>
                                 <div class="user-list-icons">
 									<span class="user-list-tag">Layar</span>
-									${this.#isAdmin ? `<span id="stop-ss-${userId}" class="user-list-tag-ss">Stop</span>` : ""}
+									${this.#authority ? `<span id="stop-ss-${userId}" class="user-list-tag-ss">Stop</span>` : ""}
                                 </div>
                             `
 			await userListContainerElement.insertBefore(userListElement, userListContainerElement.firstChild)
-			if (this.#isAdmin && userId != this.#userId) {
+			if (this.#authority && userId != this.#userId) {
 				document.getElementById(`ul-ss-${userId}`).addEventListener("click", () => {
 					try {
 						const user = this.#allUsers.find((u) => u.userId == userId)
@@ -37090,7 +37156,7 @@ class Users extends StaticEvent {
 				this.#userIdScreenSharing = ""
 				this.#screenSharingMode = false
 				await this.updateVideo({ socket })
-				if (!this.#isAdmin && this.#screenSharingPermission) {
+				if (!this.#authority && this.#screenSharingPermission) {
 					this.#screenSharingPermission = false
 				}
 				if (document.getElementById(`ul-ss-${userId}`)) {
@@ -37137,7 +37203,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async screenSharingPermissionForAdmin({ socket, userId, socketId }) {
+	async screenSharingPermissionForAdmin({ socket, userId, socketId, roomId }) {
 		try {
 			const permissionContainer = document.getElementById("screensharing-permissions")
 
@@ -37171,6 +37237,7 @@ class Users extends StaticEvent {
 			const responseReject = async ({ socket }) => {
 				try {
 					socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: socketId, type: "response", response: false })
+					socket.emit("admin-response", { type: "screen-sharing-permission", id: userId, roomId: roomId })
 				} catch (error) {
 					console.log("- Error Socket Emit Screen Sharing Permission : ", error)
 				}
@@ -37179,6 +37246,7 @@ class Users extends StaticEvent {
 			const responseAccept = async ({ socket }) => {
 				try {
 					socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: socketId, type: "response", response: true })
+					socket.emit("admin-response", { type: "screen-sharing-permission", id: userId, roomId: roomId })
 				} catch (error) {
 					console.log("- Error Socket Emit Screen Sharing Permission : ", error)
 				}
@@ -37209,7 +37277,11 @@ class Users extends StaticEvent {
 	async screenSharingPermissionForUser({ socket }) {
 		try {
 			const admin = await this.findAdmin()
-			socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: admin.socketId, type: "request", response: false })
+
+			admin.forEach((u) => {
+				socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: u.socketId, type: "request", response: false })
+			})
+
 			const permissionContainer = document.getElementById("screensharing-permissions")
 
 			const newPermission = document.createElement("div")

@@ -28,4 +28,15 @@ const formatDate = (dateStr) => {
 	return `${formattedDate}, ${formattedTime}`
 }
 
-module.exports = { createdDate, generateRandomId, formatDate }
+const saveSession = (session) => {
+	return new Promise((resolve, reject) => {
+		session.save((err) => {
+			if (err) {
+				return reject(err)
+			}
+			resolve()
+		})
+	})
+}
+
+module.exports = { createdDate, generateRandomId, formatDate, saveSession }
