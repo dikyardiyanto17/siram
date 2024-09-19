@@ -75,10 +75,10 @@ io.on("connection", async (socket) => {
 
 			if (user) {
 				await mediasoupVariable.deleteAndCloseUser({ userId: user.id })
-				await liveMeeting.deleteUser({ socket })
+				await liveMeeting.deleteUser({ socket, userSession })
 			}
 
-			console.log("- Deleted User : ", liveMeeting.users)
+			console.log("- Deleted User : ", user)
 		} catch (error) {
 			console.log("- Error Disconnecting Socket : ", error)
 		}
@@ -103,6 +103,12 @@ io.on("connection", async (socket) => {
 
 			const { user, room } = meetingRoom
 
+			if (!userSession.roomId) {
+				userSession.roomId = roomId
+				userSession.roomName = room.room_name
+				await saveSession(userSession)
+			}
+
 			if (position == "home") {
 				await liveMeeting.addUser({
 					participantId: user.participant_id,
@@ -115,7 +121,6 @@ io.on("connection", async (socket) => {
 					username: user.full_name,
 				})
 
-				await liveMeeting.changeProcessDeleteUserList({ participantId: user.participant_id, roomId, status: false })
 				if (user.authority == 1 || user.authority == 2) {
 					await liveMeeting.changeVerifiedList({ participantId: user.participant_id, roomId: room.room_id, status: true })
 					await liveMeeting.changeWaitingList({ participantId: user.participant_id, status: false, roomId: room.room_id })
@@ -125,7 +130,6 @@ io.on("connection", async (socket) => {
 					const { verified } = checkUserDidJoined
 
 					if (verified) {
-						await liveMeeting.changeJoinedList({ participantId: user.participant_id, roomId: room.room_id, status: true, socketId: socket.id })
 						callback({ status: true, roomName: room.room_name, meetingDate: room.start_date })
 					} else {
 						const admins = await liveMeeting.findAdmin({ roomId: room.room_id })
@@ -137,11 +141,8 @@ io.on("connection", async (socket) => {
 				} else {
 					throw { name: "Invalid", message: "User tidak valid!" }
 				}
-				if (!userSession.roomId) {
-					userSession.roomId = roomId
-					await saveSession(userSession)
-				}
 			} else if (position == "room") {
+				await liveMeeting.changeProcessDeleteUserList({ participantId: user.participant_id, roomId, status: false })
 				const checkUser = await liveMeeting.checkUser({ participantId: user.participant_id, roomId: room.room_id })
 				if (!checkUser) {
 					callback({ status: false, roomName: room.room_name, meetingDate: room.start_date })
@@ -184,8 +185,14 @@ io.on("connection", async (socket) => {
 				throw { name: "Not Found", message: "Room is not found" }
 			}
 
-			await liveMeeting.changeVerifiedList({ participantId: id, roomId: roomId, status: true })
-			await liveMeeting.changeWaitingList({ participantId: id, status: false, roomId: roomId })
+			await liveMeeting.changeVerifiedList({ participantId: id, roomId: roomId, status: response })
+			await liveMeeting.changeWaitingList({ participantId: id, status: response ? false : true, roomId: roomId })
+
+			socket.to(user.socketId).emit("response-member-waiting", { response, roomId: userSession.roomName.replace(/\s+/g, "-") })
+
+			if (!response) {
+				await liveMeeting.deleteUserRejected({ userId: id, roomId: user.roomId })
+			}
 		} catch (error) {
 			console.log("- Error Response Member Waiting : ", error)
 		}

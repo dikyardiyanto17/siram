@@ -340,7 +340,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addVideo({ userId, track, index = null }) {
+	async addVideo({ userId, track, index = null, username }) {
 		try {
 			let check = await this.checkLayout({ index })
 			if (!check || this.#currentLayout == 2) {
@@ -365,7 +365,7 @@ class Users extends StaticEvent {
 				let usernameElement = document.createElement("span")
 				usernameElement.id = `vu-${userId}`
 				usernameElement.className = "video-username"
-				usernameElement.innerHTML = userId
+				usernameElement.innerHTML = username
 				userVideoElement.appendChild(usernameElement)
 
 				let microphoneElement = document.createElement("div")
@@ -623,7 +623,7 @@ class Users extends StaticEvent {
 	}) {
 		try {
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
-				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }] })
+				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }], username })
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
@@ -631,7 +631,7 @@ class Users extends StaticEvent {
 					await this.createAudio({ id: userId, track })
 				}
 				if (kind == "video" && appData.label == "video") {
-					await this.addVideo({ userId, track, displayedVideo, index })
+					await this.addVideo({ username, userId, track, displayedVideo, index })
 				}
 				if (appData && appData.label == "screensharing_audio") {
 					await this.createAudio({ id: "ssa_" + userId, track })
@@ -639,7 +639,7 @@ class Users extends StaticEvent {
 
 				if (appData && appData.label == "screensharing_video") {
 					await this.increaseUsers()
-					await this.addVideo({ userId: "ssv_" + userId, track, index })
+					await this.addVideo({ username, userId: "ssv_" + userId, track, index })
 				}
 				await this.constructor.methodAddUserList({ id: userId, username: username, authority: authority })
 				await this.updatePageInformation()
@@ -680,7 +680,7 @@ class Users extends StaticEvent {
 				await this.createAudio({ id: userId, track })
 			}
 			if (kind == "video" && appData.label == "video") {
-				await this.addVideo({ userId, track, index })
+				await this.addVideo({ username, userId, track, index })
 			}
 
 			if (appData && appData.label == "screensharing_audio") {
@@ -691,7 +691,7 @@ class Users extends StaticEvent {
 
 			if (appData && appData.label == "screensharing_video") {
 				await this.increaseUsers()
-				await this.addVideo({ userId: "ssv_" + userId, track, index })
+				await this.addVideo({ username, userId: "ssv_" + userId, track, index })
 			}
 		} catch (error) {
 			console.log("- Error Add User : ", error)
@@ -746,7 +746,11 @@ class Users extends StaticEvent {
 	}
 
 	async increaseUsers() {
+		// if (this.#users == 0) {
+		// 	this.#users = 1
+		// }
 		this.#users = this.#users + 1
+		// console.log("AFTER", this.#users)
 		this.constructor.updateTotalUserList({ total: this.#users })
 	}
 
@@ -874,7 +878,7 @@ class Users extends StaticEvent {
 					// let track = u.consumer.find((t) => t.kind == "video")
 					for (const track of tracks) {
 						if (customIndex + 1 >= min && customIndex + 1 <= max) {
-							await this.addVideo({ userId: u.userId, track: track.track })
+							await this.addVideo({ username: u.username, userId: u.userId, track: track.track })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
@@ -926,7 +930,7 @@ class Users extends StaticEvent {
 							socket.emit("consumer-resume", { serverConsumerId: track.id })
 						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							customIndex++
-							await this.addVideo({ userId: u.userId, track: track.track })
+							await this.addVideo({ username: u.username, userId: u.userId, track: track.track })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}

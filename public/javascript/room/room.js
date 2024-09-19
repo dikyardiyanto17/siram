@@ -15,7 +15,7 @@ socket.connect()
 
 socket.emit(
 	"joining-room",
-	{ roomId: roomName, userId: localStorage.getItem("user_id"), position: "room" },
+	{ roomId: roomName, userId: userId, position: "room" },
 	async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
 		try {
 			if (status) {
@@ -116,6 +116,7 @@ socket.on("user-list", ({ type, userId, isActive }) => {
 
 socket.on("user-logout", ({ userId }) => {
 	try {
+		console.log(userId)
 		eventListenerCollection.deleteUserList({ id: userId })
 		usersVariable.decreaseUsers()
 		usersVariable.deleteVideo({ userId })
@@ -308,6 +309,7 @@ screenSharingButton.addEventListener("click", async () => {
 			await usersVariable.addAllUser({
 				userId: usersVariable.userId,
 				authority: usersVariable.authority,
+				username: "Screen Sharing",
 				socketId: socket.id,
 				kind: "video",
 				track: videoTrack,

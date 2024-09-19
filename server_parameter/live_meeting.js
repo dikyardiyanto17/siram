@@ -1,3 +1,5 @@
+const { saveSession } = require("../helper")
+
 class LiveMeeting {
 	#users = []
 
@@ -152,39 +154,48 @@ class LiveMeeting {
 		}
 	}
 
-	async deleteUser({ socket }) {
+	async deleteUser({ socket, userSession }) {
 		try {
 			const user = this.#users.find((u) => u.socketId == socket.id)
-			if (user) {
-				if (user.waiting) {
-					this.#users = this.#users.filter((u) => u.socketId != socket.id)
-					return
-				}
-
-				user.processDeleteUser = true
-
-				user.socketId = null
-
-				user.joined = false
-
+			if (user.joined && user) {
+				userSession.roomId = null
+				userSession.roomName = null
+				await saveSession(userSession)
 				this.#users.forEach((u) => {
 					try {
-						if (u.participantId != user.participantId && u.roomId == user.roomId) {
-							socket.to(u.socketId).emit("user-logout", { userId: user.id })
+						if (u.participantId != user.participantId && u.roomId == user.roomId && u.joined) {
+							socket.to(u.socketId).emit("user-logout", { userId: user.participantId })
 						}
 					} catch (error) {
 						console.log("- Error End User in Looping : ", error)
 					}
 				})
-
+				user.processDeleteUser = true
+				user.socketId = null
+				user.joined = false
 				setTimeout(() => {
 					if (user.processDeleteUser) {
-						this.#users = this.#users.filter((u) => u.socketId != socket.id)
+						this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
 					}
 				}, 1000 * 60 * 60)
+				return
 			}
 		} catch (error) {
 			console.log("- Error Delete User : ", error)
+		}
+	}
+
+	async deleteUserRejected({ userId, roomId, userSession }) {
+		try {
+			const user = this.#users.find((u) => u.participantId == userId && u.roomId == roomId)
+			if (user) {
+				userSession.roomId = null
+				userSession.roomName = null
+				await saveSession(userSession)
+				this.#users = this.#users.filter((u) => u.participantId != userId)
+			}
+		} catch (error) {
+			console.log("- Error Deleted User : ", error)
 		}
 	}
 }
