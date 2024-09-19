@@ -101,6 +101,8 @@ class MediaSoupClient extends StaticEvent {
 	#screenSharingMode = false
 	#screenSharingButton = false
 	#screenSharingStatus = document.getElementById("screen-sharing-button")
+
+	#videoDeviceId = ""
 	constructor() {
 		super()
 		// Screen Sharing
@@ -324,7 +326,7 @@ class MediaSoupClient extends StaticEvent {
 			this.#audioProducer = await this.#producerTransport.produce(this.#audioParams)
 			this.#videoProducer = await this.#producerTransport.produce(this.#videoParams)
 			this.#videoProducer.on("trackended", () => {
-				window.location.reload()
+				// window.location.reload()
 				console.log("video track ended")
 			})
 
@@ -660,6 +662,52 @@ class MediaSoupClient extends StaticEvent {
 			}
 		} catch (error) {
 			console.log("- Error Close Screen Sharing : ", error)
+		}
+	}
+
+	async getCameraOptions({ userId }) {
+		try {
+			const listCameraContainer = document.getElementById("video-options")
+			let videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput")
+			const currentDevice = await this.#mystream.getVideoTracks()[0].getSettings().deviceId
+			this.#videoDeviceId = currentDevice
+			videoDevices.forEach((videoList) => {
+				let currentCameraIcons = '<i class="fa-regular fa-square"></i>'
+				if (videoList.deviceId === currentDevice) {
+					currentCameraIcons = '<i class="fa-regular fa-square-check"></i>'
+				}
+				const cameraLabel = document.createElement("li")
+				cameraLabel.innerHTML = `<span class="input-options-icons">${currentCameraIcons}</span><span>${videoList.label}</span>`
+				cameraLabel.id = videoList.deviceId
+				cameraLabel.addEventListener("click", async (e) => {
+					e.stopPropagation()
+					const currentActiveCameraIcon = document.getElementById(this.#videoDeviceId).firstChild.firstChild
+					currentActiveCameraIcon.className = "fa-regular fa-square"
+					this.#videoDeviceId = videoList.deviceId
+					document.getElementById(this.#videoDeviceId).firstChild.firstChild.className = "fa-regular fa-square-check"
+
+					let config = {
+						video: {
+							deviceId: { exact: this.#videoDeviceId },
+						},
+					}
+					const newStream = await navigator.mediaDevices.getUserMedia(config)
+					if (document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0]) {
+						await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0].stop()
+						await document
+							.getElementById(`v-${userId}`)
+							.srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
+						await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
+					}
+					await this.#mystream.getVideoTracks()[0].stop()
+					await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+					await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
+					await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
+				})
+				listCameraContainer.appendChild(cameraLabel)
+			})
+		} catch (error) {
+			console.log("- Error Get Camera Options : ", error)
 		}
 	}
 }

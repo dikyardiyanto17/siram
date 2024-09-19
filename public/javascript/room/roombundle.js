@@ -34133,6 +34133,8 @@ class EventListener {
 	// Camera
 	#cameraButton
 	#cameraStatus
+	#cameraDevicesOption
+	#cameraOptions
 
 	// User List
 	#userListButton
@@ -34214,6 +34216,8 @@ class EventListener {
 		// Camera
 		this.#cameraButton = document.getElementById("camera-icon")
 		this.#cameraStatus = cameraStatus
+		this.#cameraDevicesOption = document.getElementById("camera-devices-option")
+		this.#cameraOptions = document.getElementById("video-options")
 
 		// User List
 		this.#userListButton = document.getElementById("user-list-button")
@@ -34424,7 +34428,7 @@ class EventListener {
 		}
 	}
 
-	async hideUserOptionButtion() {
+	async hideUserOptionButton() {
 		try {
 			const allOptionUserList = document.querySelectorAll(".user-list-icons-option")
 			allOptionUserList.forEach((e) => {
@@ -34436,6 +34440,9 @@ class EventListener {
 					console.log("- Error Hide It : ", error)
 				}
 			})
+			if (!this.#cameraOptions.classList.contains("d-none")) {
+				this.#cameraOptions.classList.add("d-none")
+			}
 		} catch (error) {
 			console.log("- Error Hide User Option Button : ", error)
 		}
@@ -34511,6 +34518,18 @@ class EventListener {
 			}
 		} catch (error) {
 			console.log("- Error Hiding Menu : ", error)
+		}
+	}
+
+	async cameraDevicesOption() {
+		try {
+			if (this.#cameraOptions.classList.contains("d-none")) {
+				this.#cameraOptions.classList.remove("d-none")
+			} else {
+				this.#cameraOptions.classList.add("d-none")
+			}
+		} catch (error) {
+			console.log("- Error Hide or Display Option : ", error)
 		}
 	}
 
@@ -35061,6 +35080,8 @@ class MediaSoupClient extends StaticEvent {
 	#screenSharingMode = false
 	#screenSharingButton = false
 	#screenSharingStatus = document.getElementById("screen-sharing-button")
+
+	#videoDeviceId = ""
 	constructor() {
 		super()
 		// Screen Sharing
@@ -35284,7 +35305,7 @@ class MediaSoupClient extends StaticEvent {
 			this.#audioProducer = await this.#producerTransport.produce(this.#audioParams)
 			this.#videoProducer = await this.#producerTransport.produce(this.#videoParams)
 			this.#videoProducer.on("trackended", () => {
-				window.location.reload()
+				// window.location.reload()
 				console.log("video track ended")
 			})
 
@@ -35622,6 +35643,52 @@ class MediaSoupClient extends StaticEvent {
 			console.log("- Error Close Screen Sharing : ", error)
 		}
 	}
+
+	async getCameraOptions({ userId }) {
+		try {
+			const listCameraContainer = document.getElementById("video-options")
+			let videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput")
+			const currentDevice = await this.#mystream.getVideoTracks()[0].getSettings().deviceId
+			this.#videoDeviceId = currentDevice
+			videoDevices.forEach((videoList) => {
+				let currentCameraIcons = '<i class="fa-regular fa-square"></i>'
+				if (videoList.deviceId === currentDevice) {
+					currentCameraIcons = '<i class="fa-regular fa-square-check"></i>'
+				}
+				const cameraLabel = document.createElement("li")
+				cameraLabel.innerHTML = `<span class="input-options-icons">${currentCameraIcons}</span><span>${videoList.label}</span>`
+				cameraLabel.id = videoList.deviceId
+				cameraLabel.addEventListener("click", async (e) => {
+					e.stopPropagation()
+					const currentActiveCameraIcon = document.getElementById(this.#videoDeviceId).firstChild.firstChild
+					currentActiveCameraIcon.className = "fa-regular fa-square"
+					this.#videoDeviceId = videoList.deviceId
+					document.getElementById(this.#videoDeviceId).firstChild.firstChild.className = "fa-regular fa-square-check"
+
+					let config = {
+						video: {
+							deviceId: { exact: this.#videoDeviceId },
+						},
+					}
+					const newStream = await navigator.mediaDevices.getUserMedia(config)
+					if (document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0]) {
+						await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0].stop()
+						await document
+							.getElementById(`v-${userId}`)
+							.srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
+						await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
+					}
+					await this.#mystream.getVideoTracks()[0].stop()
+					await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+					await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
+					await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
+				})
+				listCameraContainer.appendChild(cameraLabel)
+			})
+		} catch (error) {
+			console.log("- Error Get Camera Options : ", error)
+		}
+	}
 }
 
 module.exports = {
@@ -35661,6 +35728,7 @@ socket.emit(
 				await mediasoupClientVariable.createDevice()
 				await mediasoupClientVariable.setEncoding()
 				await mediasoupClientVariable.getMyStream()
+				await mediasoupClientVariable.getCameraOptions({ userId: userId })
 				await usersVariable.audioDevicesOutput({ stream: mediasoupClientVariable.myStream })
 
 				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
@@ -35879,7 +35947,8 @@ microphoneButton.addEventListener("click", async () => {
 let cameraButton = document.getElementById("camera-icon")
 cameraButton.addEventListener("click", () => {
 	try {
-		eventListenerCollection.changeCameraButton()
+		// eventListenerCollection.changeCameraButton()
+		console.log("- Do Nothing")
 	} catch (error) {
 		console.log("- Error Camera Button : ", error)
 	}
@@ -36113,6 +36182,16 @@ downButton.addEventListener("click", () => {
 	}
 })
 
+let videoDevicesOption = document.getElementById("camera-devices-option")
+videoDevicesOption.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+		eventListenerCollection.cameraDevicesOption()
+	} catch (error) {
+		console.log("- Error Video Devices Option : ", error)
+	}
+})
+
 const messageInput = document.getElementById("message-input")
 messageInput.addEventListener("keyup", async (event) => {
 	try {
@@ -36147,7 +36226,7 @@ messageInput.addEventListener("keyup", async (event) => {
 document.addEventListener("click", function (e) {
 	try {
 		eventListenerCollection.hideButton()
-		eventListenerCollection.hideUserOptionButtion()
+		eventListenerCollection.hideUserOptionButton()
 	} catch (error) {
 		console.log("- Error HideAll Button : ", error)
 	}
@@ -36783,6 +36862,7 @@ class Users extends StaticEvent {
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
+
 				if (kind == "audio" && consumerId != null && appData.label == "audio") {
 					await this.createAudio({ id: userId, track })
 				}
@@ -37183,8 +37263,15 @@ class Users extends StaticEvent {
 			if (user) {
 				if (label == "screensharing_video" || label == "screensharing_audio") {
 					if (label == "screensharing_video") {
-						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_video")
-						await this.decreaseUsers()
+						user.consumer = user.consumer.filter((c) => {
+							if (c.appData.label != "screensharing_video") {
+								return c
+							}
+							if (c.appData.label == "screensharing_video") {
+								this.decreaseUsers()
+							}
+						})
+						console.log(user)
 						user.consumer.forEach((c) => {
 							if (c.kind == "video" && c.appData.label == "video") {
 								c.focus = true
@@ -37483,6 +37570,13 @@ class Users extends StaticEvent {
 			console.log("- Error Record Meeting Video : ", error)
 		}
 	}
+
+	// async changeVideoTrack({ track }) {
+	// 	try {
+	// 	} catch (error) {
+	// 		console.log("- Error Change Video Track : ", error)
+	// 	}
+	// }
 }
 
 module.exports = { Users }

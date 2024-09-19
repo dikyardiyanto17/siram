@@ -192,6 +192,9 @@ io.on("connection", async (socket) => {
 
 			if (!response) {
 				await liveMeeting.deleteUserRejected({ userId: id, roomId: user.roomId })
+				userSession.roomId = null
+				userSession.roomName = null
+				await saveSession(userSession)
 			}
 		} catch (error) {
 			console.log("- Error Response Member Waiting : ", error)

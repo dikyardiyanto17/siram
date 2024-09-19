@@ -627,6 +627,7 @@ class Users extends StaticEvent {
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
+
 				if (kind == "audio" && consumerId != null && appData.label == "audio") {
 					await this.createAudio({ id: userId, track })
 				}
@@ -1027,8 +1028,15 @@ class Users extends StaticEvent {
 			if (user) {
 				if (label == "screensharing_video" || label == "screensharing_audio") {
 					if (label == "screensharing_video") {
-						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_video")
-						await this.decreaseUsers()
+						user.consumer = user.consumer.filter((c) => {
+							if (c.appData.label != "screensharing_video") {
+								return c
+							}
+							if (c.appData.label == "screensharing_video") {
+								this.decreaseUsers()
+							}
+						})
+						console.log(user)
 						user.consumer.forEach((c) => {
 							if (c.kind == "video" && c.appData.label == "video") {
 								c.focus = true
@@ -1327,6 +1335,13 @@ class Users extends StaticEvent {
 			console.log("- Error Record Meeting Video : ", error)
 		}
 	}
+
+	// async changeVideoTrack({ track }) {
+	// 	try {
+	// 	} catch (error) {
+	// 		console.log("- Error Change Video Track : ", error)
+	// 	}
+	// }
 }
 
 module.exports = { Users }

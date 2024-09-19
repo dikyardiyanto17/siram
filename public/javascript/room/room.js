@@ -30,6 +30,7 @@ socket.emit(
 				await mediasoupClientVariable.createDevice()
 				await mediasoupClientVariable.setEncoding()
 				await mediasoupClientVariable.getMyStream()
+				await mediasoupClientVariable.getCameraOptions({ userId: userId })
 				await usersVariable.audioDevicesOutput({ stream: mediasoupClientVariable.myStream })
 
 				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
@@ -248,7 +249,8 @@ microphoneButton.addEventListener("click", async () => {
 let cameraButton = document.getElementById("camera-icon")
 cameraButton.addEventListener("click", () => {
 	try {
-		eventListenerCollection.changeCameraButton()
+		// eventListenerCollection.changeCameraButton()
+		console.log("- Do Nothing")
 	} catch (error) {
 		console.log("- Error Camera Button : ", error)
 	}
@@ -482,6 +484,16 @@ downButton.addEventListener("click", () => {
 	}
 })
 
+let videoDevicesOption = document.getElementById("camera-devices-option")
+videoDevicesOption.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+		eventListenerCollection.cameraDevicesOption()
+	} catch (error) {
+		console.log("- Error Video Devices Option : ", error)
+	}
+})
+
 const messageInput = document.getElementById("message-input")
 messageInput.addEventListener("keyup", async (event) => {
 	try {
@@ -516,7 +528,7 @@ messageInput.addEventListener("keyup", async (event) => {
 document.addEventListener("click", function (e) {
 	try {
 		eventListenerCollection.hideButton()
-		eventListenerCollection.hideUserOptionButtion()
+		eventListenerCollection.hideUserOptionButton()
 	} catch (error) {
 		console.log("- Error HideAll Button : ", error)
 	}

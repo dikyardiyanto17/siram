@@ -11,6 +11,8 @@ class EventListener {
 	// Camera
 	#cameraButton
 	#cameraStatus
+	#cameraDevicesOption
+	#cameraOptions
 
 	// User List
 	#userListButton
@@ -92,6 +94,8 @@ class EventListener {
 		// Camera
 		this.#cameraButton = document.getElementById("camera-icon")
 		this.#cameraStatus = cameraStatus
+		this.#cameraDevicesOption = document.getElementById("camera-devices-option")
+		this.#cameraOptions = document.getElementById("video-options")
 
 		// User List
 		this.#userListButton = document.getElementById("user-list-button")
@@ -302,7 +306,7 @@ class EventListener {
 		}
 	}
 
-	async hideUserOptionButtion() {
+	async hideUserOptionButton() {
 		try {
 			const allOptionUserList = document.querySelectorAll(".user-list-icons-option")
 			allOptionUserList.forEach((e) => {
@@ -314,6 +318,9 @@ class EventListener {
 					console.log("- Error Hide It : ", error)
 				}
 			})
+			if (!this.#cameraOptions.classList.contains("d-none")) {
+				this.#cameraOptions.classList.add("d-none")
+			}
 		} catch (error) {
 			console.log("- Error Hide User Option Button : ", error)
 		}
@@ -389,6 +396,18 @@ class EventListener {
 			}
 		} catch (error) {
 			console.log("- Error Hiding Menu : ", error)
+		}
+	}
+
+	async cameraDevicesOption() {
+		try {
+			if (this.#cameraOptions.classList.contains("d-none")) {
+				this.#cameraOptions.classList.remove("d-none")
+			} else {
+				this.#cameraOptions.classList.add("d-none")
+			}
+		} catch (error) {
+			console.log("- Error Hide or Display Option : ", error)
 		}
 	}
 

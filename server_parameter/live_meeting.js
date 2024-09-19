@@ -180,6 +180,9 @@ class LiveMeeting {
 				}, 1000 * 60 * 60)
 				return
 			}
+			if (!user.joined && user.waiting) {
+				this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
+			}
 		} catch (error) {
 			console.log("- Error Delete User : ", error)
 		}

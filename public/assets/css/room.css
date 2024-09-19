@@ -1287,3 +1287,39 @@ input:focus {
     -webkit-transform: rotateY(0);
     -moz-transform: rotateY(0);
 }
+
+#video-options {
+    z-index: 5;
+    position: absolute;
+    background-color: rgba(68, 71, 74, 0.7);
+    padding: 10px;
+    bottom: 40px;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+#camera-button>ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#camera-button>ul>li {
+    white-space: nowrap;
+    text-align: left;
+    margin: 5px;
+    display: flex;
+    align-items: center;
+    padding: 1px 5px;
+    font-size: 11px;
+}
+
+#camera-button>ul>li:hover:not(#video-input) {
+    background-color: rgba(68, 71, 74, 1);
+    border-radius: 10px;
+}
+
+.input-options-icons {
+    padding: 5px;
+}
