@@ -54,16 +54,19 @@
                 <p class="text-title">Selamat datang di video conference <span>Siram!</span></p>
                 <p class="text-content">Silahkan masukan tanggal persidangan</p>
                 <div class="join-container">
-                    <div id="join-form" class="join-form-container" style="position: relative; z-index: -1;">
-                        <img class="date-icon" src="/assets/icons/date.svg" alt="date_icon">
-                        <div class="vertical-line"></div>
-                        <select class="join-form" name="room_id" id="room_id">
-                            [/ meetings.forEach(meeting => { /]
-                            <option value="[/= meeting.room_id /]">[/= meeting.room_name/]</option>
-                            [/ }) /]
-                        </select>
+                    <div class="join-form-section">
+                        <div id="join-form" class="join-form-container" style="position: relative; z-index: -1;">
+                            <input class="join-form" type="text" name="room_id" id="room_id"
+                                placeholder="Masukkan Room Id">
+                        </div>
+                        <div id="password-form" class="join-form-container" style="position: relative; z-index: -1;">
+                            <input class="join-form" type="text" name="password" id="password"
+                                placeholder="Masukkan Password">
+                        </div>
                     </div>
-                    <button type="button" id="submit-join">Join</button>
+                    <div class="join-button-section">
+                        <button type="button" id="submit-join" style="display: none;">Join</button>
+                    </div>
                 </div>
             </div>
         </section>

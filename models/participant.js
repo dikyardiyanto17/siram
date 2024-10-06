@@ -22,6 +22,7 @@ module.exports = (sequelize, DataTypes) => {
 			deleted_at: DataTypes.DATE,
 			created_by: DataTypes.STRING,
 			photo: DataTypes.BLOB,
+			photo_path: DataTypes.STRING,
 			full_name: DataTypes.STRING,
 			nik: DataTypes.STRING,
 			nrp: DataTypes.STRING,

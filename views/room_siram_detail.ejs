@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/assets/plugins/datatable/datatables.min.css">
+    <link rel="stylesheet" href="/assets/css/room_siram_detail.css">
+    <link rel="stylesheet" href="/assets/css/custom_datatable_room_detail.css">
+    <link rel="stylesheet" href="/assets/css/custom_datatable.css">
+    <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <title>Telepati</title>
+</head>
+
+<body>
+    <div class="full-container">
+        [/- include('partial/header') /]
+        <div class="main-container">
+            <div class="main-container-wrapper">
+                <div class="main-content-wrapper">
+                    <div class="header-detail">
+                        <span>Detail Rapat</span>
+                        <hr>
+                    </div>
+                    <div class="meeting-detail">
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>Tipe Rapat</span></div>
+                            <div class="text-detail-input-wrapper"><span>Non Perkara</span></div>
+                        </div>
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>Waktu Mulai</span></div>
+                            <div class="text-detail-input-time">
+                                <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
+                                        src="/assets/icons/date-icon.svg" alt="calender" srcset="">&nbsp;<span>Hari
+                                        Ini</span>
+                                </div>
+                                <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
+                                        src="/assets/icons/clock_meeting.svg" alt="clock"
+                                        srcset="">&nbsp;<span>19.00</span></div>
+                            </div>
+                        </div>
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>No Perkara</span></div>
+                            <div class="text-detail-input-wrapper"><span>-</span></div>
+                        </div>
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>Waktu Selesai</span></div>
+                            <div class="text-detail-input-time">
+                                <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
+                                        src="/assets/icons/date-icon.svg" alt="calender" srcset="">&nbsp;<span>Hari
+                                        Ini</span>
+                                </div>
+                                <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
+                                        src="/assets/icons/clock_meeting.svg" alt="clock"
+                                        srcset="">&nbsp;<span>19.00</span></div>
+                            </div>
+                        </div>
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>Judul Rapat</span></div>
+                            <div class="text-detail-input-wrapper"><span>Rapat Internal Tim IT</span></div>
+                        </div>
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>Jumlah Peserta</span></div>
+                            <div class="text-detail-input-wrapper"><span>10</span></div>
+                        </div>
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>ID Room</span></div>
+                            <div class="text-detail-input-wrapper"><span>R_240920_0001</span></div>
+                        </div>
+                        <div class="detail-wrapper">
+                            <div class="text-detail-wrapper"><span>Password</span></div>
+                            <div class="text-detail-input-wrapper"><span>r4an-rfuC-hfu5</span></div>
+                        </div>
+                    </div>
+                    <div class="meeting-participant">
+                        <div class="meeting-participant-header">
+                            <span>Daftar Peserta</span>
+                            <hr>
+                        </div>
+                        <div class="table-responsive" style="height: 500px;">
+                            <table class="table" id="customize-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>NIK</th>
+                                        <th>Nama Peserta</th>
+                                        <th>Status Peserta</th>
+                                        <th>Alamat Email</th>
+                                        <th>Status Kehadiran</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>1921839219182</td>
+                                        <td>Taufik Hidayat</td>
+                                        <td>Hakim</td>
+                                        <td>taufik@gmail.com</td>
+                                        <td>Hadir</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="chat-history">
+                        <div class="chat-history-header">
+                            <span>Riwayat Pesan</span>
+                            <hr>
+                        </div>
+                        <div class="chat-history-content">
+                            <div class="chat-content">
+                                <div class="message-container-receive">
+                                    <img class="chat-photo-profile" src="/assets/pictures/avatar.png"
+                                        alt="photo_profile">
+                                    <div class="message-container">
+                                        <div class="chat-name">
+                                            <span>Nama</span>
+                                        </div>
+                                        <div class="message">
+                                            <div class="message-content">
+                                                <span>Message</span>
+                                            </div>
+                                            <div class="message-time">
+                                                <span>11.00 pm</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="message-container-send">
+                                    <img class="chat-photo-profile" src="/assets/pictures/avatar.png"
+                                        alt="photo_profile">
+                                    <div class="message-container">
+                                        <div class="chat-name">
+                                            <span>Nama</span>
+                                        </div>
+                                        <div class="message">
+                                            <div class="message-content">
+                                                <span>Message</span>
+                                            </div>
+                                            <div class="message-time">
+                                                <span>11.00 pm</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="/assets/plugins/jquery/jquery-3.7.1.min.js"></script>
+    <script src="/assets/plugins/datatable/datatables.min.js"></script>
+    <script>
+        const backButton = [/- JSON.stringify(backButton) /];
+    </script>
+    <script src="/javascript/room_siram_detail/room_siram_detail.js"></script>
+
+</body>
+
+</html>

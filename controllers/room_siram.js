@@ -1,6 +1,6 @@
-const { Op } = require("sequelize")
+const { Op, QueryTypes, where } = require("sequelize")
 const { createdDate, generateRandomId, formatDate } = require("../helper")
-const { Room } = require("../models")
+const { Room, Room_Participant, sequelize, Sequelize, Participant } = require("../models")
 
 class RoomSiram {
 	static async index(req, res, next) {
@@ -11,7 +11,37 @@ class RoomSiram {
 				m.dataValues.end_date = formatDate(m.dataValues.end_date)
 				return m.dataValues
 			})
+
+			const meetingsWithParticipants = await Promise.all(
+				sortedMeeting.map(async (meeting) => {
+					const participants = await Room_Participant.findAll({
+						where: {
+							no_perkara: meeting.no_perkara,
+						},
+					})
+
+					meeting.participants = participants?.length
+				})
+			)
 			await res.render("room_siram", { backButton: true, meetings: sortedMeeting })
+		} catch (error) {
+			next(error)
+		}
+	}
+
+	static async detail(req, res, next) {
+		try {
+			const { room_id } = req.params
+			const room = await Room.findOne({
+				where: {
+					room_id: room_id,
+				},
+			})
+			if (!room) {
+				await res.render("not_found")
+				return
+			}
+			await res.render("room_siram_detail", { backButton: true, ...room })
 		} catch (error) {
 			next(error)
 		}
@@ -19,17 +49,30 @@ class RoomSiram {
 
 	static async create(req, res, next) {
 		try {
-			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, location } = req.body
+			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, location, password } = req.body
 
-			const room_id = await RoomSiram.generateRoomId()
+			const room_id = await RoomSiram.createRoomId()
 			const status = 1
 			const max_participants = 100
+
+			const existingId = await Room.findOne({
+				where: {
+					room_id,
+				},
+			})
+
+			if (existingId) {
+			}
 
 			if (!meeting_type) {
 				throw { name: "Required", message: "Tipe meeting kosong" }
 			}
 
 			if (!room_name || room_name.trim() == "") {
+				throw { name: "Required", message: "Nama room kosong" }
+			}
+
+			if (!password || password.trim() == "") {
 				throw { name: "Required", message: "Nama room kosong" }
 			}
 
@@ -41,6 +84,7 @@ class RoomSiram {
 				throw { name: "Required", message: "Tanggal berakhir kosong" }
 			}
 
+			// Rapat Perkara
 			if (meeting_type == 1) {
 				if (!no_perkara || no_perkara.trim() == "") {
 					throw { name: "Required", message: "Nomor Perkara kosong" }
@@ -50,21 +94,41 @@ class RoomSiram {
 					throw { name: "Required", message: "Minimal peserta rapat adalah 1" }
 				}
 
-				const roomCreated = await Room.create({
-					no_perkara,
-					meeting_type,
-					room_id,
-					room_name,
-					reference_room_id,
-					max_participants,
-					start_date,
-					end_date,
-					status,
-					location,
-					...createdDate,
+				const transaction = await sequelize.transaction()
+
+				const roomCreated = await Room.create(
+					{
+						no_perkara,
+						meeting_type,
+						room_id,
+						room_name,
+						reference_room_id,
+						max_participants,
+						start_date,
+						end_date,
+						status,
+						location,
+						password,
+						...createdDate,
+					},
+					{ transaction }
+				)
+
+				const promises = participants.map(async (participant) => {
+					try {
+						const newParticipant = { participant_id: participant, no_perkara, room_id, status: 1, ...createdDate }
+						await Room_Participant.create(newParticipant, { transaction })
+					} catch (error) {
+						console.log("- Error Creating Room Participants : ", error)
+					}
 				})
+				await Promise.all(promises)
+
+				await transaction.commit()
+
 				await res.status(201).json({ roomCreated, message: "Successfully create room", status: true })
 			} else if (meeting_type == 2) {
+				// Rapat Non Perkara
 				const roomCreated = await Room.create({
 					no_perkara,
 					meeting_type,
@@ -75,6 +139,7 @@ class RoomSiram {
 					start_date,
 					end_date,
 					status,
+					password,
 					location,
 					...createdDate,
 				})
@@ -101,7 +166,35 @@ class RoomSiram {
 				order: [["room_id", "ASC"]],
 			})
 
-			return meetings
+			const meetingsWithParticipants = await Promise.all(
+				meetings.map(async (meeting) => {
+					const participants = await Room_Participant.findAll({
+						where: {
+							no_perkara: meeting.no_perkara,
+						},
+					})
+
+					const participantWithRole = await Promise.all(
+						participants.map(async (participant) => {
+							const role = await Participant.findOne({
+								attributes: ["role", "full_name"],
+								where: {
+									participant_id: participant.participant_id,
+								},
+							})
+
+							participant.dataValues.role = role ? role.role : null
+							participant.dataValues.full_name = role ? role.full_name : null
+							return participant
+						})
+					)
+
+					meeting.dataValues.participants = participantWithRole
+					return meeting
+				})
+			)
+
+			return meetingsWithParticipants
 		} catch (error) {
 			console.log("- Error Get Today Meeting : ", error)
 		}
@@ -137,6 +230,120 @@ class RoomSiram {
 			return newRoomId
 		} catch (error) {
 			console.log("- Error Generate Room Id: ", error)
+		}
+	}
+
+	static async find({ roomId }) {
+		try {
+			const room = await Room.findOne({
+				where: {
+					room_id: roomId,
+				},
+			})
+			if (!room) {
+				return null
+			}
+			return room.dataValues
+		} catch (error) {
+			console.log("- Error Find Room : ", error)
+		}
+	}
+
+	static async findRoom({ room_id, password }) {
+		try {
+			const room = await Room.findOne({
+				where: {
+					room_id: room_id,
+					password: password,
+				},
+			})
+			if (!room) {
+				return null
+			}
+			return room.dataValues
+		} catch (error) {
+			console.log("- Error Find Room : ", error)
+		}
+	}
+
+	// static async findMeetingsWithParticipants(req, res, next) {
+	// 	try {
+	// 		const meetings = await sequelize.query(
+	// 			`
+	// 			SELECT
+	// 				r.*,
+	// 				STRING_AGG(rp.participant_id::text, ', ') AS participant_id
+	// 			FROM
+	// 				"Rooms" r
+	// 			LEFT JOIN
+	// 				"Room_Participants" rp ON r.no_perkara = rp.no_perkara
+	// 			GROUP BY
+	// 				r.id
+	// 			`,
+	// 			{
+	// 			  type: QueryTypes.SELECT,
+	// 			}
+	// 		  );
+
+	// 		res.status(200).json(meetings)
+	// 	} catch (error) {
+	// 		next(error)
+	// 	}
+	// }
+
+	static async findMeetingsWithParticipants(req, res, next) {
+		try {
+			const meetings = await Room.findAll()
+
+			const meetingsWithParticipants = await Promise.all(
+				meetings.map(async (meeting) => {
+					const participants = await Room_Participant.findAll({
+						where: {
+							no_perkara: meeting.no_perkara,
+						},
+					})
+
+					const participantWithRole = await Promise.all(
+						participants.map(async (participant) => {
+							const role = await Participant.findOne({
+								attributes: ["role"],
+								where: {
+									participant_id: participant.participant_id,
+								},
+							})
+
+							participant.dataValues.role = role ? role.role : null // Handle case where no role found
+							return participant
+						})
+					)
+
+					meeting.dataValues.participants = participantWithRole
+					return meeting
+				})
+			)
+
+			res.status(200).json(meetingsWithParticipants)
+		} catch (error) {
+			next(error)
+		}
+	}
+
+	static async createRoomId() {
+		try {
+			const room_id = await generateRandomId(12, "_")
+			const room = await Room.findOne({
+				where: {
+					room_id,
+				},
+			})
+
+			if (!room) {
+				return room_id
+			}
+
+			return await RoomSiram.createRoomId()
+		} catch (error) {
+			console.log("- Error Check Room Id : ", error)
 		}
 	}
 }

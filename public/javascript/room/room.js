@@ -11,89 +11,103 @@ const eventListenerCollection = new EventListener({ micStatus: false, cameraStat
 const usersVariable = new Users()
 const mediasoupClientVariable = new MediaSoupClient()
 
-socket.connect()
+Promise.all([
+	faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
+	faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
+	faceapi.nets.faceLandmark68Net.loadFromUri("../../assets/plugins/face-api/models"),
+]).then((_) => {
+	// document.getElementById("loading-id").className = "loading-hide"
+	socket.connect()
 
-socket.emit(
-	"joining-room",
-	{ roomId: roomName, userId: userId, position: "room" },
-	async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
-		try {
-			if (status) {
-				console.log("socket id : ", socket.id)
-				let filteredRtpCapabilities = { ...rtpCapabilities }
-				filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter((ext) => ext.uri !== "urn:3gpp:video-orientation")
-				usersVariable.userId = userId
-				usersVariable.authority = authority
-				const devices = await navigator.mediaDevices.enumerateDevices()
+	socket.emit(
+		"joining-room",
+		{ roomId: roomName, userId: userId, position: "room" },
+		async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
+			try {
+				if (status) {
+					let filteredRtpCapabilities = { ...rtpCapabilities }
+					filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
+						(ext) => ext.uri !== "urn:3gpp:video-orientation"
+					)
+					usersVariable.username = username
+					usersVariable.userId = userId
+					usersVariable.authority = authority
+					const devices = await navigator.mediaDevices.enumerateDevices()
+					usersVariable.picture = picture
 
-				mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
-				await mediasoupClientVariable.createDevice()
-				await mediasoupClientVariable.setEncoding()
-				await mediasoupClientVariable.getMyStream()
-				await mediasoupClientVariable.getCameraOptions({ userId: userId })
-				await usersVariable.audioDevicesOutput({ stream: mediasoupClientVariable.myStream })
+					mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
+					await mediasoupClientVariable.createDevice()
+					await mediasoupClientVariable.setEncoding()
+					await mediasoupClientVariable.getMyStream()
+					await mediasoupClientVariable.getCameraOptions({ userId: userId })
+					await mediasoupClientVariable.getMicOptions({ usersVariable })
 
-				let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
-				let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
-				if (authority == 1 || authority == 2) {
-					usersVariable.screenSharingPermission = true
-				} else {
-					usersVariable.screenSharingPermission = false
-				}
-				await usersVariable.addAllUser({
-					userId,
-					username,
-					authority,
-					socketId: socket.id,
-					kind: "audio",
-					track: audioTrack,
-					focus: true,
-					socket,
-					appData: {
-						label: "audio",
-						isActive: true,
-						kind: "audio",
-						roomId: roomId,
-						socketId: socket.id,
+					let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
+					let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
+					if (authority == 1 || authority == 2) {
+						usersVariable.screenSharingPermission = true
+					} else {
+						usersVariable.screenSharingPermission = false
+					}
+					await usersVariable.addAllUser({
 						userId,
-					},
-				})
-				await usersVariable.addAllUser({
-					userId,
-					username,
-					authority,
-					socketId: socket.id,
-					kind: "video",
-					track: videoTrack,
-					focus: true,
-					socket,
-					appData: {
-						label: "video",
-						isActive: true,
-						kind: "audio",
-						roomId: roomId,
+						username,
+						authority,
 						socketId: socket.id,
-						userId,
-					},
-				})
-				if ((authority == 1 || authority == 2) && waitingList) {
-					waitingList.forEach((u) => {
-						eventListenerCollection.methodAddWaitingUser({ id: u.participantId, username: u.username, socket })
+						kind: "audio",
+						track: audioTrack,
+						focus: true,
+						socket,
+						appData: {
+							label: "audio",
+							isActive: true,
+							kind: "audio",
+							roomId: roomId,
+							socketId: socket.id,
+							userId,
+							picture,
+						},
 					})
+					await usersVariable.addAllUser({
+						userId,
+						username,
+						authority,
+						socketId: socket.id,
+						kind: "video",
+						track: videoTrack,
+						focus: true,
+						socket,
+						appData: {
+							label: "video",
+							isActive: true,
+							kind: "audio",
+							roomId: roomId,
+							socketId: socket.id,
+							userId,
+							picture,
+						},
+					})
+					await usersVariable.startSpeechToText({ socket, status: true })
+					if ((authority == 1 || authority == 2) && waitingList) {
+						waitingList.forEach((u) => {
+							eventListenerCollection.methodAddWaitingUser({ id: u.participantId, username: u.username, socket, picture: u.picture })
+						})
+					}
+					await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
+				} else {
+					window.location.href = window.location.origin
 				}
-				await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
-			} else {
-				window.location.href = window.location.origin
+			} catch (error) {
+				console.log("- Error Join Room : ", error)
 			}
-		} catch (error) {
-			console.log("- Error Join Room : ", error)
 		}
-	}
-)
+	)
+})
 
-socket.on("member-joining-room", ({ id, socketId, username }) => {
+socket.on("member-joining-room", ({ id, socketId, username, picture }) => {
 	try {
-		eventListenerCollection.methodAddWaitingUser({ id: id, username: username, socket })
+		console.log("- Picture : ", picture)
+		eventListenerCollection.methodAddWaitingUser({ id: id, username: username, socket, picture })
 	} catch (error) {
 		console.log("- Member Error Join Room : ", error)
 	}
@@ -117,9 +131,9 @@ socket.on("user-list", ({ type, userId, isActive }) => {
 
 socket.on("user-logout", ({ userId }) => {
 	try {
-		console.log(userId)
 		eventListenerCollection.deleteUserList({ id: userId })
-		usersVariable.decreaseUsers()
+		eventListenerCollection.methodAddRaiseHandUser({ id: userId, status: false })
+		eventListenerCollection.deleteUserList({ id: userId })
 		usersVariable.deleteVideo({ userId })
 		usersVariable.deleteAudio({ userId })
 		usersVariable.deleteAllUser({ userId })
@@ -129,7 +143,7 @@ socket.on("user-logout", ({ userId }) => {
 	}
 })
 
-socket.on("message", async ({ userId, message }) => {
+socket.on("message", async ({ userId, message, username, picture }) => {
 	try {
 		const messageDate = new Date()
 		const formattedTime = messageDate.toLocaleTimeString("en-GB", {
@@ -137,7 +151,13 @@ socket.on("message", async ({ userId, message }) => {
 			minute: "2-digit",
 		})
 		const isSender = false
-		const messageTemplate = await eventListenerCollection.messageTemplate({ isSender, username: userId, messageDate: formattedTime, message })
+		const messageTemplate = await eventListenerCollection.messageTemplate({
+			isSender,
+			username: username,
+			messageDate: formattedTime,
+			message,
+			picture,
+		})
 		await eventListenerCollection.appendMessage({ message: messageTemplate })
 	} catch (error) {
 		console.log("- Error Send Message : ", error)
@@ -227,12 +247,84 @@ socket.on("admin-response", async ({ type, id, roomId }) => {
 		console.log("- Error Admin Response : ", error)
 	}
 })
+
+socket.on("new-user-notification", async ({ username, picture }) => {
+	try {
+		await eventListenerCollection.newUserNotification({ username, picture })
+	} catch (error) {
+		console.log
+	}
+})
+
+socket.on("raise-hand", async ({ userId, username, picture, status }) => {
+	try {
+		await eventListenerCollection.methodAddRaiseHandUser({ id: userId, username, picture, status })
+	} catch (error) {
+		console.log("- Error Socket On Raise Hand : ", error)
+	}
+})
+
+socket.on("transcribe", async ({ randomId, message, username, picture }) => {
+	try {
+		const ccDisplay = document.getElementById("cc-container")
+
+		const ccContainer = document.createElement("div")
+		ccContainer.className = "cc-content"
+		ccContainer.id = `cc_${randomId}`
+		const imageCC = document.createElement("img")
+		imageCC.className = "cc-profile-picture"
+		imageCC.src = `/photo/${picture}.png`
+		ccContainer.append(imageCC)
+		const ccMessage = document.createElement("div")
+		ccMessage.className = "cc-message"
+		const ccUsername = document.createElement("div")
+		ccUsername.className = "cc-username"
+		const ccUsernameSpan = document.createElement("span")
+		ccUsernameSpan.innerHTML = username
+		ccUsername.append(ccUsernameSpan)
+		ccMessage.append(ccUsername)
+		const ccMessageContainer = document.createElement("div")
+		ccMessageContainer.className = "cc-message-content"
+		const ccMessageSpan = document.createElement("span")
+		ccMessageSpan.id = `cc_message_${randomId}`
+		ccMessageContainer.append(ccMessageSpan)
+		ccMessage.append(ccMessageContainer)
+		ccContainer.append(ccMessage)
+		if (!document.getElementById(`cc_${randomId}`)) {
+			ccDisplay.append(ccContainer)
+		}
+
+		document.getElementById(`cc_message_${randomId}`).textContent = message
+
+		ccDisplay.scrollTop = ccDisplay.scrollHeight
+	} catch (error) {
+		console.log("- Error Transcribe : ", error)
+	}
+})
+
+socket.on("mute-all", async ({ status }) => {
+	try {
+		const microphoneStatus = await mediasoupClientVariable.checkMic()
+		if (status && microphoneStatus) {
+			await document.getElementById("mic-icon").click()
+		}
+		usersVariable.muteAllStatus = status
+	} catch (error) {
+		console.log("- Error Socket Mute All : ", error)
+	}
+})
+
 // Microphone Button
 let microphoneButton = document.getElementById("mic-icon")
 microphoneButton.addEventListener("click", async () => {
 	try {
+		if (usersVariable.muteAllStatus && usersVariable.authority == 3) {
+			Users.warning({ message: "Microphone dikunci oleh Admin" })
+			return
+		}
 		const userId = usersVariable.userId
 		const isActive = await mediasoupClientVariable.reverseMicrophone({ userId })
+		await usersVariable.startSpeechToText({ socket, status: isActive })
 		const producerId = mediasoupClientVariable.audioProducer.id
 		socket.emit("producer-app-data", { isActive, producerId })
 		usersVariable.allUsers.forEach((user) => {
@@ -278,9 +370,28 @@ chatButton.addEventListener("click", () => {
 
 // Raise Hand Button
 let raiseHandButton = document.getElementById("raise-hand-button")
-raiseHandButton.addEventListener("click", () => {
+raiseHandButton.addEventListener("click", async () => {
 	try {
-		eventListenerCollection.changeRaiseHandButton()
+		const raiseHandStatus = await eventListenerCollection.changeRaiseHandButton()
+		await eventListenerCollection.methodAddRaiseHandUser({
+			id: usersVariable.userId,
+			socket,
+			picture: usersVariable.picture,
+			username: usersVariable.username,
+			status: raiseHandStatus,
+		})
+
+		usersVariable.allUsers.forEach((u) => {
+			if (u.userId != usersVariable.userId) {
+				socket.emit("raise-hand", {
+					to: u.socketId,
+					userId: u.userId,
+					username: u.username,
+					picture: u.consumer[0].appData.picture,
+					status: raiseHandStatus,
+				})
+			}
+		})
 	} catch (error) {
 		console.log("- Error Raise Hand Button : ", error)
 	}
@@ -324,6 +435,7 @@ screenSharingButton.addEventListener("click", async () => {
 					roomId: roomName,
 					socketId: socket.id,
 					userId: usersVariable.userId,
+					picture,
 				},
 			})
 			await usersVariable.changeScreenSharingMode({ status: true, userId: usersVariable.userId, socket })
@@ -356,9 +468,15 @@ optionButton.addEventListener("click", (e) => {
 
 // Mute All
 let muteAllButton = document.getElementById("mute-all-button")
-muteAllButton.addEventListener("click", () => {
+muteAllButton.addEventListener("click", async () => {
 	try {
-		eventListenerCollection.changeMuteAllButton()
+		const muteAllStatus = await eventListenerCollection.changeMuteAllButton()
+		usersVariable.muteAllStatus = muteAllStatus
+		usersVariable.allUsers.forEach((u) => {
+			if (u.socketId != socket.id) {
+				socket.emit("mute-all", { to: u.socketId, status: muteAllStatus })
+			}
+		})
 	} catch (error) {
 		console.log("- Error Mute All : ", error)
 	}
@@ -484,6 +602,16 @@ downButton.addEventListener("click", () => {
 	}
 })
 
+let microphoneDevicesOption = document.getElementById("microphone-devices-option")
+microphoneDevicesOption.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+		eventListenerCollection.microphoneDevicesOption()
+	} catch (error) {
+		console.log("- Error Microphone Devices Option : ", error)
+	}
+})
+
 let videoDevicesOption = document.getElementById("camera-devices-option")
 videoDevicesOption.addEventListener("click", (e) => {
 	try {
@@ -510,17 +638,41 @@ messageInput.addEventListener("keyup", async (event) => {
 			const userId = usersVariable.userId
 			usersVariable.allUsers.forEach((user) => {
 				if (user.userId != userId) {
-					socket.emit("message", { userId: user.userId, to: user.socketId, message })
+					socket.emit("message", {
+						userId: user.userId,
+						to: user.socketId,
+						message,
+						username: usersVariable.username,
+						picture: usersVariable.picture,
+					})
 				}
 			})
 
 			const isSender = true
-			const messageTemplate = await eventListenerCollection.messageTemplate({ isSender, username, messageDate: formattedTime, message })
+			const messageTemplate = await eventListenerCollection.messageTemplate({
+				isSender,
+				username: usersVariable.username,
+				messageDate: formattedTime,
+				message,
+				picture: usersVariable.picture,
+			})
 			await eventListenerCollection.appendMessage({ message: messageTemplate })
 			messageInput.value = ""
 		}
 	} catch (error) {
 		console.log("- Error Send Message : ", error)
+	}
+})
+
+const hangUpButton = document.getElementById("hang-up-button")
+hangUpButton.addEventListener("click", async () => {
+	try {
+		socket.emit("hang-up", { userid: usersVariable.userId }, ({ status }) => {
+			socket.disconnect()
+			window.location.href = `${window.location.origin}`
+		})
+	} catch (error) {
+		console.log("- Error Hang Up Button : ", error)
 	}
 })
 

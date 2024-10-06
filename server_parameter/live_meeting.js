@@ -7,11 +7,11 @@ class LiveMeeting {
 		return this.#users
 	}
 
-	async addUser({ participantId, roomId, socketId, authority, verified = false, joined = false, waiting = true, username }) {
+	async addUser({ participantId, roomId, socketId, authority, verified = false, joined = false, waiting = true, username, picture }) {
 		try {
 			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
 			if (!user) {
-				this.#users.push({ participantId, roomId, socketId, verified, joined, authority, waiting, username, processDeleteUser: false })
+				this.#users.push({ participantId, roomId, socketId, verified, joined, authority, waiting, username, processDeleteUser: false, picture })
 			}
 		} catch (error) {
 			console.log("- Error Add User : ", error)
@@ -160,6 +160,8 @@ class LiveMeeting {
 			if (user.joined && user) {
 				userSession.roomId = null
 				userSession.roomName = null
+				userSession.password = null
+				userSession.meetingType = null
 				await saveSession(userSession)
 				this.#users.forEach((u) => {
 					try {
@@ -194,6 +196,8 @@ class LiveMeeting {
 			if (user) {
 				userSession.roomId = null
 				userSession.roomName = null
+				userSession.password = null
+				userSession.meetingType = null
 				await saveSession(userSession)
 				this.#users = this.#users.filter((u) => u.participantId != userId)
 			}

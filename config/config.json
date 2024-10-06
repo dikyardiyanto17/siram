@@ -1,9 +1,9 @@
 {
   "development": {
     "username": "postgres",
-    "password": "postgres",
+    "password": "",
     "database": "siram-video-conference",
-    "host": "127.0.0.1",
+    "host": "203.175.10.29",
     "dialect": "postgres"
   },
   "test": {

@@ -1,22 +1,28 @@
-const { Room, Participant } = require("../models")
+const { Room, Participant, Room_Participant } = require("../models")
 const { Op, where } = require("sequelize")
 class ControllerRoom {
 	static index(req, res) {
 		try {
-			const { roomId } = req.session
-			const { participant_id, authority } = req.user
-			res.render("room", { authority, participant_id, roomId })
+			const { roomId, meetingType } = req.session
+			const { participant_id, authority, picture } = req.user
+			if (!roomId || roomId.trim() == "") {
+				res.redirect("/")
+				return
+			}
+
+			res.render("room", { authority, participant_id, roomId, meetingType, picture })
 		} catch (error) {
 			console.log(error)
 		}
 	}
 
 	// -- Connecting with socket -- //
-	static async joinRoom({ room_id, participant_id }) {
+	static async joinRoom({ room_id, participant_id, password }) {
 		try {
 			const optionsMeeting = {
 				where: {
 					room_id,
+					password,
 				},
 			}
 
@@ -34,7 +40,16 @@ class ControllerRoom {
 			}
 
 			if (meeting.dataValues.meeting_type == 1) {
-				console.log("- Tipe Rapat Perkara")
+				const participant = await Room_Participant.findOne({
+					where: {
+						participant_id,
+						room_id,
+					},
+				})
+				if (!participant) {
+					return null
+				}
+				return { room: meeting.dataValues, user: user.dataValues }
 			} else if (meeting.dataValues.meeting_type == 2) {
 				return { room: meeting.dataValues, user: user.dataValues }
 			} else {

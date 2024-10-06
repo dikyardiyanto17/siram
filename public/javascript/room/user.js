@@ -1,5 +1,21 @@
 class StaticEvent {
-	static methodAddUserList({ id, username, authority }) {
+	static generateRandomId(length = 12, separator = "-", separatorInterval = 4) {
+		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+		let randomId = ""
+
+		for (let i = 0; i < length; i++) {
+			if (i > 0 && i % separatorInterval === 0) {
+				randomId += separator
+			}
+
+			const randomIndex = Math.floor(Math.random() * characters.length)
+			randomId += characters.charAt(randomIndex)
+		}
+
+		return randomId
+	}
+
+	static methodAddUserList({ id, username, authority, picture }) {
 		try {
 			let userListElement = document.createElement("div")
 			let authorityElement = ``
@@ -12,7 +28,7 @@ class StaticEvent {
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="/assets/icons/example_user.svg" alt="user-list-picture"
+                                    <img src="/photo/${picture}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -75,6 +91,8 @@ class StaticEvent {
 }
 
 class Users extends StaticEvent {
+	#picture = ""
+	#username = ""
 	#users
 	#authority
 	#videoContainer
@@ -99,6 +117,7 @@ class Users extends StaticEvent {
 	#screenSharingPermission = false
 	#screenSharingRequestPermission = false
 	#userIdScreenSharing = ""
+	#muteAllStatus = false
 
 	#record = null
 
@@ -111,9 +130,20 @@ class Users extends StaticEvent {
 	// Layout Video
 	#layoutVideoOptions
 	#layoutCountContainer
+
+	// Speech To Text
+	#speechToText = {
+		word: [],
+		words: [],
+		recognition: null,
+		speechRecognitionList: null,
+		maxWords: 15,
+	}
 	constructor() {
 		super()
+
 		// Layout Petak = 1, pembicara = 2, layout petaksamping = 3
+		this.#picture = ""
 		this.#currentLayout = 1
 		this.#totalLayout = 6
 		this.#totalDisplayedVideo = 0
@@ -151,6 +181,29 @@ class Users extends StaticEvent {
 		// Record
 		this.#timerCounter = "00:00:00"
 		this.#elapsedTime = 0
+	}
+	get muteAllStatus() {
+		return this.#muteAllStatus
+	}
+
+	set muteAllStatus(status) {
+		this.#muteAllStatus = status
+	}
+
+	get username() {
+		return this.#username
+	}
+
+	set username(name) {
+		this.#username = name
+	}
+
+	get picture() {
+		return this.#picture
+	}
+
+	set picture(newName) {
+		this.#picture = newName
 	}
 
 	get userId() {
@@ -327,20 +380,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async audioDevicesOutput({ stream }) {
-		try {
-			let audioDevicesOutput = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "audiooutput")
-			audioDevicesOutput.forEach((audioDevices, index) => {
-				if (index === 0) {
-					this.#sinkId = audioDevices.deviceId
-				}
-			})
-		} catch (error) {
-			console.log("- Error Add My Video : ", error)
-		}
-	}
-
-	async addVideo({ userId, track, index = null, username }) {
+	async addVideo({ userId, track, index = null, username, meetingType = null, picture }) {
 		try {
 			let check = await this.checkLayout({ index })
 			if (!check || this.#currentLayout == 2) {
@@ -351,6 +391,8 @@ class Users extends StaticEvent {
 			}
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			if (!checkUserElement) {
+				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
+
 				let videoContainerElement = document.createElement("div")
 				videoContainerElement.id = `vc-${userId}`
 				videoContainerElement.className = this.#currentLayout == 1 ? this.#currentVideoClass : "video-user-container-focus-user"
@@ -358,7 +400,7 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<video id="v-${userId}" muted autoplay class="user-video"></video>`
+				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainer.appendChild(videoContainerElement)
 
@@ -373,9 +415,17 @@ class Users extends StaticEvent {
 				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
-				await this.insertVideo({ track, id: userId })
 				await this.increaseTotalDisplayedVodeo()
+				if (!userId.startsWith("ssv_")) {
+					await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+				}
+				// await this.adjustFR()
 			}
+
+			if (track) {
+				await this.insertVideo({ track, id: userId })
+			}
+
 			await this.updateVideoCurrentClass()
 			if (this.#currentLayout == 1) {
 				await this.updateAllVideo()
@@ -386,11 +436,13 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addFocusVideo({ userId, track }) {
+	async addFocusVideo({ userId, track, username }) {
 		try {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			this.#videoContainerFocus.classList.remove("d-none")
 			if (!checkUserElement) {
+				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
+
 				let videoContainerElement = document.createElement("div")
 				videoContainerElement.id = `vc-${userId}`
 				videoContainerElement.className = `video-user-container-1`
@@ -398,7 +450,7 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<video id="v-${userId}" muted autoplay class="user-video"></video>`
+				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainerFocus.appendChild(videoContainerElement)
 
@@ -414,6 +466,10 @@ class Users extends StaticEvent {
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.insertVideo({ track, id: userId })
+
+				if (!userId.startsWith("ssv_")) {
+					await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+				}
 			}
 		} catch (error) {
 			console.log("- Error Add My Video : ", error)
@@ -564,6 +620,12 @@ class Users extends StaticEvent {
 				this.constructor.warning({ message: "Cannot change to the selected layout" })
 				return
 			}
+
+			if (container.dataset.option == 3 && this.#users == 1) {
+				this.constructor.warning({ message: "Tidak bisa memilih layout karena hanya ada 1 user" })
+				return
+			}
+
 			document.querySelectorAll(".layout-option-container").forEach((c) => {
 				const radio = c.querySelector(".radio")
 				if (c === container) {
@@ -622,27 +684,15 @@ class Users extends StaticEvent {
 		appData = null,
 	}) {
 		try {
+			let triggerPush = true
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
-				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }], username })
+				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }], username, frInterval: null })
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
+				await this.addVideo({ username, userId, track: null, index, picture: appData.picture })
 
-				if (kind == "audio" && consumerId != null && appData.label == "audio") {
-					await this.createAudio({ id: userId, track })
-				}
-				if (kind == "video" && appData.label == "video") {
-					await this.addVideo({ username, userId, track, displayedVideo, index })
-				}
-				if (appData && appData.label == "screensharing_audio") {
-					await this.createAudio({ id: "ssa_" + userId, track })
-				}
-
-				if (appData && appData.label == "screensharing_video") {
-					await this.increaseUsers()
-					await this.addVideo({ username, userId: "ssv_" + userId, track, index })
-				}
-				await this.constructor.methodAddUserList({ id: userId, username: username, authority: authority })
+				await this.constructor.methodAddUserList({ id: userId, username: username, authority: authority, picture: appData?.picture })
 				await this.updatePageInformation()
 				const optionUserList = document.getElementById(`ul-o-${userId}`)
 				optionUserList.addEventListener("click", (e) => {
@@ -673,15 +723,23 @@ class Users extends StaticEvent {
 						console.log("- Error Option User List Container : ", error)
 					}
 				})
-				return
+				triggerPush = false
 			}
-			const user = this.#allUsers.find((u) => u.userId == userId)
-			user.consumer.push({ kind, id: consumerId, track, appData, focus })
+			if (kind == "audio" && consumerId == null && appData.label == "audio") {
+				// await this.createAudio({ id: userId, track })
+				await this.createAudioVisualizer({ id: userId, track })
+			}
+
+			if (triggerPush) {
+				const user = this.#allUsers.find((u) => u.userId == userId)
+				user.consumer.push({ kind, id: consumerId, track, appData, focus })
+			}
 			if (kind == "audio" && consumerId != null && appData.label == "audio") {
 				await this.createAudio({ id: userId, track })
+				await this.createAudioVisualizer({ id: userId, track })
 			}
 			if (kind == "video" && appData.label == "video") {
-				await this.addVideo({ username, userId, track, index })
+				await this.addVideo({ username, userId, track, index, picture: appData.picture })
 			}
 
 			if (appData && appData.label == "screensharing_audio") {
@@ -692,7 +750,7 @@ class Users extends StaticEvent {
 
 			if (appData && appData.label == "screensharing_video") {
 				await this.increaseUsers()
-				await this.addVideo({ username, userId: "ssv_" + userId, track, index })
+				await this.addVideo({ username, userId: "ssv_" + userId, track, index, picture: null })
 			}
 		} catch (error) {
 			console.log("- Error Add User : ", error)
@@ -703,6 +761,8 @@ class Users extends StaticEvent {
 		try {
 			let isScreenSharing = false
 			let changeFocus = false
+
+			const user = this.#allUsers.find((u) => u.userId == userId)
 
 			this.#allUsers.forEach((u) => {
 				u.consumer.forEach((c) => {
@@ -717,6 +777,8 @@ class Users extends StaticEvent {
 			})
 
 			this.#allUsers = this.#allUsers.filter((u) => u.userId != userId)
+
+			this.#users = this.#allUsers.length
 
 			if (changeFocus && this.#allUsers.length > 0) {
 				this.#allUsers[0].consumer.forEach((c) => {
@@ -879,7 +941,7 @@ class Users extends StaticEvent {
 					// let track = u.consumer.find((t) => t.kind == "video")
 					for (const track of tracks) {
 						if (customIndex + 1 >= min && customIndex + 1 <= max) {
-							await this.addVideo({ username: u.username, userId: u.userId, track: track.track })
+							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
@@ -905,7 +967,11 @@ class Users extends StaticEvent {
 
 					for (const track of tracks) {
 						if (track.focus) {
-							await this.addFocusVideo({ userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId, track: track.track })
+							await this.addFocusVideo({
+								userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId,
+								track: track.track,
+								username: u.username,
+							})
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
@@ -927,11 +993,15 @@ class Users extends StaticEvent {
 					let tracks = u.consumer.filter((t) => t.kind == "video")
 					for (const track of tracks) {
 						if (track.focus) {
-							await this.addFocusVideo({ track: track.track, userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId })
+							await this.addFocusVideo({
+								track: track.track,
+								userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId,
+								username: u.username,
+							})
 							socket.emit("consumer-resume", { serverConsumerId: track.id })
 						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							customIndex++
-							await this.addVideo({ username: u.username, userId: u.userId, track: track.track })
+							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
@@ -941,6 +1011,9 @@ class Users extends StaticEvent {
 						}
 					}
 				})
+				if (this.#users == 1) {
+					await document.getElementById("layout-1").click()
+				}
 			}
 		} catch (error) {
 			console.log("- Error Update Video : ", error)
@@ -1036,7 +1109,6 @@ class Users extends StaticEvent {
 								this.decreaseUsers()
 							}
 						})
-						console.log(user)
 						user.consumer.forEach((c) => {
 							if (c.kind == "video" && c.appData.label == "video") {
 								c.focus = true
@@ -1293,8 +1365,7 @@ class Users extends StaticEvent {
 								month: "2-digit",
 								year: "numeric",
 							})
-							.replace(/\//g, "") // Remove slashes from the formatted date
-
+							.replace(/\//g, "")
 						const file = new File([blob], formattedDate, {
 							type: "video/mp4",
 						})
@@ -1318,7 +1389,7 @@ class Users extends StaticEvent {
 							month: "2-digit",
 							year: "numeric",
 						})
-						.replace(/\//g, "") // Remove slashes from the formatted date
+						.replace(/\//g, "")
 					const file = new File([blob], formattedDate, {
 						type: "video/mp4",
 					})
@@ -1336,12 +1407,258 @@ class Users extends StaticEvent {
 		}
 	}
 
-	// async changeVideoTrack({ track }) {
-	// 	try {
-	// 	} catch (error) {
-	// 		console.log("- Error Change Video Track : ", error)
-	// 	}
-	// }
+	async createAudioVisualizer({ id, track }) {
+		try {
+			const audioVisualizerImage = document.getElementById(`video-mic-${id}`)
+			if (audioVisualizerImage) {
+				// Access the microphone audio stream (replace with your stream source)
+				const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+				const analyser = audioContext.createAnalyser()
+				analyser.fftSize = 256
+				const bufferLength = analyser.frequencyBinCount
+				const dataArray = new Uint8Array(bufferLength)
+				let newTheAudio = new MediaStream([track])
+
+				const audioSource = audioContext.createMediaStreamSource(newTheAudio)
+				audioSource.connect(analyser)
+
+				// Function to draw the single audio bar
+				function drawBar() {
+					analyser.getByteFrequencyData(dataArray)
+					const barHeight = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
+					if (!track.enabled) {
+						audioVisualizerImage.src = "/assets/icons/mic_muted.svg"
+					} else if (barHeight <= 3) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_1.svg"
+					} else if (barHeight <= 6) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_2.svg"
+					} else if (barHeight <= 9) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_3.svg"
+					} else if (barHeight <= 12) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_4.svg"
+					} else if (barHeight <= 15) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_5.svg"
+					} else if (barHeight <= 18) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_6.svg"
+					} else if (barHeight <= 21) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_7.svg"
+					} else if (barHeight <= 24) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_8.svg"
+					} else if (barHeight <= 27) {
+						audioVisualizerImage.src = "/assets/icons/mic_level_9.svg"
+					} else {
+						audioVisualizerImage.src = "/assets/icons/mic_level_10.svg"
+					}
+
+					requestAnimationFrame(drawBar)
+				}
+
+				await drawBar()
+			}
+		} catch (error) {
+			console.log("- Error Creating Audio Level : ", error)
+		}
+	}
+
+	async getLabeledFaceDescriptions({ picture, name }) {
+		const descriptions = []
+		for (let i = 1; i <= 2; i++) {
+			const img = await faceapi.fetchImage(picture, name)
+			const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
+			if (detections) {
+				descriptions.push(detections.descriptor)
+			}
+		}
+		return new faceapi.LabeledFaceDescriptors(name, descriptions)
+	}
+
+	async startFR({ picture, name, id }) {
+		document.getElementById(`cfr-${id}`)?.remove()
+		try {
+			const user = await this.#allUsers.find((u) => u.userId == id)
+			const video = document.getElementById(`v-${id}`)
+			video.addEventListener("play", async () => {
+				const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
+				let faceContainer = document.getElementById(`face-recognition-${id}`)
+				// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
+				const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
+				const canvas = faceapi.createCanvasFromMedia(video)
+				canvas.id = `cfr-${id}`
+				faceContainer.appendChild(canvas)
+
+				const displaySize = { width: video.videoWidth, height: video.videoHeight }
+				// faceContainer.style.width = `${video.clientWidth}px`
+				faceapi.matchDimensions(canvas, displaySize)
+				user.frInterval = setInterval(async () => {
+					const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
+					const resizedDetections = faceapi.resizeResults(detections, displaySize)
+					canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
+					const results = resizedDetections.map((d) => {
+						return faceMatcher.findBestMatch(d.descriptor)
+					})
+					results.forEach((result, i) => {
+						const box = resizedDetections[i].detection.box
+						const drawBox = new faceapi.draw.DrawBox(box, {
+							label: result,
+							boxColor: result._distance <= 0.45 ? "blue" : "red",
+							// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
+							// lineWidth: isCurrentUser ? 1 : 0.2,
+							drawLabelOptions: { fontSize: 8 },
+							lineWidth: 0.2,
+						})
+						drawBox.draw(canvas)
+					})
+				}, 100)
+			})
+		} catch (error) {
+			// if (user?.frInterval) {
+			// 	clearInterval(user.frInterval)
+			// }
+			// document.getElementById(`cfr-${id}`)?.remove()
+			console.log("- Error Starting Face Recognition : ", error)
+		}
+	}
+
+	async adjustFR() {
+		try {
+			this.#videoContainer.childNodes.forEach((a) => {
+				a.childNodes.forEach((b) => {
+					b.childNodes.forEach((c) => {
+						if (c.id.startsWith("face-recognition")) {
+							const parentWidth = c.parentNode.clientWidth
+							// console.log("- Parent Width : ", parentWidth)
+							const id = c.id.split("-")[2]
+							const video = document.getElementById(`v-${id}`)
+							// console.log(video.videoWidth, video.videoHeight, " - ", id, " C ", video.clientHeight, " - W : ", video.clientWidth)
+							const ratio = video.videoWidth / video.videoHeight
+							let adjustedWidth = ratio * video.clientHeight
+							if (video.clientWidth > adjustedWidth) {
+								c.style.width = `${adjustedWidth}px`
+							} else {
+								adjustedWidth = video.clientWidth
+								c.style.width = `${adjustedWidth}px`
+							}
+						}
+					})
+				})
+			})
+		} catch (error) {
+			console.log("- Error Adjusting FR : ", error)
+		}
+	}
+
+	async startSpeechToText({ socket, status }) {
+		try {
+			if (!status) {
+				if (this.#speechToText.recognition) {
+					this.#speechToText.recognition.abort()
+				}
+				this.#speechToText.recognition = null
+				this.#speechToText.speechRecognitionList = null
+				return
+			}
+			const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+			const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList
+			const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent
+			this.#speechToText.recognition = new SpeechRecognition()
+			this.#speechToText.speechRecognitionList = new SpeechGrammarList()
+			this.#speechToText.recognition.continuous = true
+			this.#speechToText.recognition.lang = "id-ID"
+			this.#speechToText.recognition.interimResults = true
+			this.#speechToText.recognition.maxAlternatives = 1
+			const ccDisplay = document.getElementById("cc-container")
+			let randomId = await this.constructor.generateRandomId(12)
+			this.#speechToText.recognition.onresult = (event) => {
+				let interimResults = ""
+
+				const ccContainer = document.createElement("div")
+				ccContainer.className = "cc-content"
+				ccContainer.id = `cc_${randomId}`
+				const imageCC = document.createElement("img")
+				imageCC.className = "cc-profile-picture"
+				imageCC.src = `/photo/${this.#picture}.png`
+				ccContainer.append(imageCC)
+				const ccMessage = document.createElement("div")
+				ccMessage.className = "cc-message"
+				const ccUsername = document.createElement("div")
+				ccUsername.className = "cc-username"
+				const ccUsernameSpan = document.createElement("span")
+				ccUsernameSpan.innerHTML = this.#username
+				ccUsername.append(ccUsernameSpan)
+				ccMessage.append(ccUsername)
+				const ccMessageContainer = document.createElement("div")
+				ccMessageContainer.className = "cc-message-content"
+				const ccMessageSpan = document.createElement("span")
+				ccMessageSpan.id = `cc_message_${randomId}`
+				ccMessageContainer.append(ccMessageSpan)
+				ccMessage.append(ccMessageContainer)
+				ccContainer.append(ccMessage)
+				if (!document.getElementById(`cc_${randomId}`)) {
+					ccDisplay.append(ccContainer)
+				}
+
+				for (let i = event.resultIndex; i < event.results.length; i++) {
+					const transcript = event.results[i][0].transcript
+					if (event.results[i].isFinal) {
+						this.#speechToText.word.push(transcript.trim())
+						if (ccDisplay.lastChild.id != `cc_${randomId}`) {
+							randomId = Users.generateRandomId(12)
+						}
+					} else {
+						interimResults += transcript
+						document.getElementById(`cc_message_${randomId}`).textContent = this.#speechToText.word.join(" ") + " " + interimResults
+					}
+					this.#allUsers.forEach((u) => {
+						socket.emit("transcribe", {
+							to: u.socketId,
+							picture: this.#picture,
+							username: this.#username,
+							randomId,
+							message: this.#speechToText.word.join(" ") + " " + interimResults,
+						})
+					})
+				}
+
+				let finalWords = this.#speechToText.word.join(" ") + " " + interimResults
+
+				let template = `
+				    <div class="cc-content">
+                        <img class="cc-profile-picture" src="/assets/icons/example_user.svg" alt="cc-profile">
+                        <div class="cc-message">
+                            <div class="cc-username">
+                                <span>Budi Santoso</span>
+                            </div>
+                            <div class="cc-message-content">
+                                <span>Bagaimana dengan hasil rapat kemarin? bagaimana
+                                    dengan hasil rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan
+                                    hasil
+                                    rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan hasil rapat
+                                    kemarin?</span>
+                            </div>
+                        </div>
+                    </div>
+
+				`
+				ccDisplay.scrollTop = ccDisplay.scrollHeight
+			}
+			this.#speechToText.recognition.onerror = (event) => {
+				if (event.error == "network" || event.error == "no-speech") {
+					if (this.#speechToText.recognition) {
+						this.#speechToText.recognition.start()
+						console.log("Restart STT On Error")
+					}
+				}
+			}
+			this.#speechToText.recognition.onend = () => {
+				if (this.#speechToText.recognition) {
+					this.#speechToText.recognition.start()
+				}
+			}
+			await this.#speechToText.recognition.start()
+		} catch (error) {
+			console.log("- Error Start Speech Recognition : ", error)
+		}
+	}
 }
 
 module.exports = { Users }

@@ -46,13 +46,15 @@ tr>td:nth-child(8) {
     width: 8%;
 }
 
-tr>td:nth-child(8)>span {
+tr>td:nth-child(8)>a {
     border: 1px solid #DEE4ED;
     padding: 5px 15px;
     border-radius: 5px;
     cursor: pointer;
+    text-decoration: none;
+    color: #000000;
 }
 
-tr>td:nth-child(8)>span:hover {
+tr>td:nth-child(8)>a:hover {
     background-color: #EFF2F6;
 }

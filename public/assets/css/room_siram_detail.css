@@ -1,0 +1,239 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 0px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.full-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.main-container {
+    width: 100%;
+    height: calc(100% - 60px);
+    display: flex;
+    justify-content: center;
+    padding: 0px 20px 20px 20px;
+}
+
+.main-container-wrapper {
+    width: 100%;
+    overflow-y: auto;
+}
+
+.main-content-wrapper {
+    border-radius: 10px;
+    width: 100%;
+    border: 1px solid #E0E4EC;
+    margin-top: 20px;
+    padding: 10px;
+}
+
+.header-detail {
+    width: 100%;
+}
+
+.header-detail>span {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.meeting-detail {
+    border-radius: 10px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #E0E4EC;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.detail-wrapper {
+    width: 50%;
+    display: flex;
+    padding-right: 20px;
+    margin: 7px 0;
+}
+
+.text-detail-wrapper {
+    width: 25%;
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+}
+
+.text-detail-wrapper>span {
+    font-size: 12px;
+}
+
+.text-detail-input-wrapper {
+    width: 75%;
+    border: 1px solid #E0E4EC;
+    border-radius: 5px;
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.text-detail-input-wrapper>span {
+    font-size: 12px;
+}
+
+.text-detail-input-time {
+    width: 75%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.text-detail-input-time-wrapper {
+    width: 45%;
+    border: 1px solid #E0E4EC;
+    border-radius: 5px;
+    padding-left: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.text-detail-input-time-wrapper>span {
+    font-size: 12px;
+}
+
+.meeting-participant {
+    border-radius: 10px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #E0E4EC;
+    margin-top: 20px;
+}
+
+.meeting-participant-header {
+    width: 100%;
+}
+
+.meeting-participant-header>span {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.chat-history {
+    border-radius: 10px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #E0E4EC;
+    margin-top: 20px;
+}
+
+.chat-history-header {
+    width: 100%;
+}
+
+.chat-history-header>span {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.chat-history-content {
+    width: 100%;
+    height: 500px;
+}
+
+.chat-content {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #E0E4EC;
+    border-radius: 10px;
+    padding: 10px;
+    overflow: auto;
+}
+
+.message-container-receive {
+    width: 100%;
+    display: flex;
+}
+
+.message-container-send {
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.message-container-send .chat-name {
+    display: flex;
+    justify-content: end;
+}
+
+.message-container-send .message {
+    background-color: #2D8CFF;
+}
+
+.chat-photo-profile {
+    height: 40px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.message-container {
+    width: calc(50% - 40px);
+}
+
+.chat-name {
+    width: 100%;
+    display: flex;
+}
+
+.chat-name>span {
+    font-size: 11px;
+}
+
+.message {
+    width: 100%;
+    background-color: #374151;
+    border-radius: 5px;
+    display: flex;
+    color: #ffffff;
+    padding: 10px;
+    flex-wrap: wrap;
+}
+
+.message-content>span {
+    font-size: 11px;
+}
+
+.message-content {
+    width: 100%;
+    display: flex;
+}
+
+.message-time {
+    width: 100%;
+    display: flex;
+    justify-content: end;
+}
+
+.message-time>span {
+    font-size: 10px;
+    color: #6B7280;
+}

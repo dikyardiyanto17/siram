@@ -56,9 +56,13 @@
                                 [/ if (!meetings[index].no_perkara || meetings[index].no_perkara.trim() == ""){ /]
                                 <td>Publik</td>
                                 [/ } else {/]
-                                <td>10 peserta</td>
+                                <td>[/= meetings[index].participants /] Peserta</td>
                                 [/ } /]
-                                <td><span>Detail</span></td>
+                                <td>
+                                    <a href="/meeting/[/= meetings[index].room_id /]">
+                                        <span>Detail</span>
+                                    </a>
+                                </td>
                                 </tr>
                                 [/ } /]
                         </tbody>

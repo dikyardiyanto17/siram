@@ -13,6 +13,7 @@
     <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
     <link rel="stylesheet" type="text/css" href="/assets/plugins/daterangepicker-master/daterangepicker.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/choosen/chosen.min.css" />
     <title>Telepati</title>
 </head>
 
@@ -38,13 +39,15 @@
                     <div class="create-meeting-content-card">
                         <div class="input-meeting">
                             <span>Tipe Rapat</span>
-                            <select name="meeting_type" id="meeting_type" readonly>
+                            <select name="meeting_type" id="meeting_type">
                                 <option value="2">Non Perkara</option>
+                                <option value="1">Perkara</option>
                             </select>
                         </div>
                         <div class="input-meeting">
                             <span>No Perkara</span>
-                            <input type="text" id="no_perkara" class="no_perkara" value="-" readonly>
+                            <input type="text" id="no_perkara" class="no_perkara" value="-"
+                                style="background-color: #E9ECEF; cursor: not-allowed;" readonly>
                         </div>
                         <div class="input-meeting">
                             <span>Waktu Mulai</span>
@@ -55,8 +58,31 @@
                             <input type="text" id="end_date" class="end_date" value="" name="end_date" disabled>
                         </div>
                         <div class="input-meeting">
+                            <span>Password</span>
+                            <input style="background-color: #E9ECEF; cursor: not-allowed;" readonly id="password"
+                                name="password" type="text" class="password" name="password"
+                                placeholder="Masukkan Password">
+                        </div>
+                        <div class="input-meeting-generate-password">
+                            <input style="cursor: pointer;" class="generate-random-pw" type="checkbox"
+                                name="random-password" id="custom-password-checkbox">
+                            <span id="generate-pw-label">Custom Password</span>
+                        </div>
+                        <div class="input-meeting">
                             <span>Lokasi Sidang</span>
                             <textarea name="location" id="location" placeholder="Lokasi Sidang"></textarea>
+                        </div>
+                        <div class="input-meeting" id="input-meeting-participants">
+                            <span>Peserta Meeting</span>
+                            <!-- <input style="background-color: #E9ECEF; cursor: not-allowed;" readonly id="participants"
+                                name="participants" type="text" class="participants" name="participants"
+                                placeholder="Pilih peserta"> -->
+                            <select name="participants" id="participants" multiple class="participants">
+                                <option value=""></option>
+                                [/ users.forEach(user => { /]
+                                <option value="[/= user.participant_id/]">[/= user.full_name/]</option>
+                                [/ }) /]
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -70,64 +96,84 @@
             <div class="detail-meeting">
                 <div class="detail-meeting-header-container">
                     <div class="detail-meeting-header">
-                        <span>Sidang Pengadilan Militer Terkait Pelanggaran Disiplin Anggota TNI</span>
+                        <span id="detail_room_name">Sidang Pengadilan Militer Terkait Pelanggaran Disiplin Anggota
+                            TNI</span>
                     </div>
                 </div>
                 <div class="detail-meeting-content-container">
                     <div class="detail-meeting-content-left">
                         <div class="detail-meeting-content-card">
-                            <div class="type-case">
+                            <div class="detail-wrapper">
                                 <span>Tipe Rapat</span>
                                 <div class="info-wrapper">
-                                    <span>Perkara</span>
+                                    <span id="detail_meeting_type">Perkara</span>
                                 </div>
                             </div>
-                            <div class="no-type">
+                            <div class="detail-wrapper">
                                 <span>No. Perkara</span>
                                 <div class="info-wrapper">
-                                    <span>5-P/PMT-II/AD/VII/2024</span>
+                                    <span id="detail_no_perkara">5-P/PMT-II/AD/VII/2024</span>
                                 </div>
                             </div>
-                            <div class="start-time">
+                            <div class="detail-wrapper">
                                 <span>Waktu Mulai</span>
                                 <div class="wrapper-time">
                                     <div class="wrapper-date">
                                         <div class="info-wrapper">
                                             <img style="width: 12px;" src="/assets/icons/date-icon.svg" alt="calender"
-                                                srcset="">&nbsp;&nbsp;<span>Hari ini</span>
+                                                srcset="">&nbsp;&nbsp;<span id="detail_start_time">Hari ini</span>
                                         </div>
                                     </div>
                                     <div class="wrapper-clock">
                                         <div class="info-wrapper">
                                             <img style="width: 12px;" src="/assets/icons/clock_meeting.svg" alt="clock"
-                                                srcset="">&nbsp;&nbsp;<span>09:00</span>
+                                                srcset="">&nbsp;&nbsp;<span id="detail_start_date">09:00</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="end-time">
+                            <div class="detail-wrapper">
                                 <span>Waktu Selesai</span>
                                 <div class="wrapper-time">
                                     <div class="wrapper-date">
                                         <div class="info-wrapper">
                                             <img style="width: 12px;" src="/assets/icons/date-icon.svg" alt="calender"
-                                                srcset="">&nbsp;&nbsp;<span>Hari ini</span>
+                                                srcset="">&nbsp;&nbsp;<span id="detail_end_time">Hari ini</span>
                                         </div>
                                     </div>
                                     <div class="wrapper-clock">
                                         <div class="info-wrapper">
                                             <img style="width: 12px;" src="/assets/icons/clock_meeting.svg" alt="clock"
-                                                srcset="">&nbsp;&nbsp;<span>12:00</span>
+                                                srcset="">&nbsp;&nbsp;<span id="detail_end_date">12:00</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="meeting-location">
+                            <div class="detail-wrapper">
                                 <span>Lokasi Persidangan</span>
                                 <div class="info-wrapper">
-                                    <span>Jl. Tanah Abang III No.27, RT.3/RW.3, Petojo Sel., Kecamatan Gambir, Kota
+                                    <span id="detail_location">Jl. Tanah Abang III No.27, RT.3/RW.3, Petojo Sel.,
+                                        Kecamatan Gambir, Kota
                                         Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10160</span>
                                 </div>
+                            </div>
+                            <div class="detail-wrapper">
+                                <span>ID Room</span>
+                                <div class="info-wrapper">
+                                    <span id="detail_room_id">ID ROOM</span>
+                                </div>
+                            </div>
+                            <div class="detail-wrapper">
+                                <span>Password</span>
+                                <div class="info-wrapper">
+                                    <span id="detail_password">ID ROOM</span>
+                                </div>
+                            </div>
+
+                            <div class="detail-wrapper" style="position: relative;">
+                                <div id="clipboard-success"><span>Copied</span></div>
+                                <button type="button" id="clipboard-button"><i class="far fa-copy"></i>&nbsp;Copy
+                                    Link</button>
                             </div>
                         </div>
                     </div>
@@ -145,27 +191,14 @@
                                             <th scope="col">ID Peserta</th>
                                             <th scope="col">Nama</th>
                                             <th scope="col">Role</th>
-                                            <!-- <th scope="col" style="width: 10px;">No</th>
-                                            <th scope="col" style="width: calc(20% - 10px);">ID Peserta</th>
-                                            <th scope="col" style="width: 80%;">Nama</th>
-                                            <th scope="col" style="width: 20%;">Role</th> -->
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>P_00000001</td>
-                                            <td>Taufik Hidayat</td>
-                                            <td>Host</td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>P_00000002</td>
-                                            <td>Budi Santoso</td>
-                                            <td>Co-Host</td>
-                                        </tr>
+                                    <tbody id="detail_participant_list">
                                     </tbody>
                                 </table>
+                                <div id="public-declaration">
+                                    <span>Rapat Publik</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -192,7 +225,7 @@
                         </div>
                         <h3>Daftar Peserta</h3>
                     </a>
-                    <a class="card-containers" href="/room">
+                    <a class="card-containers" href="/meeting">
                         <div class="card-icons">
                             <img src="/assets/icons/meeting_list.svg" alt="meet-icons">
                         </div>
@@ -259,7 +292,8 @@
                                 <span>Tidak ada meeting hari ini</span>
                                 [/ } else { /]
                                 [/ for( let index = 0; index < meetings.length; index++ ) { /] <div
-                                    class="card-meetings">
+                                    class="card-meetings"
+                                    id="[/- meetings[index].room_id /]-[/- meetings[index].meeting_type /]">
                                     <div class="left-line"></div>
                                     <div>
                                         <span>Tipe Rapat : [/ if (meetings[index].meeting_type == 1) { /]
@@ -332,6 +366,10 @@
     <script src="/assets/plugins/jquery/jquery-3.7.1.min.js"></script>
     <script src="/assets/plugins/daterangepicker-master/moment.min.js"></script>
     <script src="/assets/plugins/daterangepicker-master/daterangepicker.js"></script>
+    <script src="/assets/plugins/choosen/chosen.jquery.min.js"></script>
+    <script>
+        let meetingsInfo = [/- JSON.stringify(meetings)/]
+    </script>
     <script src="/javascript/dashboard/dashboard.js"></script>
 </body>
 

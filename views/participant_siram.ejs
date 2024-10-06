@@ -28,6 +28,11 @@
             </div>
             <div class="participant-photo">
                 <img id="participant-detail-photo" src="/assets/pictures/avatar.png" alt="participant-detail-photo">
+                <a id="update-photo-button" href="/updatephoto">
+                    <button type="button"><i class="fas fa-camera-retro" style="color: #000000;"></i>&nbsp;&nbsp;
+                        <span>Ambil Photo</span>
+                    </button>
+                </a>
             </div>
             <div class="participant-content">
                 <div class="wrapper-container">
@@ -100,7 +105,7 @@
                             [/ for(let index = 0; index < participants.length; index++) { /] <tr>
                                 <td>[/= index + 1 /]</td>
                                 <td> <img id="pic-[/- participants[index].participant_id /]"
-                                        src="[/= participants[index].photo /]" alt="Image" />&nbsp;&nbsp;[/=
+                                        src="/photo/[/= participants[index].photo_path /].png" alt="Image" />&nbsp;&nbsp;[/=
                                     participants[index].full_name /]</td>
                                 <td>[/= participants[index].nik /]</td>
                                 <td>[/= participants[index].nrp ? participants[index].nrp : "-" /]</td>
@@ -129,7 +134,6 @@
     <script>
         const backButton = [/- JSON.stringify(backButton) /];
         const participants = [/- JSON.stringify(participants)/]
-        console.log(participants)
     </script>
     <script src="/javascript/participant/participant.js"></script>
 

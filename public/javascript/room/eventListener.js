@@ -7,6 +7,8 @@ class EventListener {
 	// Microphone
 	#microphoneButton
 	#microphoneStatus
+	#microphoneDevicesOption
+	#microphoneOptions
 
 	// Camera
 	#cameraButton
@@ -57,6 +59,10 @@ class EventListener {
 	#userListWaitingContainer
 	#userListWaiting
 
+	// #raiseHandListCOntainer
+	#raiseHandListContainer
+	#raiseHandList
+
 	// Modal Video Container
 	#modalVideoLayoutButton
 	#modalVideoLayoutContainer
@@ -90,6 +96,8 @@ class EventListener {
 		// Microphone
 		this.#microphoneButton = document.getElementById("mic-icon")
 		this.#microphoneStatus = micStatus
+		this.#microphoneDevicesOption = document.getElementById("microphone-devices-option")
+		this.#microphoneOptions = document.getElementById("mic-options")
 
 		// Camera
 		this.#cameraButton = document.getElementById("camera-icon")
@@ -131,6 +139,8 @@ class EventListener {
 		// this.#usersListContainer = document.getElementById("users-list-container")
 		this.#userListWaitingContainer = document.getElementById("waiting-list-container")
 		this.#userListWaiting = document.getElementById("waiting-list-users")
+		this.#raiseHandListContainer = document.getElementById("raise-hand-list-container")
+		this.#raiseHandList = document.getElementById("raise-hand-list")
 
 		// Mute All
 		this.#muteAllButton = document.getElementById("mute-all-button")
@@ -240,6 +250,8 @@ class EventListener {
 				this.#chatButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
+				let chatContent = document.getElementById("chat-content")
+				chatContent.scrollTop = chatContent.scrollHeight
 			}
 			await this.changeSideBarContainer()
 			this.#chatStatus = !this.#chatStatus
@@ -258,6 +270,7 @@ class EventListener {
 				this.#raiseHandButton.classList.add("active")
 			}
 			this.#raiseHandStatus = !this.#raiseHandStatus
+			return this.#raiseHandStatus
 		} catch (error) {
 			console.log("- Error Change Raise Hand Button : ", error)
 		}
@@ -301,6 +314,7 @@ class EventListener {
 				this.#muteAllButton.classList.add("active")
 			}
 			this.#muteAllStatus = !this.#muteAllStatus
+			return this.#muteAllStatus
 		} catch (error) {
 			console.log("- Error Change Raise Hand Button : ", error)
 		}
@@ -320,6 +334,9 @@ class EventListener {
 			})
 			if (!this.#cameraOptions.classList.contains("d-none")) {
 				this.#cameraOptions.classList.add("d-none")
+			}
+			if (!this.#microphoneOptions.classList.contains("d-none")) {
+				this.#microphoneOptions.classList.add("d-none")
 			}
 		} catch (error) {
 			console.log("- Error Hide User Option Button : ", error)
@@ -396,6 +413,18 @@ class EventListener {
 			}
 		} catch (error) {
 			console.log("- Error Hiding Menu : ", error)
+		}
+	}
+
+	async microphoneDevicesOption() {
+		try {
+			if (this.#microphoneOptions.classList.contains("d-none")) {
+				this.#microphoneOptions.classList.remove("d-none")
+			} else {
+				this.#microphoneOptions.classList.add("d-none")
+			}
+		} catch (error) {
+			console.log("- Error Hide or Display Option : ", error)
 		}
 	}
 
@@ -581,14 +610,14 @@ class EventListener {
 	}
 
 	// Method Join
-	async methodAddWaitingUser({ id, username, socket }) {
+	async methodAddWaitingUser({ id, username, socket, picture }) {
 		try {
 			let userWaitingListElement = document.createElement("div")
 			userWaitingListElement.className = "user-list-content"
 			userWaitingListElement.id = `wait-${id}`
 			userWaitingListElement.innerHTML = `
 									<div class="user-list-profile">
-										<img  src="/assets/icons/example_user.svg" alt="user-list-picture"
+										<img  src="/photo/${picture}.png" alt="user-list-picture"
 											class="user-list-picture" />
 										<span class="user-list-username">${username}</span>
 									</div>
@@ -680,6 +709,37 @@ class EventListener {
 		}
 	}
 
+	async methodAddRaiseHandUser({ id, username = "Tidak Diketahui", picture = "P_0000000", status }) {
+		try {
+			if (status) {
+				if (!document.getElementById(`raise-${id}`)) {
+					let raiseHandElement = document.createElement("div")
+					raiseHandElement.className = "user-list-content"
+					raiseHandElement.id = `raise-${id}`
+					raiseHandElement.innerHTML = `
+											<div class="user-list-profile">
+												<img src="/photo/${picture}.png" alt="user-list-picture"
+													class="user-list-picture" />
+												<span class="user-list-username">${username}</span>
+											</div>
+											<div class="user-list-icons">
+												<img src="/assets/icons/raise_hand_list.svg"
+													alt="user-list-icon" class="user-list-icon" id="raise-hand-${id}" />
+											</div>
+										`
+					this.#raiseHandList.appendChild(raiseHandElement)
+				}
+			} else {
+				if (document.getElementById(`raise-${id}`)) {
+					document.getElementById(`raise-${id}`).remove()
+				}
+			}
+			await this.checkRaiseHandList()
+		} catch (error) {
+			console.log("- Error Raise Hand User : ", error)
+		}
+	}
+
 	async removeWaitingList({ id }) {
 		try {
 			const waitedUser = document.getElementById(`wait-${id}`)
@@ -718,6 +778,23 @@ class EventListener {
 		}
 	}
 
+	async newUserNotification({ username, picture }) {
+		try {
+			const newUserNotificationContainer = document.getElementById("new-user-join-notification-container")
+			const newUserContainer = document.createElement("section")
+			newUserContainer.className = "new-user-join"
+			newUserContainer.innerHTML = `<img src="${
+				picture ? `/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
+			}" alt="new-user-join" class="new-user-profile-picture"><span class="notification-text">${username} join the room</span>`
+			newUserNotificationContainer.appendChild(newUserContainer)
+			setTimeout(() => {
+				newUserContainer.remove()
+			}, 3000)
+		} catch (error) {
+			console.log("- Error Displaying New User Joined The Room Notification : ", error)
+		}
+	}
+
 	// Method Check
 	async checkWaitingList() {
 		try {
@@ -734,6 +811,21 @@ class EventListener {
 		}
 	}
 
+	async checkRaiseHandList() {
+		try {
+			this.#raiseHandList = document.getElementById("raise-hand-list")
+			if (this.#raiseHandList.firstElementChild) {
+				await this.normalHideAndDisplay({ element: this.#raiseHandListContainer, status: true })
+			} else {
+				if (!this.#raiseHandListContainer.classList.contains("d-none")) {
+					await this.normalHideAndDisplay({ element: this.#raiseHandListContainer, status: false })
+				}
+			}
+		} catch (error) {
+			console.log("- Error Check Raise Hand : ", error)
+		}
+	}
+
 	async deleteUserList({ id }) {
 		try {
 			const userListElement = document.getElementById(`ul-${id}`)
@@ -746,7 +838,7 @@ class EventListener {
 	}
 
 	// Method Send Message
-	async messageTemplate({ isSender, username, messageDate, message }) {
+	async messageTemplate({ isSender, username, messageDate, message, picture }) {
 		try {
 			const chatContent = document.getElementById("chat-content")
 			if (isSender) {
@@ -767,7 +859,7 @@ class EventListener {
 							</div>
 						</div>
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="/assets/icons/example_user.svg"
+							<img class="message-profile-photo d-none" src="/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 					`
@@ -786,7 +878,7 @@ class EventListener {
 						</div>
 					</div>
 					<div class="message-profile">
-						<img class="message-profile-photo" src="/assets/icons/example_user.svg"
+						<img class="message-profile-photo" src="/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 				`
@@ -798,7 +890,7 @@ class EventListener {
 						console.log(usernameLastMessage, "<><><><>", dateLastMessage)
 						return `
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="/assets/icons/example_user.svg"
+							<img class="message-profile-photo d-none" src="/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 						<div class="message-content">
@@ -817,7 +909,7 @@ class EventListener {
 				}
 				return `
 					<div class="message-profile">
-						<img class="message-profile-photo" src="/assets/icons/example_user.svg"
+						<img class="message-profile-photo" src="/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 					<div class="message-content">

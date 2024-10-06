@@ -2,27 +2,53 @@ const { default: Swal } = require("sweetalert2")
 const { socket } = require("../socket/socket")
 const url = window.location
 
+const urlParam = new URL(window.location.href)
+const params = new URLSearchParams(urlParam.search)
+
+const rid = params.get("rid")
+const pw = params.get("pw")
+
 const joinForm = document.getElementById("join-form")
+const passwordForm = document.getElementById("password-form")
+const passwordInput = document.getElementById("password")
 const joinSubmit = document.getElementById("submit-join")
 const modalTitle = document.getElementById("modal-title")
 const waitingModal = document.getElementById("waiting-modal-container")
-joinSubmit.addEventListener("click", (e) => {
+const roomId = document.getElementById("room_id")
+
+joinSubmit.addEventListener("click", async (e) => {
 	e.preventDefault()
+	await socket.connect()
 	const roomId = document.getElementById("room_id").value
-	if (!roomId) {
+	const password = document.getElementById("password").value
+	if (!roomId || roomId.trim() == "") {
+		await Swal.fire({
+			title: "Bad Request",
+			text: "ID Room wajib di isi",
+			icon: "error",
+		})
 		return
 	}
-	const goTo = url + "room/" + roomId
-	joiningRoom({ roomId })
+
+	if (!password || password.trim() == "") {
+		await Swal.fire({
+			title: "Bad Request",
+			text: "Password room wajib di isi",
+			icon: "error",
+		})
+		return
+	}
+	await joiningRoom({ roomId, password })
 })
 
-socket.on("response-member-waiting", async ({ response, roomId }) => {
+socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	try {
 		if (response) {
 			window.location.href = url.origin + "/room/" + roomId
 		} else {
 			waitingModal.classList.add("d-none")
 			setFormStyle({ status: true })
+			socket.emit("rejected-response", { id })
 			Swal.fire({
 				title: "Ditolak!",
 				text: "Anda tidak diperkanankan masuk ruangan!",
@@ -34,13 +60,29 @@ socket.on("response-member-waiting", async ({ response, roomId }) => {
 	}
 })
 
-const joiningRoom = async ({ roomId }) => {
+const joiningRoom = async ({ roomId, password }) => {
 	try {
-		socket.connect()
-		socket.emit("joining-room", { roomId, position: "home" }, ({ status, roomName, meetingDate }) => {
+		socket.emit("joining-room", { roomId, position: "home", password }, ({ status, roomName, meetingDate, meeting_type }) => {
 			if (status) {
 				window.location.href = url.origin + "/room/" + roomName.replace(/\s+/g, "-")
 			} else {
+				if (meeting_type == 1) {
+					Swal.fire({
+						title: "Invalid Room",
+						text: "Pastikan ID Room dan Password benar!",
+						icon: "error",
+					})
+					return
+				}
+
+				if (!meetingDate || !roomName || roomName.trim() == "") {
+					Swal.fire({
+						title: "Invalid Room",
+						text: "Pastikan ID Room dan Password benar!",
+						icon: "error",
+					})
+					return
+				}
 				let hours = new Date(meetingDate).getHours()
 				let minutes = new Date(meetingDate).getMinutes()
 
@@ -59,68 +101,33 @@ const joiningRoom = async ({ roomId }) => {
 	}
 }
 
-const generateRandomId = (length, separator = "-", separatorInterval = 4) => {
-	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-	let randomId = ""
-
-	for (let i = 0; i < length; i++) {
-		if (i > 0 && i % separatorInterval === 0) {
-			randomId += separator
-		}
-
-		const randomIndex = Math.floor(Math.random() * characters.length)
-		randomId += characters.charAt(randomIndex)
-	}
-
-	return randomId
-}
-
-// const newMeetingButton = document.getElementById("new-meeting")
-// newMeetingButton.addEventListener("click", (e) => {
-// 	const id = generateRandomId(12)
-// 	joiningRoom({ roomId: id })
-// })
-
-const roomId = document.getElementById("room_id")
 roomId.addEventListener("change", (e) => {
 	localStorage.setItem("room_id", e.target.value)
 })
 
-// const rightBar = document.getElementById('right-bar-id')
-// const totalCarousel = rightBar.children.length
-// const carousels = document.querySelectorAll(".carousel")
-// let currentIndex = 0
-
-// function showCarousel(index) {
-// 	carousels[currentIndex].classList.remove("active")
-// 	carousels[currentIndex].classList.add("hide")
-// 	currentIndex = index
-// 	carousels[currentIndex].classList.add("hide")
-// 	carousels[currentIndex].classList.add("active")
-// }
-
-// function nextSlide() {
-// 	const nextIndex = (currentIndex + 1) % carousels.length
-// 	showCarousel(nextIndex)
-// }
-
-// function startCarousel() {
-// 	setInterval(nextSlide, 5000) // Change slide every 5 seconds (adjust the interval as needed)
-// }
-// startCarousel()
-
 document.addEventListener("DOMContentLoaded", (e) => {
 	document.getElementById("loading-id").className = "loading-hide"
-	setFormStyle({ status: true })
+	if (rid && rid.trim() != "" && pw && pw.trim() != "") {
+		passwordInput.value = pw
+		roomId.value = rid
+		joinSubmit.click()
+	} else {
+		setFormStyle({ status: true })
+	}
 })
 
 const setFormStyle = async ({ status }) => {
 	try {
 		if (status) {
 			joinForm.removeAttribute("style")
+			passwordForm.removeAttribute("style")
+			joinSubmit.removeAttribute("style")
 		} else {
 			joinForm.style.position = "relative"
 			joinForm.style.zIndex = "-1"
+			passwordForm.style.position = "relative"
+			passwordForm.style.zIndex = "-1"
+			joinSubmit.style.display = "none"
 		}
 	} catch (error) {
 		console.log("- Error Set Form Style : ", error)

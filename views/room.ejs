@@ -18,6 +18,8 @@
 
 <body>
     <div class="full-container">
+        <section id="new-user-join-notification-container">
+        </section>
         <div id="screensharing-permissions" class="screensharing-permissions">
         </div>
         <div id="warning-container" class="warning-container">
@@ -30,7 +32,7 @@
                     style="cursor: pointer;">
             </div>
             <div class="layout-modal-content-1">
-                <div class="layout-option-container" data-option="1">
+                <div id="layout-1" class="layout-option-container" data-option="1">
                     <section class="layout-option-title">
                         <img class="radio" src="/assets/icons/radio_button_active.svg" alt="radio_button_icon">
                         <span>Petak</span>
@@ -91,36 +93,6 @@
             <div class="video-container-normal-view" id="video-container">
                 <div class="cc-container d-none" id="cc-container">
                     <!-- Text CC -->
-                    <div class="cc-content">
-                        <img class="cc-profile-picture" src="/assets/icons/example_user.svg" alt="cc-profile">
-                        <div class="cc-message">
-                            <div class="cc-username">
-                                <span>Budi Santoso</span>
-                            </div>
-                            <div class="cc-message-content">
-                                <span>Bagaimana dengan hasil rapat kemarin? bagaimana
-                                    dengan hasil rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan
-                                    hasil
-                                    rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan hasil rapat
-                                    kemarin?</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="cc-content">
-                        <img class="cc-profile-picture" src="/assets/icons/example_user.svg" alt="cc-profile">
-                        <div class="cc-message">
-                            <div class="cc-username">
-                                <span>Budi Santoso</span>
-                            </div>
-                            <div class="cc-message-content">
-                                <span>Bagaimana dengan hasil rapat kemarin? bagaimana
-                                    dengan hasil rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan
-                                    hasil
-                                    rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan hasil rapat
-                                    kemarin?</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="previous-page" id="previous-page">
                     <p>&lt;</p>
@@ -171,8 +143,8 @@
                             <div class="liner-top">
                                 <hr />
                             </div>
-                            <div class="users-list-container">
-                                <div class="user-list-content">
+                            <div class="users-list-container" id="raise-hand-list">
+                                <!-- <div class="user-list-content">
                                     <div class="user-list-profile">
                                         <img src="/assets/icons/example_user.svg" alt="user-list-picture"
                                             class="user-list-picture" />
@@ -182,7 +154,7 @@
                                         <img src="/assets/icons/raise_hand_list.svg" alt="user-list-icon"
                                             class="user-list-icon">
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                         <div class="waiting-list-container d-none" id="waiting-list-container">
@@ -207,13 +179,6 @@
                     <div class="chat-content" id="chat-content">
                     </div>
                     <div class="chat-footer">
-                        <div class="file-attachment">
-                            <hr class="line-top">
-                            <img class="file-attachment-icon" src="/assets/icons/file_attachment.svg"
-                                alt="attachment-file-icon">
-                            <span class="file-attachment-title">FILE.pdf</span>
-                            <hr class="line-bottom">
-                        </div>
                         <div class="input-chat-container">
                             <input id="message-input" type="text" class="custom-input" placeholder="Tulis pesan..." />
                             <img class="send-message-button" src="/assets/icons/send_message.svg" alt="" srcset="" />
@@ -227,7 +192,13 @@
                 <section class="left-button-collection">
                     <button class="button-container" id="mic-button">
                         <img id="mic-icon" class="icons" src="/assets/icons/mic.svg" alt="mic-icons">
-                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up">
+                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up" id="microphone-devices-option">
+                        <ul id="mic-options" class="d-none">
+                            <li id="audio-input"><span class="mic-options-icons"><i
+                                        class="fa-solid fa-microphone-lines"></i></span><span>Microphone</span></li>
+                            <!-- <li id="audio-output"><span class="mic-options-icons"><i
+                                        class="fa-solid fa-volume-high"></i></span><span>Speaker</span></li> -->
+                        </ul>
                     </button>
                     <button class="button-container" id="camera-button">
                         <img id="camera-icon" class="icons" src="/assets/icons/camera_off.svg" alt="camera-icons">
@@ -248,6 +219,7 @@
                 </section>
                 <section class="middle-button-collection">
                     <button class="button-container" id="user-list-button">
+                        <div id="red-dot-user-list" class="d-none"></div>
                         <img class="icons" src="/assets/icons/people.svg" alt="user-list-icons">
                     </button>
                     <button class="button-container" id="chat-button">
@@ -294,9 +266,12 @@
         </section>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="/assets/plugins/face-api/face-api.min.js"></script>
     <script>
         const roomName = [/- JSON.stringify(roomId) /]
         const userId = [/- JSON.stringify(participant_id) /]
+        const meetingType = [/- JSON.stringify(meetingType) /]
+        const picture = [/- JSON.stringify(picture) /]
     </script>
     <script src="/javascript/room/roombundle.js"></script>
 </body>

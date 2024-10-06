@@ -3,6 +3,10 @@
     margin: 0;
 }
 
+a {
+    text-decoration: none !important;
+}
+
 /* width */
 ::-webkit-scrollbar {
     width: 0px;
@@ -130,14 +134,30 @@
     width: 100%;
     height: calc(40% - 40px);
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     padding: 20px 0;
+    flex-direction: column;
+    align-items: center;
 }
 
 .participant-photo>img {
-    height: 100%;
+    height: calc(100% - 30px);
     aspect-ratio: 1;
     border-radius: 10px
+}
+
+.participant-photo>a>button {
+    display: flex;
+    border: none;
+    padding: 5px 10px;
+    height: 25px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+
+.participant-photo>a>button>span {
+    font-size: 10px;
 }
 
 .participant-content {

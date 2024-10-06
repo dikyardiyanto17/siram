@@ -12,6 +12,24 @@ class ParticipantSiram {
 		}
 	}
 
+	static async findAll() {
+		try {
+			const participants = await Participant.findAll()
+			return participants
+		} catch (error) {
+			console.log("- Error")
+		}
+	}
+
+	static async findAllWithParticipants() {
+		try {
+			const participants = await Participant.findAll()
+			return participants
+		} catch (error) {
+			console.log("- Error Find All With Parents : ", error)
+		}
+	}
+
 	static async create(req, res, next) {
 		try {
 			const { participant_id, user_id, role, exception, status, photo, full_name, nik, nrp } = req.body
@@ -43,9 +61,9 @@ class ParticipantSiram {
 				throw { name: "Required", message: "Status kosong" }
 			}
 
-			if (!photo) {
-				throw { name: "Required", message: "Photo kosong" }
-			}
+			// if (!photo) {
+			// 	throw { name: "Required", message: "Photo kosong" }
+			// }
 
 			const checkParticipant = await Participant.findOne({
 				where: {

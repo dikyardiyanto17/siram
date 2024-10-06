@@ -40,6 +40,25 @@ class RoomParticipantSiram {
 			await next(error)
 		}
 	}
+
+	static async checkUser({ participant_id, room_id }) {
+		try {
+			const user = await Room_Participant.findOne({
+				where: {
+					participant_id,
+					room_id,
+				},
+			})
+
+			if (!user) {
+				return null
+			}
+			
+			return user
+		} catch (error) {
+			console.log(error)
+		}
+	}
 }
 
 module.exports = { RoomParticipantSiram }

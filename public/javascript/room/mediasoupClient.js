@@ -5,12 +5,19 @@ class StaticEvent {
 		try {
 			const myUserLicMic = document.getElementById(`mic-ul-${id}`)
 			const microphoneButton = document.getElementById("mic-icon")
+			const microphoneVideo = document.getElementById(`video-mic-${id}`)
 			if (isActive) {
 				myUserLicMic.src = "/assets/icons/user_list_mic_active.svg"
 				microphoneButton.src = "/assets/icons/mic.svg"
+				if (microphoneVideo) {
+					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+				}
 			} else {
 				myUserLicMic.src = "/assets/icons/user_list_mic.svg"
 				microphoneButton.src = "/assets/icons/mic_muted.svg"
+				if (microphoneVideo) {
+					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+				}
 			}
 		} catch (error) {
 			console.log("- Error Change Mic Button : ", error)
@@ -62,7 +69,7 @@ class MediaSoupClient extends StaticEvent {
 			opusDtx: false,
 		},
 		zeroRtpOnPause: true,
-		appData: { label: "audio", isActive: true },
+		appData: { label: "audio", isActive: true, picture: "" },
 	}
 
 	#rtpCapabilities = null
@@ -78,17 +85,17 @@ class MediaSoupClient extends StaticEvent {
 		codecOptions: {
 			videoGoogleStartBitrate: 1000,
 		},
-		appData: { label: "video", isActive: true },
+		appData: { label: "video", isActive: true, picture: "" },
 	}
 
 	#screenSharingVideoParams = {
 		track: null,
-		appData: { label: "screensharing_video", isActive: true },
+		appData: { label: "screensharing_video", isActive: true, picture: "" },
 	}
 
 	#screenSharingAudioParams = {
 		track: null,
-		appData: { label: "screensharing_audio", isActive: true },
+		appData: { label: "screensharing_audio", isActive: true, picture: "" },
 	}
 
 	#producerTransport = null
@@ -103,6 +110,8 @@ class MediaSoupClient extends StaticEvent {
 	#screenSharingStatus = document.getElementById("screen-sharing-button")
 
 	#videoDeviceId = ""
+	#audioDeviceId = ""
+	#speakerDeviceId = ""
 	constructor() {
 		super()
 		// Screen Sharing
@@ -286,7 +295,7 @@ class MediaSoupClient extends StaticEvent {
 					}
 				})
 				await this.createConsumerTransport({ socket, roomId, userId })
-				await this.connectSendTransport({ socket })
+				await this.connectSendTransport({ socket, picture: usersVariable.picture })
 			})
 		} catch (error) {
 			console.log("- Error Create Send Transport : ", error)
@@ -319,10 +328,12 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async connectSendTransport({ socket }) {
+	async connectSendTransport({ socket, picture }) {
 		try {
 			this.#audioParams.track = this.#mystream.getAudioTracks()[0]
 			this.#videoParams.track = this.#mystream.getVideoTracks()[0]
+			this.#audioParams.appData.picture = picture
+			this.#videoParams.appData.picture = picture
 			this.#audioProducer = await this.#producerTransport.produce(this.#audioParams)
 			this.#videoProducer = await this.#producerTransport.produce(this.#videoParams)
 			this.#videoProducer.on("trackended", () => {
@@ -481,6 +492,7 @@ class MediaSoupClient extends StaticEvent {
 						if (params.kind == "audio") {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
 						}
+						console.log(" - All User : ", usersVariable.allUsers)
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
 					}
@@ -510,6 +522,10 @@ class MediaSoupClient extends StaticEvent {
 		} catch (error) {
 			console.log("- Error Close Consumer : ", error)
 		}
+	}
+
+	async checkMic() {
+		return this.#mystream.getAudioTracks()[0].enabled
 	}
 
 	async reverseMicrophone({ userId }) {
@@ -708,6 +724,114 @@ class MediaSoupClient extends StaticEvent {
 			})
 		} catch (error) {
 			console.log("- Error Get Camera Options : ", error)
+		}
+	}
+
+	async getMicOptions({ usersVariable }) {
+		try {
+			let audioDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "audioinput")
+			// let audioDevicesOutput = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "audiooutput")
+
+			const currentDevice = await this.#mystream.getAudioTracks()[0].getSettings().deviceId
+			this.#audioDeviceId = currentDevice
+			const micOptionsContainer = document.getElementById("mic-options")
+			// const audioOutputOptions = document.getElementById("audio-output")
+			audioDevices.forEach((audio, index) => {
+				let newElement = document.createElement("li")
+				newElement.id = audio.deviceId + "-audio-input"
+				let currentAudio = '<i class="fa-regular fa-square"></i>'
+
+				if (audio.deviceId === this.#audioDeviceId) {
+					currentAudio = `<i class="fa-regular fa-square-check"></i>`
+				}
+
+				newElement.innerHTML = `<span class="mic-options-icons">${currentAudio}</span><span>${audio.label}</span>`
+				micOptionsContainer.append(newElement)
+				newElement.addEventListener("click", (e) => {
+					try {
+						this.switchMicrophone({ deviceId: audio.deviceId, usersVariable })
+					} catch (error) {
+						console.log("- Error Switching Microphone : ", error)
+					}
+				})
+			})
+			// audioDevicesOutput.forEach((audioDevices, index) => {
+			// 	let currentAudio = '<i class="fa-regular fa-square"></i>'
+			// 	if (index === 0) {
+			// 		currentAudio = `<i class="fa-regular fa-square-check"></i>`
+			// 		this.#speakerDeviceId = audioDevices.deviceId
+			// 	}
+			// 	let newElement = document.createElement("li")
+			// 	newElement.id = audioDevices.deviceId + "-audio-output"
+			// 	newElement.innerHTML = `<span class="mic-options-icons">${currentAudio}</span><span>${audioDevices.label}</span>`
+			// 	micOptionsContainer.appendChild(newElement)
+			// 	newElement.addEventListener("click", (e) => {
+			// 		e.stopPropagation()
+			// 		const iconSpeaker = document.getElementById(`${this.#speakerDeviceId}-audio-output`).firstChild.firstChild
+			// 		iconSpeaker.className = "fa-regular fa-square"
+			// 		this.#speakerDeviceId = audioDevices.deviceId
+			// 		const currentSpeaker = document.getElementById(`${this.#speakerDeviceId}-audio-output`).firstChild.firstChild
+			// 		currentSpeaker.className = "fa-regular fa-square-check"
+			// 		usersVariable.allUsers.forEach((u) => {
+			// 			let theAudio = document.getElementById(`a-${u.userId}`)
+
+			// 			console.log(theAudio)
+			// 			if (theAudio && typeof theAudio.sinkId !== "undefined") {
+			// 				console.log("- Sink Id Is Exist")
+			// 				theAudio
+			// 					.setSinkId(audioDevices.deviceId)
+			// 					.then(() => {
+			// 						console.log(`Success, audio output device attached: ${audioDevices.deviceId}`)
+			// 					})
+			// 					.catch((error) => {
+			// 						let errorMessage = error
+			// 						if (error.name === "SecurityError") {
+			// 							errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`
+			// 						}
+			// 						console.error(errorMessage)
+			// 					})
+			// 			} else {
+			// 				console.warn("Browser does not support output device selection.")
+			// 			}
+			// 		})
+			// 	})
+			// })
+		} catch (error) {
+			console.log("- Error Getting Mic Options : ", error)
+		}
+	}
+
+	async switchMicrophone({ deviceId, usersVariable }) {
+		try {
+			let previousIcon = document.getElementById(`${this.#audioDeviceId}-audio-input`).firstChild.firstChild
+			previousIcon.className = `fa-regular fa-square`
+			let iconCheckListMicrophone = document.getElementById(`${deviceId}-audio-input`).firstChild.firstChild
+			iconCheckListMicrophone.className = `fa-regular fa-square-check`
+			this.#audioDeviceId = deviceId
+			const myVideo = document.getElementById(`v-${userId}`)
+			// console.log(usersVariable.allUsers)
+
+			let config = {
+				audio: {
+					deviceId: { exact: deviceId },
+					autoGainControl: false,
+					noiseSuppression: true,
+					echoCancellation: true,
+				},
+			}
+
+			myVideo.srcObject.getAudioTracks()[0].stop()
+
+			let newStream = await navigator.mediaDevices.getUserMedia(config)
+			newStream.getAudioTracks()[0].enabled = this.#mystream.getAudioTracks()[0].enabled
+			this.#mystream.getAudioTracks()[0].stop()
+			this.#mystream.removeTrack(this.#mystream.getAudioTracks()[0])
+			this.#mystream.addTrack(newStream.getAudioTracks()[0])
+			this.#audioProducer.replaceTrack({ track: newStream.getAudioTracks()[0] })
+			document.getElementById(`audio-visualizer-${usersVariable.userId}`).remove()
+			await usersVariable.createAudioVisualizer({ id: usersVariable.userId, track: newStream.getAudioTracks()[0] })
+		} catch (error) {
+			console.log("- Error Switching Microphone : ", error)
 		}
 	}
 }

@@ -42,35 +42,6 @@ $("#customize-table").DataTable({
             </div>
         `)
 
-		// firstChild.append(`
-		//     <div class="custom-table-first-row-column">
-		//         <div>
-		//             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-		//                 <path d="M8.63633 2.5C7.42268 2.5 6.23628 2.85989 5.22717 3.53416C4.21806 4.20843 3.43155 5.16679 2.9671 6.28806C2.50266 7.40932 2.38114 8.64314 2.61791 9.83347C2.85468 11.0238 3.43911 12.1172 4.29729 12.9754C5.15547 13.8335 6.24886 14.418 7.43919 14.6547C8.62952 14.8915 9.86334 14.77 10.9846 14.3056C12.1059 13.8411 13.0642 13.0546 13.7385 12.0455C14.4128 11.0364 14.7727 9.84998 14.7727 8.63633C14.7726 7.0089 14.126 5.44817 12.9753 4.2974C11.8245 3.14664 10.2638 2.5001 8.63633 2.5Z" stroke="#8C98A4" stroke-width="2" stroke-miterlimit="10"/>
-		//                 <path d="M13.2144 13.2145L17.4999 17.5" stroke="#8C98A4" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round"/>
-		//             </svg>
-		//             <input type="search" class="form-control form-control-sm custom-search-input" placeholder="Search" aria-controls="customize-table">
-		//         </div>
-		//     </div>
-		//     <div class="custom-table-first-row-column">
-		//         <section class="menu-option" style="background-color: #377DFF;">
-		//             <a id="tambah_button" style="color: white; cursor: pointer;"
-		//                 data-toggle="modal" data-target="#create_modal">
-		//                     <span style="color: #ffffff;">+ Tambah Pendidikan</span>
-		//             </a>
-		//         </section>
-		//         <section id="export-pdf-button" class="menu-option">
-		//             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-		//                 <path
-		//                     d="M16.875 8.75V16.25C16.875 16.5815 16.7433 16.8995 16.5089 17.1339C16.2745 17.3683 15.9565 17.5 15.625 17.5H4.375C4.04348 17.5 3.72554 17.3683 3.49112 17.1339C3.2567 16.8995 3.125 16.5815 3.125 16.25V8.75C3.125 8.41848 3.2567 8.10054 3.49112 7.86612C3.72554 7.6317 4.04348 7.5 4.375 7.5H6.25C6.41576 7.5 6.57473 7.56585 6.69194 7.68306C6.80915 7.80027 6.875 7.95924 6.875 8.125C6.875 8.29076 6.80915 8.44974 6.69194 8.56695C6.57473 8.68416 6.41576 8.75 6.25 8.75H4.375V16.25H15.625V8.75H13.75C13.5842 8.75 13.4253 8.68416 13.3081 8.56695C13.1908 8.44974 13.125 8.29076 13.125 8.125C13.125 7.95924 13.1908 7.80027 13.3081 7.68306C13.4253 7.56585 13.5842 7.5 13.75 7.5H15.625C15.9565 7.5 16.2745 7.6317 16.5089 7.86612C16.7433 8.10054 16.875 8.41848 16.875 8.75ZM7.31719 5.44219L9.375 3.3836V10.625C9.375 10.7908 9.44085 10.9497 9.55806 11.0669C9.67527 11.1842 9.83424 11.25 10 11.25C10.1658 11.25 10.3247 11.1842 10.4419 11.0669C10.5592 10.9497 10.625 10.7908 10.625 10.625V3.3836L12.6828 5.44219C12.8001 5.55947 12.9591 5.62535 13.125 5.62535C13.2909 5.62535 13.4499 5.55947 13.5672 5.44219C13.6845 5.32492 13.7503 5.16586 13.7503 5C13.7503 4.83415 13.6845 4.67509 13.5672 4.55782L10.4422 1.43282C10.3841 1.37471 10.3152 1.32861 10.2393 1.29715C10.1635 1.2657 10.0821 1.24951 10 1.24951C9.91787 1.24951 9.83654 1.2657 9.76066 1.29715C9.68479 1.32861 9.61586 1.37471 9.55781 1.43282L6.43281 4.55782C6.31554 4.67509 6.24965 4.83415 6.24965 5C6.24965 5.16586 6.31554 5.32492 6.43281 5.44219C6.55009 5.55947 6.70915 5.62535 6.875 5.62535C7.04085 5.62535 7.19991 5.55947 7.31719 5.44219Z"
-		//                     fill="#377DFF" />
-		//             </svg>&nbsp;
-		//             <span>Export</span>
-		//         </section>
-
-		//     </div>
-		// `)
-
 		const pagination = $("#customize-table_paginate")
 
 		const initialInfo = $("#customize-table_info")
@@ -108,70 +79,6 @@ $("#customize-table").DataTable({
 				api.search(this.value).draw()
 			}
 		})
-
-		// $('#export-pdf-button').on('click', function() {
-		//     let dataTableData = api.rows().data().toArray();
-		//     let titlePdf = "Pendidikan";
-
-		//     let headers = api.columns().header().toArray().map((header, index) => {
-		//         if (index < api.columns().header().length - 1) {
-		//             return {
-		//                 text: header.innerText,
-		//                 style: 'tableHeader'
-		//             };
-		//         }
-		//         return null;
-		//     }).filter(header => header !== null);
-
-		//     let styles = {
-		//         tableHeader: {
-		//             bold: true,
-		//             fontSize: 11,
-		//             color: 'black',
-		//             fillColor: '#d3d3d3',
-		//             alignment: 'center'
-		//         },
-		//         tableContent: {
-		//             fontSize: 10,
-		//             alignment: 'center'
-		//         },
-		//         header: {
-		//             fontSize: 18,
-		//             bold: true,
-		//             alignment: 'center',
-		//             margin: [0, 0, 0, 10]
-		//         },
-		//     };
-
-		//     let dataRows = dataTableData.map(row => {
-		//         return row.slice(0, row.length - 1).map(cell => {
-		//             return {
-		//                 text: cell,
-		//                 style: 'tableContent'
-		//             };
-		//         });
-		//     });
-
-		//     let docDefinition = {
-		//         content: [{
-		//                 text: titlePdf,
-		//                 style: 'header'
-		//             },
-		//             {
-		//                 table: {
-		//                     widths: ['5%', '50%', '45%'],
-		//                     headerRows: 1,
-		//                     body: [
-		//                         headers,
-		//                         ...dataRows
-		//                     ]
-		//                 }
-		//             }
-		//         ],
-		//         styles: styles
-		//     };
-		//     pdfMake.createPdf(docDefinition).download('pendidikan.pdf');
-		// });
 	},
 })
 
@@ -194,6 +101,7 @@ const role_element = document.getElementById("role_detail")
 const exception_element = document.getElementById("exception_detail")
 const status_element = document.getElementById("status_detail")
 const photo_element = document.getElementById("participant-detail-photo")
+const update_photo_element = document.getElementById("update-photo-button")
 
 const blocker = document.getElementById("blocker")
 const modalDetail = document.getElementById("modal-detail")
@@ -224,12 +132,23 @@ blocker.addEventListener("click", () => {
 	}
 })
 
+const convertToBase64 = (arrayBuffer) => {
+	let binary = ""
+	const bytes = new Uint8Array(arrayBuffer)
+	const len = bytes.length
+	for (let i = 0; i < len; i++) {
+		binary += String.fromCharCode(bytes[i])
+	}
+	return btoa(binary)
+}
+
 const showDetail = async (e) => {
 	try {
 		e.preventDefault()
 		e.stopPropagation()
 		const participantId = e.target.dataset.option
 		const participant = participants.find((p) => p.participant_id == participantId)
+		update_photo_element.href = `/updatephoto?uid=${participant.participant_id}`
 		full_name_element.innerHTML = participant.full_name
 		nik_element.innerHTML = participant.nik
 		nrp_element.innerHTML = participant.nrp ? participant.nrp : "-"
@@ -238,9 +157,12 @@ const showDetail = async (e) => {
 		exception_element.innerHTML = participant.exception == 1 ? "Tidak" : "Ya"
 		status_element.innerHTML = participant.status == 1 ? "Aktif" : "Tidak Aktif"
 
-		const base64String = btoa(String.fromCharCode(...new Uint8Array(participant.photo.data)))
-		photo_element.src = atob(base64String)
-		
+		// const base64String = btoa(String.fromCharCode(...new Uint8Array(participant.photo.data)))
+		const base64String = convertToBase64(participant.photo.data)
+
+		// photo_element.src = atob(base64String)
+		photo_element.src = `/photo/${participant.photo_path}.png`
+
 		// photo_element.src = document.getElementById(`pic-${participant.participant_id}`).src
 		blocker.classList.remove("d-none")
 		modalDetail.style.top = "50%"
