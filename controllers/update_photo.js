@@ -17,6 +17,15 @@ class Update_Photo {
 			const { uid } = req.query
 
 			if (photo && photo.startsWith("data:image")) {
+				const user = await Participant.findOne({
+					where: {
+						participant_id: uid,
+					},
+				})
+
+				if (!user.photo_path || user.photo_path == null) {
+					await user.update({ photo_path: user.participant_id })
+				}
 				const base64Data = photo.replace(/^data:image\/\w+;base64,/, "")
 
 				const uploadsDir = path.join(__dirname, "../photo/")

@@ -3,14 +3,14 @@ const { Op, where } = require("sequelize")
 class ControllerRoom {
 	static index(req, res) {
 		try {
-			const { roomId, meetingType } = req.session
+			const { roomId, meetingType, password, faceRecognition } = req.session
 			const { participant_id, authority, picture } = req.user
 			if (!roomId || roomId.trim() == "") {
 				res.redirect("/")
 				return
 			}
 
-			res.render("room", { authority, participant_id, roomId, meetingType, picture })
+			res.render("room", { authority, participant_id, roomId, meetingType, picture, password, faceRecognition })
 		} catch (error) {
 			console.log(error)
 		}

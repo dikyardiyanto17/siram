@@ -2,9 +2,9 @@ const mediasoup = require("mediasoup")
 
 class MediaSoup {
 	#privateIp = "0.0.0.0"
-	// #publicIp = "203.175.10.29" // VPS	
-	#publicIp = "203.175.10.29" // VPS	2 Core Pak Indra
-	// #publicIp = "192.168.20.249" // KOS	
+	#publicIp = "203.175.10.29" // VPS
+	// #publicIp = "203.175.10.29" // VPS	2 Core Pak Indra
+	// #publicIp = "192.168.20.177" // KOS
 	// #publicIp = "192.168.205.229" // RDS co.id
 	// #publicIp = "203.175.10.29"
 	// #publicIp = "192.168.18.68" // RDS 5g

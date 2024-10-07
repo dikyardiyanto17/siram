@@ -161,7 +161,7 @@ const showDetail = async (e) => {
 		// const base64String = convertToBase64(participant.photo.data)
 
 		// photo_element.src = atob(base64String)
-		photo_element.src = `/photo/${participant.photo_path}.png`
+		photo_element.src = `/photo/${participant.photo_path || "P_0000000"}.png`
 
 		// photo_element.src = document.getElementById(`pic-${participant.participant_id}`).src
 		blocker.classList.remove("d-none")

@@ -160,7 +160,7 @@ class MediaSoupClient extends StaticEvent {
 		this.#mystream = stream
 	}
 
-	get videoProducer(){
+	get videoProducer() {
 		return this.#videoProducer
 	}
 
@@ -490,7 +490,7 @@ class MediaSoupClient extends StaticEvent {
 						}
 
 						if (appData.label == "screensharing_video") {
-							usersVariable.changeScreenSharingMode({ status: true, userId, socket })
+							usersVariable.changeScreenSharingMode({ status: true, userId, socket, username: params.username, picture: appData.picture })
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
 						}
 						if (params.kind == "audio") {

@@ -137,6 +137,7 @@ io.on("connection", async (socket) => {
 				userSession.roomName = room.room_name
 				userSession.password = password
 				userSession.meetingType = meeting_type
+				userSession.faceRecognition = room.face_recognition
 				await saveSession(userSession)
 			}
 
@@ -543,6 +544,14 @@ io.on("connection", async (socket) => {
 			})
 		} catch (error) {
 			console.log("- Error Set Consumer Quality : ", error)
+		}
+	})
+
+	socket.on("kick-user", async ({ message, to }) => {
+		try {
+			socket.to(to).emit("kick-user", { message })
+		} catch (error) {
+			console.log("- Error Socket Kick User : ", error)
 		}
 	})
 })

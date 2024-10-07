@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     no_perkara: DataTypes.STRING,
     meeting_type: DataTypes.INTEGER,
     room_id: DataTypes.STRING,
+    face_recognition: DataTypes.BOOLEAN,
     password: DataTypes.STRING,
     room_name: DataTypes.STRING,
     reference_room_id: DataTypes.STRING,

@@ -69,6 +69,13 @@
                             <span id="generate-pw-label">Custom Password</span>
                         </div>
                         <div class="input-meeting">
+                            <span>Menggunakan Face Recognition</span>
+                            <select name="face_recognition" id="face_recognition">
+                                <option value="false" selected>Tidak</option>
+                                <option value="true">Ya</option>
+                            </select>
+                        </div>
+                        <div class="input-meeting">
                             <span>Lokasi Sidang</span>
                             <textarea name="location" id="location" placeholder="Lokasi Sidang"></textarea>
                         </div>
@@ -152,24 +159,27 @@
                             <div class="detail-wrapper">
                                 <span>Lokasi Persidangan</span>
                                 <div class="info-wrapper">
-                                    <span id="detail_location">Jl. Tanah Abang III No.27, RT.3/RW.3, Petojo Sel.,
-                                        Kecamatan Gambir, Kota
-                                        Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10160</span>
+                                    <span id="detail_location"></span>
                                 </div>
                             </div>
                             <div class="detail-wrapper">
                                 <span>ID Room</span>
                                 <div class="info-wrapper">
-                                    <span id="detail_room_id">ID ROOM</span>
+                                    <span id="detail_room_id"></span>
                                 </div>
                             </div>
                             <div class="detail-wrapper">
                                 <span>Password</span>
                                 <div class="info-wrapper">
-                                    <span id="detail_password">ID ROOM</span>
+                                    <span id="detail_password"></span>
                                 </div>
                             </div>
-
+                            <div class="detail-wrapper">
+                                <span>Face Recognition</span>
+                                <div class="info-wrapper">
+                                    <span id="detail_face_recognition"></span>
+                                </div>
+                            </div>
                             <div class="detail-wrapper" style="position: relative;">
                                 <div id="clipboard-success"><span>Copied</span></div>
                                 <button type="button" id="clipboard-button"><i class="far fa-copy"></i>&nbsp;Copy
@@ -243,7 +253,7 @@
                         <div class="today-overview-meeting">
                             <div class="overview-header">
                                 <div class="total-meetings">
-                                    <span>Anda memiliki [/= meetings.length /] jadwal rapat hari ini.</span>
+                                    <span id="found">[/= meetings.length /] jadwal sidang ditemukan.</span>
                                 </div>
                                 <div class="filter-meetings">
 

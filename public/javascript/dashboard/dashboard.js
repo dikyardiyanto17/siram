@@ -1,4 +1,5 @@
-const cards = document.querySelectorAll(".card-meetings")
+const overviewContentContainer = document.getElementById("overview-content")
+const foundContainer = document.getElementById("found")
 const modalDetail = document.getElementById("modal-detail")
 const modalCreate = document.getElementById("create-modal")
 const blocker = document.getElementById("blocker")
@@ -10,6 +11,7 @@ const checkBoxCustomPassword = document.getElementById("generate-pw-label")
 const checkBoxInputPassword = document.getElementById("custom-password-checkbox")
 const passwordInput = document.getElementById("password")
 const meetingTypeInput = document.getElementById("meeting_type")
+const faceRecognitionInput = document.getElementById("face_recognition")
 const participantsOptionContainer = document.getElementById("input-meeting-participants")
 const participantListPublicContainer = document.getElementById("public-declaration")
 const noPerkaraInput = document.getElementById("no_perkara")
@@ -24,6 +26,7 @@ const endDateDetail = document.getElementById("detail_end_date")
 const locationDetail = document.getElementById("detail_location")
 const roomIdDetail = document.getElementById("detail_room_id")
 const passwordDetail = document.getElementById("detail_password")
+const faceRecognitionDetail = document.getElementById("detail_face_recognition")
 const participantsListDetail = document.getElementById("detail_participant_list")
 const clipboardDetail = document.getElementById("clipboard-button")
 
@@ -116,6 +119,7 @@ let newMeeting = {
 	location: "",
 	password: initialPassword,
 	participants: [],
+	face_recognition: false,
 }
 passwordInput.value = initialPassword
 
@@ -125,6 +129,70 @@ $(function () {
 
 	function cb(start, end) {
 		$("#overview-meetings span").html(start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY"))
+
+		const startDate = start.format("YYYY-MM-DD")
+		const endDate = end.format("YYYY-MM-DD")
+
+		fetch(`${window.location.origin}/api/room?st=${startDate}&et=${endDate}`)
+			.then((response) => {
+				if (response.ok) {
+					return response.json()
+				}
+			})
+			.then((meeting) => {
+				const { data } = meeting
+				meetingsInfo = data
+				if (meetingsInfo.length == 0) {
+					overviewContentContainer.innerHTML = "Tidak ada meeting"
+				} else {
+					let template = ""
+					meetingsInfo.forEach((m) => {
+						template += `
+						<div class="card-meetings" id="${m.room_id}-${m.meeting_type}">
+                                    <div class="left-line"></div>
+                                    <div>
+                                        <span>Tipe Rapat :  ${m.meeting_type == 1 ? "Perkara" : "Non Perkara"}</span>
+										&nbsp;&nbsp;&nbsp;&nbsp;
+										<span>No. Perkara : ${m.no_perkara ? m.no_perkara : "-"} </span>
+                                    </div>
+                                    <div>
+                                        <h3>${m.room_name}</h3>
+                                    </div>
+                                    <div>
+                                        <hr>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/date-icon.svg" alt="calender" srcset="">
+										&nbsp;&nbsp;
+										<span>${formatDate(new Date(m.start_date))}</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/clock_meeting.svg" alt="clock" srcset="">&nbsp;&nbsp;
+										<span>${formatTime(new Date(m.start_date))} - ${formatTime(new Date(m.end_date))}</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/institution_meeting.svg" alt="institution" srcset="">&nbsp;&nbsp;
+										<span>${m.location}</span>
+                                    </div>
+                                    <div>
+                                        <img style="width: 10px;" src="/assets/icons/participant_meeting.svg" alt="participant" srcset="">&nbsp;&nbsp;<span>
+                                            ${m.meeting_type == 1 ? m.participants.length : "Publik"}
+                                            </span>
+                                    </div>
+                            </div>
+						`
+					})
+					overviewContentContainer.innerHTML = template
+					foundContainer.innerHTML = `${meetingsInfo.length} jadwal persidangan ditemukan`
+					return meetingsInfo
+				}
+			})
+			.then((_) => {
+				functionShowDetail()
+			})
+			.catch((error) => {
+				console.log("- Error Fetching Filter Meeting : ", error)
+			})
 	}
 
 	$("#overview-meetings").daterangepicker(
@@ -249,108 +317,81 @@ newMeetingButton.addEventListener("click", () => {
 	}
 })
 
-cards.forEach((card) => {
-	card.addEventListener("click", async () => {
-		try {
-			const selectedRoomId = card.id
-			const parts = selectedRoomId.split("-")
-			blocker.classList.remove("d-none")
-			modalDetail.style.top = "0"
+const functionShowDetail = async () => {
+	try {
+		const cards = document.querySelectorAll(".card-meetings")
+		cards.forEach((card) => {
+			card.addEventListener("click", async () => {
+				try {
+					const selectedRoomId = card.id
+					const parts = selectedRoomId.split("-")
+					blocker.classList.remove("d-none")
+					modalDetail.style.top = "0"
 
-			const roomDetail = meetingsInfo.find((m) => m.room_id == parts[0])
+					const roomDetail = meetingsInfo.find((m) => m.room_id == parts[0])
 
-			const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, location, participants } = roomDetail
+					const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, location, participants, face_recognition } =
+						roomDetail
 
-			const startDate = await formatDate(new Date(start_date))
-			const endDate = await formatDate(new Date(end_date))
+					const startDate = await formatDate(new Date(start_date))
+					const endDate = await formatDate(new Date(end_date))
 
-			const startTime = await formatTime(new Date(start_date))
-			const endTime = await formatTime(new Date(end_date))
+					const startTime = await formatTime(new Date(start_date))
+					const endTime = await formatTime(new Date(end_date))
 
-			roomNameDetail.innerHTML = room_name
-			noPerkaraDetail.innerHTML = !no_perkara || no_perkara.trim() == "" ? "-" : no_perkara
-			meetingTypeDetail.innerHTML = meeting_type == 1 ? "Perkara" : "Non Perkara"
-			startTimeDetail.innerHTML = startDate
-			startDateDetail.innerHTML = startTime
-			endTimeDetail.innerHTML = endDate
-			endDateDetail.innerHTML = endTime
-			locationDetail.innerHTML = location
-			roomIdDetail.innerHTML = room_id
-			passwordDetail.innerHTML = password
+					roomNameDetail.innerHTML = room_name
+					noPerkaraDetail.innerHTML = !no_perkara || no_perkara.trim() == "" ? "-" : no_perkara
+					meetingTypeDetail.innerHTML = meeting_type == 1 ? "Perkara" : "Non Perkara"
+					startTimeDetail.innerHTML = startDate
+					startDateDetail.innerHTML = startTime
+					endTimeDetail.innerHTML = endDate
+					endDateDetail.innerHTML = endTime
+					locationDetail.innerHTML = location
+					roomIdDetail.innerHTML = room_id
+					passwordDetail.innerHTML = password
+					faceRecognitionDetail.innerHTML = face_recognition ? "Ya" : "Tidak"
 
-			clipboardDetail.removeEventListener("click", copyClipboard)
-			clipboardDetail.addEventListener("click", copyClipboard)
+					clipboardDetail.removeEventListener("click", copyClipboard)
+					clipboardDetail.addEventListener("click", copyClipboard)
 
-			participantsListDetail.style.display = "none"
-			participantListPublicContainer.classList.remove("d-none")
-			if (parts[1] == 1) {
-				let participantList = ``
-				participants.forEach((p, index) => {
-					let addParticipant = `
-					<tr>
-						<td>${index + 1}</td>
-						<td>${p.participant_id}</td>
-						<td>${p.full_name}</td>
-						<td>${p.role}</td>
-					</tr>
-					`
+					participantsListDetail.style.display = "none"
+					participantListPublicContainer.classList.remove("d-none")
+					if (parts[1] == 1) {
+						let participantList = ``
+						participants.forEach((p, index) => {
+							let addParticipant = `
+							<tr>
+								<td>${index + 1}</td>
+								<td>${p.participant_id}</td>
+								<td>${p.full_name}</td>
+								<td>${p.role}</td>
+							</tr>
+							`
 
-					participantList += addParticipant
-				})
+							participantList += addParticipant
+						})
 
-				participantsListDetail.innerHTML = participantList
+						participantsListDetail.innerHTML = participantList
 
-				participantsListDetail.removeAttribute("style")
-				if (!participantListPublicContainer.classList.contains("d-none")) {
-					participantListPublicContainer.classList.add("d-none")
+						participantsListDetail.removeAttribute("style")
+						if (!participantListPublicContainer.classList.contains("d-none")) {
+							participantListPublicContainer.classList.add("d-none")
+						}
+					} else if (parts[1] == 2) {
+						participantsListDetail.style.display = "none"
+						participantListPublicContainer.classList.remove("d-none")
+					}
+				} catch (error) {
+					console.log("- Error Add Event Listener Card : ", error)
 				}
-			} else if (parts[1] == 2) {
-				participantsListDetail.style.display = "none"
-				participantListPublicContainer.classList.remove("d-none")
-			}
-			// if (parts[1] == 1) {
-			// 	blocker.classList.remove("d-none")
-			// 	modalDetail.style.top = "0"
-			// 	participantsListDetail.removeAttribute("style")
-			// 	if (!participantListPublicContainer.classList.contains("d-none")) {
-			// 		participantListPublicContainer.classList.add("d-none")
-			// 	}
-			// } else if (parts[1] == 2) {
-			// 	blocker.classList.remove("d-none")
-			// 	modalDetail.style.top = "0"
+			})
+		})
+	} catch (error) {
+		console.log("- Error Show Detail Card : ", error)
+	}
+}
 
-			// 	const roomDetail = meetingsInfo.find((m) => m.room_id == parts[0])
-
-			// 	const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, location } = roomDetail
-
-			// 	const startDate = await formatDate(new Date(start_date))
-			// 	const endDate = await formatDate(new Date(end_date))
-
-			// 	const startTime = await formatTime(new Date(start_date))
-			// 	const endTime = await formatTime(new Date(end_date))
-
-			// 	roomNameDetail.innerHTML = room_name
-			// 	noPerkaraDetail.innerHTML = !no_perkara || no_perkara.trim() == "" ? "-" : no_perkara
-			// 	meetingTypeDetail.innerHTML = meeting_type == 1 ? "Perkara" : "Non Perkara"
-			// 	startTimeDetail.innerHTML = startDate
-			// 	startDateDetail.innerHTML = startTime
-			// 	endTimeDetail.innerHTML = endDate
-			// 	endDateDetail.innerHTML = endTime
-			// 	locationDetail.innerHTML = location
-			// 	roomIdDetail.innerHTML = room_id
-			// 	passwordDetail.innerHTML = password
-
-			// 	clipboardDetail.removeEventListener("click", copyClipboard)
-			// 	clipboardDetail.addEventListener("click", copyClipboard)
-
-			// 	participantsListDetail.style.display = "none"
-			// 	participantListPublicContainer.classList.remove("d-none")
-			// }
-		} catch (error) {
-			console.log("- Error Add Event Listener Card : ", error)
-		}
-	})
-})
+functionShowDetail()
 
 setInterval(() => {
 	const formattedDate = new Intl.DateTimeFormat("id-ID", {
@@ -389,10 +430,11 @@ saveNewMeetingButton.addEventListener("click", async () => {
 		newMeeting.participants = $("#participants").chosen().val()
 		newMeeting.no_perkara = noPerkaraInput.value
 		newMeeting.meeting_type = meetingTypeInput.value
+		newMeeting.face_recognition = faceRecognitionInput.value === "true"
 		if (newMeeting.meeting_type == 2) {
 			newMeeting.no_perkara = ""
 		}
-		const { end_date, location, meeting_type, no_perkara, room_name, start_date, password, participants } = newMeeting
+		const { end_date, location, meeting_type, no_perkara, room_name, start_date, password, participants, face_recognition } = newMeeting
 
 		if (!room_name && room_name.trim() == "") {
 			throw { name: "Bad Request", message: "Judul rapat wajib di isi" }
@@ -451,6 +493,9 @@ saveNewMeetingButton.addEventListener("click", async () => {
 			locationInput.value = ""
 			document.getElementById("start_date").value = ""
 			document.getElementById("end_date").value = ""
+			setTimeout(() => {
+				window.location.href = `${window.location.origin}/dashboard`
+			}, 2000)
 		} else {
 			throw { name: "Bad Request", message: "Rapat gagal dibuat" }
 		}

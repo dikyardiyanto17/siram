@@ -35324,7 +35324,7 @@ class MediaSoupClient extends StaticEvent {
 		this.#mystream = stream
 	}
 
-	get videoProducer(){
+	get videoProducer() {
 		return this.#videoProducer
 	}
 
@@ -35654,7 +35654,7 @@ class MediaSoupClient extends StaticEvent {
 						}
 
 						if (appData.label == "screensharing_video") {
-							usersVariable.changeScreenSharingMode({ status: true, userId, socket })
+							usersVariable.changeScreenSharingMode({ status: true, userId, socket, username: params.username, picture: appData.picture })
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
 						}
 						if (params.kind == "audio") {
@@ -36021,99 +36021,112 @@ const RecordRTC = require("recordrtc")
 const eventListenerCollection = new EventListener({ micStatus: false, cameraStatus: false, roomId: roomName })
 const usersVariable = new Users()
 const mediasoupClientVariable = new MediaSoupClient()
+usersVariable.faceRecognition = faceRecognition
 
-Promise.all([
-	faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
-	faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
-	faceapi.nets.faceLandmark68Net.loadFromUri("../../assets/plugins/face-api/models"),
-]).then((_) => {
-	// document.getElementById("loading-id").className = "loading-hide"
-	socket.connect()
+const connectSocket = async () => {
+	try {
+		socket.connect()
 
-	socket.emit(
-		"joining-room",
-		{ roomId: roomName, userId: userId, position: "room" },
-		async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
-			try {
-				if (status) {
-					let filteredRtpCapabilities = { ...rtpCapabilities }
-					filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
-						(ext) => ext.uri !== "urn:3gpp:video-orientation"
-					)
-					usersVariable.username = username
-					usersVariable.userId = userId
-					usersVariable.authority = authority
-					const devices = await navigator.mediaDevices.enumerateDevices()
-					usersVariable.picture = picture
+		socket.emit(
+			"joining-room",
+			{ roomId: roomName, userId: userId, position: "room" },
+			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
+				try {
+					if (status) {
+						let filteredRtpCapabilities = { ...rtpCapabilities }
+						filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
+							(ext) => ext.uri !== "urn:3gpp:video-orientation"
+						)
+						usersVariable.username = username
+						usersVariable.userId = userId
+						usersVariable.authority = authority
+						const devices = await navigator.mediaDevices.enumerateDevices()
+						usersVariable.picture = picture
 
-					mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
-					await mediasoupClientVariable.createDevice()
-					await mediasoupClientVariable.setEncoding()
-					await mediasoupClientVariable.getMyStream()
-					await mediasoupClientVariable.getCameraOptions({ userId: userId })
-					await mediasoupClientVariable.getMicOptions({ usersVariable })
+						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
+						await mediasoupClientVariable.createDevice()
+						await mediasoupClientVariable.setEncoding()
+						await mediasoupClientVariable.getMyStream()
+						await mediasoupClientVariable.getCameraOptions({ userId: userId })
+						await mediasoupClientVariable.getMicOptions({ usersVariable })
 
-					let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
-					let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
-					if (authority == 1 || authority == 2) {
-						usersVariable.screenSharingPermission = true
-					} else {
-						usersVariable.screenSharingPermission = false
-					}
-					await usersVariable.addAllUser({
-						userId,
-						username,
-						authority,
-						socketId: socket.id,
-						kind: "audio",
-						track: audioTrack,
-						focus: true,
-						socket,
-						appData: {
-							label: "audio",
-							isActive: true,
-							kind: "audio",
-							roomId: roomId,
-							socketId: socket.id,
+						let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
+						let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
+						if (authority == 1 || authority == 2) {
+							usersVariable.screenSharingPermission = true
+						} else {
+							usersVariable.screenSharingPermission = false
+						}
+						await usersVariable.addAllUser({
 							userId,
-							picture,
-						},
-					})
-					await usersVariable.addAllUser({
-						userId,
-						username,
-						authority,
-						socketId: socket.id,
-						kind: "video",
-						track: videoTrack,
-						focus: true,
-						socket,
-						appData: {
-							label: "video",
-							isActive: true,
-							kind: "audio",
-							roomId: roomId,
+							username,
+							authority,
 							socketId: socket.id,
-							userId,
-							picture,
-						},
-					})
-					await usersVariable.startSpeechToText({ socket, status: true })
-					if ((authority == 1 || authority == 2) && waitingList) {
-						waitingList.forEach((u) => {
-							eventListenerCollection.methodAddWaitingUser({ id: u.participantId, username: u.username, socket, picture: u.picture })
+							kind: "audio",
+							track: audioTrack,
+							focus: true,
+							socket,
+							appData: {
+								label: "audio",
+								isActive: true,
+								kind: "audio",
+								roomId: roomId,
+								socketId: socket.id,
+								userId,
+								picture,
+							},
 						})
+						await usersVariable.addAllUser({
+							userId,
+							username,
+							authority,
+							socketId: socket.id,
+							kind: "video",
+							track: videoTrack,
+							focus: true,
+							socket,
+							appData: {
+								label: "video",
+								isActive: true,
+								kind: "audio",
+								roomId: roomId,
+								socketId: socket.id,
+								userId,
+								picture,
+							},
+						})
+						await usersVariable.startSpeechToText({ socket, status: true })
+						if ((authority == 1 || authority == 2) && waitingList) {
+							waitingList.forEach((u) => {
+								eventListenerCollection.methodAddWaitingUser({ id: u.participantId, username: u.username, socket, picture: u.picture })
+							})
+						}
+						await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
+					} else {
+						window.location.href = window.location.origin
 					}
-					await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
-				} else {
-					window.location.href = window.location.origin
+				} catch (error) {
+					console.log("- Error Join Room : ", error)
 				}
-			} catch (error) {
-				console.log("- Error Join Room : ", error)
 			}
-		}
-	)
-})
+		)
+	} catch (error) {
+		console.log("- Error Connect Socket : ", error)
+	}
+}
+
+if (faceRecognition) {
+	Promise.all([
+		faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
+		faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
+		faceapi.nets.faceLandmark68Net.loadFromUri("../../assets/plugins/face-api/models"),
+	]).then((_) => {
+		// document.getElementById("loading-id").className = "loading-hide"
+		connectSocket()
+	})
+} else {
+	connectSocket()
+}
 
 socket.on("member-joining-room", ({ id, socketId, username, picture }) => {
 	try {
@@ -36142,7 +36155,6 @@ socket.on("user-list", ({ type, userId, isActive }) => {
 
 socket.on("user-logout", ({ userId }) => {
 	try {
-		eventListenerCollection.deleteUserList({ id: userId })
 		eventListenerCollection.methodAddRaiseHandUser({ id: userId, status: false })
 		eventListenerCollection.deleteUserList({ id: userId })
 		usersVariable.deleteVideo({ userId })
@@ -36325,6 +36337,20 @@ socket.on("mute-all", async ({ status }) => {
 	}
 })
 
+socket.on("kick-user", async ({ message }) => {
+	try {
+		Users.warning({ message })
+		setTimeout(() => {
+			socket.emit("hang-up", { userid: usersVariable.userId }, ({ status }) => {
+				socket.disconnect()
+				window.location.href = `${window.location.origin}`
+			})
+		}, 3000)
+	} catch (error) {
+		console.log("- Error Socket On Kick User : ", error)
+	}
+})
+
 // Microphone Button
 let microphoneButton = document.getElementById("mic-icon")
 microphoneButton.addEventListener("click", async () => {
@@ -36396,9 +36422,9 @@ raiseHandButton.addEventListener("click", async () => {
 			if (u.userId != usersVariable.userId) {
 				socket.emit("raise-hand", {
 					to: u.socketId,
-					userId: u.userId,
-					username: u.username,
-					picture: u.consumer[0].appData.picture,
+					userId: usersVariable.userId,
+					username: usersVariable.username,
+					picture: usersVariable.picture,
 					status: raiseHandStatus,
 				})
 			}
@@ -36446,10 +36472,16 @@ screenSharingButton.addEventListener("click", async () => {
 					roomId: roomName,
 					socketId: socket.id,
 					userId: usersVariable.userId,
-					picture,
+					picture: usersVariable.picture,
 				},
 			})
-			await usersVariable.changeScreenSharingMode({ status: true, userId: usersVariable.userId, socket })
+			await usersVariable.changeScreenSharingMode({
+				status: true,
+				userId: usersVariable.userId,
+				socket,
+				username: usersVariable.username,
+				picture: usersVariable.picture,
+			})
 		}
 	} catch (error) {
 		console.log("- Error Screen Sharing Button : ", error)
@@ -36648,6 +36680,10 @@ messageInput.addEventListener("keyup", async (event) => {
 
 			const message = messageInput.value
 
+			if (message.trim() == "" || !message) {
+				return
+			}
+
 			const userId = usersVariable.userId
 			usersVariable.allUsers.forEach((user) => {
 				if (user.userId != userId) {
@@ -36674,6 +36710,49 @@ messageInput.addEventListener("keyup", async (event) => {
 		}
 	} catch (error) {
 		console.log("- Error Send Message : ", error)
+	}
+})
+
+const sendMessageButton = document.getElementById("send-message-button")
+sendMessageButton.addEventListener("click", async (event) => {
+	try {
+		const username = usersVariable.userId
+		const messageDate = new Date()
+		const formattedTime = messageDate.toLocaleTimeString("en-GB", {
+			hour: "2-digit",
+			minute: "2-digit",
+		})
+
+		const message = messageInput.value
+		if (message.trim() == "" || !message) {
+			return
+		}
+
+		const userId = usersVariable.userId
+		usersVariable.allUsers.forEach((user) => {
+			if (user.userId != userId) {
+				socket.emit("message", {
+					userId: user.userId,
+					to: user.socketId,
+					message,
+					username: usersVariable.username,
+					picture: usersVariable.picture,
+				})
+			}
+		})
+
+		const isSender = true
+		const messageTemplate = await eventListenerCollection.messageTemplate({
+			isSender,
+			username: usersVariable.username,
+			messageDate: formattedTime,
+			message,
+			picture: usersVariable.picture,
+		})
+		await eventListenerCollection.appendMessage({ message: messageTemplate })
+		messageInput.value = ""
+	} catch (error) {
+		console.log("- Error Send Mesage : ", error)
 	}
 })
 
@@ -36769,6 +36848,44 @@ downstreamOption.forEach((container) => {
 	}
 })
 
+const searchParticipant = document.getElementById("search-participant")
+searchParticipant.addEventListener("input", (event) => {
+	const userListItems = document.querySelectorAll("#users-list-container .user-list-content")
+	const searchTerm = event.target.value.toLowerCase()
+
+	console.log(userListItems)
+	userListItems.forEach((item) => {
+		const username = item.querySelector(".user-list-username").textContent.toLowerCase() // Get the username and convert it to lowercase
+
+		if (username.includes(searchTerm)) {
+			item.classList.remove("d-none")
+		} else {
+			if (!item.classList.contains("d-none")) {
+				item.classList.add("d-none")
+			}
+		}
+		if (searchTerm == "") {
+			item.classList.remove("d-none")
+		}
+	})
+})
+
+const shareLinkButton = document.getElementById("share-link-button")
+
+shareLinkButton.addEventListener("click", async () => {
+	try {
+		await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomName}&pw=${password}`)
+		const clipboardSuccess = document.getElementById("clipboard-success")
+
+		clipboardSuccess.style.opacity = 1
+		setTimeout(() => {
+			clipboardSuccess.removeAttribute("style")
+		}, 2000)
+	} catch (error) {
+		console.log("- Error Share Link Button : ", error)
+	}
+})
+
 // Click Oustide Container
 document.addEventListener("click", function (e) {
 	try {
@@ -36800,7 +36917,7 @@ class StaticEvent {
 		return randomId
 	}
 
-	static methodAddUserList({ id, username, authority, picture }) {
+	static methodAddUserList({ id, username, authority, picture, userId, userAuthority }) {
 		try {
 			let userListElement = document.createElement("div")
 			let authorityElement = ``
@@ -36825,7 +36942,9 @@ class StaticEvent {
                                         class="user-list-icon">
                                     <img style="cursor: pointer;" id="ul-o-${id}" src="/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
-									<div class="user-list-icons-option d-none" id="ul-oc-${id}"><span id="ul-o-f-${id}">Pin</span></div>
+									<div class="user-list-icons-option d-none" id="ul-oc-${id}"><span id="ul-o-f-${id}">Pin</span>
+									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">Usir</span>` : ""}
+									</div>
                                 </div>
                             `
 			document.getElementById("users-list-container").appendChild(userListElement)
@@ -36924,6 +37043,8 @@ class Users extends StaticEvent {
 		speechRecognitionList: null,
 		maxWords: 15,
 	}
+
+	#faceRecognition
 	constructor() {
 		super()
 
@@ -36966,6 +37087,14 @@ class Users extends StaticEvent {
 		// Record
 		this.#timerCounter = "00:00:00"
 		this.#elapsedTime = 0
+	}
+
+	get faceRecognition() {
+		return this.#faceRecognition
+	}
+
+	set faceRecognition(input) {
+		this.#faceRecognition = input
 	}
 	get muteAllStatus() {
 		return this.#muteAllStatus
@@ -37202,7 +37331,9 @@ class Users extends StaticEvent {
 
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
-					await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+					if (this.#faceRecognition){
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+					}
 				}
 				// await this.adjustFR()
 			}
@@ -37242,7 +37373,7 @@ class Users extends StaticEvent {
 				let usernameElement = document.createElement("span")
 				usernameElement.id = `vu-${userId}`
 				usernameElement.className = "video-username"
-				usernameElement.innerHTML = userId
+				usernameElement.innerHTML = username
 				userVideoElement.appendChild(usernameElement)
 
 				let microphoneElement = document.createElement("div")
@@ -37253,7 +37384,9 @@ class Users extends StaticEvent {
 				await this.insertVideo({ track, id: userId })
 
 				if (!userId.startsWith("ssv_")) {
-					await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+					if (this.#faceRecognition){
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+					}
 				}
 			}
 		} catch (error) {
@@ -37477,8 +37610,26 @@ class Users extends StaticEvent {
 				}
 				await this.addVideo({ username, userId, track: null, index, picture: appData.picture })
 
-				await this.constructor.methodAddUserList({ id: userId, username: username, authority: authority, picture: appData?.picture })
+				await this.constructor.methodAddUserList({
+					id: userId,
+					username: username,
+					authority: authority,
+					picture: appData?.picture,
+					userId: this.#userId,
+					userAuthority: this.#authority,
+				})
 				await this.updatePageInformation()
+				if ((this.#authority == 1 || this.#authority == 2) && userId != this.#userId) {
+					const optionKickUser = document.getElementById(`ul-o-k-${userId}`)
+					optionKickUser.addEventListener("click", (e) => {
+						try {
+							e.stopPropagation()
+							socket.emit("kick-user", { to: socketId, message: "Anda telah di usir dari ruangan" })
+						} catch (error) {
+							console.log("- Error Kick User : ", error)
+						}
+					})
+				}
 				const optionUserList = document.getElementById(`ul-o-${userId}`)
 				optionUserList.addEventListener("click", (e) => {
 					e.stopPropagation()
@@ -37572,6 +37723,7 @@ class Users extends StaticEvent {
 					}
 				})
 			}
+			this.constructor.updateTotalUserList({ total: this.#users })
 		} catch (error) {
 			console.log("- Error Delete All User : ", error)
 		}
@@ -37805,7 +37957,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addForceCloseList({ socket, userId }) {
+	async addForceCloseList({ socket, userId, username, picture }) {
 		try {
 			let userListElement = document.createElement("div")
 			const userListContainerElement = document.getElementById("users-list-container")
@@ -37813,9 +37965,9 @@ class Users extends StaticEvent {
 			userListElement.id = `ul-ss-${userId}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="/assets/icons/example_user.svg" alt="user-list-picture"
+                                    <img src="/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
                                         class="user-list-picture" />
-                                    <span class="user-list-username">${userId}</span>
+                                    <span class="user-list-username">${username}</span>
                                 </div>
                                 <div class="user-list-icons">
 									<span class="user-list-tag">Layar</span>
@@ -37838,10 +37990,10 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async changeScreenSharingMode({ status, userId, socket }) {
+	async changeScreenSharingMode({ status, userId, socket, username, picture }) {
 		try {
 			if (status) {
-				await this.addForceCloseList({ socket, userId })
+				await this.addForceCloseList({ socket, userId, username, picture })
 				this.#userIdScreenSharing = userId
 				this.#screenSharingMode = true
 				this.#currentLayout = 3
@@ -37899,7 +38051,8 @@ class Users extends StaticEvent {
 								c.focus = true
 							}
 						})
-						this.changeScreenSharingMode({ status: false, userId, socket })
+						console.log("- User : ", user)
+						this.changeScreenSharingMode({ status: false, userId, socket, username: user.username, picture: user.consumer[0].appData.picture })
 					}
 					if (label == "screensharing_audio") {
 						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_audio")

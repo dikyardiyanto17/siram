@@ -170,7 +170,8 @@
                         <div class="user-list-header-search">
                             <div class="search-user">
                                 <img class="search-icon" src="/assets/icons/search.svg" alt="search">
-                                <input type="text" class="custom-input" placeholder="Cari Anggota" />
+                                <input id="search-participant" type="text" class="custom-input"
+                                    placeholder="Cari Anggota" />
                             </div>
                         </div>
                     </div>
@@ -210,7 +211,10 @@
                         </div>
                     </div>
                     <div class="user-list-footer">
-                        <button class="share-link-button">Share</button>
+                        <button id="share-link-button" class="share-link-button">
+                            <div id="clipboard-success"><span>Copied</span></div>
+                            Share
+                        </button>
                         <button class="mute-all-button" id="mute-all-button">Mute All</button>
                     </div>
                 </section>
@@ -220,7 +224,8 @@
                     <div class="chat-footer">
                         <div class="input-chat-container">
                             <input id="message-input" type="text" class="custom-input" placeholder="Tulis pesan..." />
-                            <img class="send-message-button" src="/assets/icons/send_message.svg" alt="" srcset="" />
+                            <img class="send-message-button" id="send-message-button"
+                                src="/assets/icons/send_message.svg" alt="" srcset="" />
                         </div>
                     </div>
                 </section>
@@ -311,6 +316,8 @@
         const userId = [/- JSON.stringify(participant_id) /]
         const meetingType = [/- JSON.stringify(meetingType) /]
         const picture = [/- JSON.stringify(picture) /]
+        const password = [/- JSON.stringify(password) /]
+        const faceRecognition = [/- JSON.stringify(faceRecognition) /]
     </script>
     <script src="/javascript/room/roombundle.js"></script>
 </body>

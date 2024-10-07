@@ -82,7 +82,8 @@ class RoomSiram {
 
 	static async create(req, res, next) {
 		try {
-			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, location, password } = req.body
+			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, location, password, face_recognition } =
+				req.body
 
 			const room_id = await RoomSiram.createRoomId()
 			const status = 1
@@ -142,6 +143,7 @@ class RoomSiram {
 						status,
 						location,
 						password,
+						face_recognition,
 						...createdDate,
 					},
 					{ transaction }
@@ -161,7 +163,6 @@ class RoomSiram {
 
 				await res.status(201).json({ roomCreated, message: "Successfully create room", status: true })
 			} else if (meeting_type == 2) {
-				// Rapat Non Perkara
 				const roomCreated = await Room.create({
 					no_perkara,
 					meeting_type,
@@ -174,6 +175,7 @@ class RoomSiram {
 					status,
 					password,
 					location,
+					face_recognition,
 					...createdDate,
 				})
 				await res.status(201).json({ roomCreated, message: "Successfully create room", status: true })
@@ -204,6 +206,7 @@ class RoomSiram {
 					const participants = await Room_Participant.findAll({
 						where: {
 							no_perkara: meeting.no_perkara,
+							room_id: meeting.room_id,
 						},
 					})
 
@@ -230,6 +233,57 @@ class RoomSiram {
 			return meetingsWithParticipants
 		} catch (error) {
 			console.log("- Error Get Today Meeting : ", error)
+		}
+	}
+
+	static async filterMeeting(req, res, next) {
+		try {
+			const { st, et } = req.query
+			console.log("++++++++++", st, et)
+			const startDay = new Date(st)
+			startDay.setHours(0, 0, 0, 0)
+			const endDay = new Date(et)
+			endDay.setHours(23, 59, 59, 999)
+
+			const meetings = await Room.findAll({
+				where: {
+					[Op.and]: [{ start_date: { [Op.between]: [startDay, endDay] } }, { end_date: { [Op.between]: [startDay, endDay] } }],
+				},
+				order: [["room_id", "ASC"]],
+			})
+
+			const meetingsWithParticipants = await Promise.all(
+				meetings.map(async (meeting) => {
+					const participants = await Room_Participant.findAll({
+						where: {
+							no_perkara: meeting.no_perkara,
+							room_id: meeting.room_id,
+						},
+					})
+
+					const participantWithRole = await Promise.all(
+						participants.map(async (participant) => {
+							const role = await Participant.findOne({
+								attributes: ["role", "full_name"],
+								where: {
+									participant_id: participant.participant_id,
+								},
+							})
+
+							participant.dataValues.role = role ? role.role : null
+							participant.dataValues.full_name = role ? role.full_name : null
+							return participant
+						})
+					)
+
+					meeting.dataValues.participants = participantWithRole
+					return meeting
+				})
+			)
+
+			await res.status(200).json({ data: meetingsWithParticipants })
+		} catch (error) {
+			next(error)
 		}
 	}
 

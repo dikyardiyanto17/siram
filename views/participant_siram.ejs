@@ -105,8 +105,10 @@
                             [/ for(let index = 0; index < participants.length; index++) { /] <tr>
                                 <td>[/= index + 1 /]</td>
                                 <td> <img id="pic-[/- participants[index].participant_id /]"
-                                        src="/photo/[/= participants[index].photo_path /].png" alt="Image" />&nbsp;&nbsp;[/=
-                                    participants[index].full_name /]</td>
+                                        src="/photo/[/= participants[index].photo_path || 'P_0000000' /].png"
+                                        alt="Image" />
+                                    &nbsp;&nbsp;
+                                    [/= participants[index].full_name /]</td>
                                 <td>[/= participants[index].nik /]</td>
                                 <td>[/= participants[index].nrp ? participants[index].nrp : "-" /]</td>
                                 <td>[/= participants[index].participant_id /]</td>
