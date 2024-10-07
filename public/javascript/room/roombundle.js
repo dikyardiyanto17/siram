@@ -34196,6 +34196,12 @@ class EventListener {
 	#layoutCount
 	#alertVideoLayout
 
+	#videoQualityContainer
+	#upstreamOptionContainer
+	#upstreamSelected
+	#downstreamOptionContainer
+	#downstreamSelected
+
 	// Record
 	#recordStatus
 	#recordContainer
@@ -34277,6 +34283,9 @@ class EventListener {
 		this.#layoutVideo = "1"
 		this.#layoutCount = "6"
 		this.#alertVideoLayout = document.getElementById("alert-video-layout")
+		this.#videoQualityContainer = document.getElementById("video-quality-container")
+		this.#upstreamOptionContainer = document.querySelectorAll(".upstream-option")
+		this.#downstreamOptionContainer = document.querySelectorAll(".downstream-option")
 
 		// Record
 		this.#recordStatus = false
@@ -34479,6 +34488,19 @@ class EventListener {
 		}
 	}
 
+	async closeSideBarContainer() {
+		try {
+			this.#videoContainer.className = this.#videoContainerNormalView
+			this.#sideBarContainer.classList.add(this.#sideBarHide)
+			this.#chatStatus = false
+			this.#userListStatus = false
+			this.#chatButton.classList.remove("active")
+			this.#userListButton.classList.remove("active")
+		} catch (error) {
+			console.log("- Error Close Side Bar : ", error)
+		}
+	}
+
 	async hideAndDisplay({ element, status }) {
 		try {
 			if (status) {
@@ -34579,13 +34601,84 @@ class EventListener {
 		}
 	}
 
+	async closeVideoLayout() {
+		try {
+			this.#modalVideoLayoutContainer.classList.remove("layout-modal-show")
+			await this.normalHideAndDisplay({ element: this.#blockContainer, status: false })
+			this.#blockStatus = false
+			this.#modalVideoLayoutStatus = false
+		} catch (error) {
+			console.log("- Error Show Video Layout Class : ", error)
+		}
+	}
+
+	async openVideoQualityContainer() {
+		try {
+			if (this.#videoQualityContainer.style.top == "50%") {
+				this.#videoQualityContainer.style.top = "-50%"
+				await this.normalHideAndDisplay({ element: this.#blockContainer, status: false })
+				this.#blockStatus = false
+			} else {
+				await this.normalHideAndDisplay({ element: this.#blockContainer, status: true })
+				this.#blockStatus = true
+				this.#videoQualityContainer.style.top = "50%"
+			}
+		} catch (error) {
+			console.log("- Error Open Video Quality Container : ", error)
+		}
+	}
+
+	async closeVideoQualityContainer() {
+		try {
+			this.#videoQualityContainer.style.top = "-50%"
+			await this.normalHideAndDisplay({ element: this.#blockContainer, status: false })
+			this.#blockStatus = false
+		} catch (error) {
+			console.log("- Error Open Video Quality Container : ", error)
+		}
+	}
+
+	async selectUpstream({ container }) {
+		try {
+			for (const c of this.#upstreamOptionContainer) {
+				const radio = c.querySelector(".mini-radio")
+				if (c === container) {
+					radio.src = "/assets/icons/mini_radio_active.svg"
+					this.#upstreamSelected = c.dataset.option
+				} else {
+					radio.src = "/assets/icons/mini_radio.svg"
+				}
+			}
+			return this.#upstreamSelected
+		} catch (error) {
+			console.log("- Error Select Video Layout : ", error)
+		}
+	}
+
+	async selectDownstream({ container }) {
+		try {
+			for (const c of this.#downstreamOptionContainer) {
+				const radio = c.querySelector(".mini-radio")
+				if (c === container) {
+					radio.src = "/assets/icons/mini_radio_active.svg"
+					this.#downstreamSelected = c.dataset.option
+				} else {
+					radio.src = "/assets/icons/mini_radio.svg"
+				}
+			}
+			return this.#downstreamSelected
+		} catch (error) {
+			console.log("- Error Select Video Layout : ", error)
+		}
+	}
+
 	async selectVideoLayout({ container }) {
 		try {
 			this.#layoutVideoOptions.forEach((c) => {
 				const radio = c.querySelector(".radio")
 				if (c === container) {
 					radio.src = "/assets/icons/radio_button_active.svg"
-					this.#layoutVideo = c.dataset.option
+					this.#upstreamSelected = c.dataset.option
 				} else {
 					radio.src = "/assets/icons/radio_button.svg"
 				}
@@ -35229,6 +35322,10 @@ class MediaSoupClient extends StaticEvent {
 
 	set myStream(stream) {
 		this.#mystream = stream
+	}
+
+	get videoProducer(){
+		return this.#videoProducer
 	}
 
 	async createDevice() {
@@ -36455,8 +36552,9 @@ videoLayoutCloseButton.addEventListener("click", () => {
 let layoutVideoOptions = document.querySelectorAll(".layout-option-container")
 layoutVideoOptions.forEach((container) => {
 	try {
-		container.addEventListener("click", () => {
+		container.addEventListener("click", (e) => {
 			try {
+				e.stopPropagation()
 				usersVariable.selectVideoLayout({ container, socket })
 			} catch (error) {
 				console.log("- Error Select Video Layout : ", error)
@@ -36470,7 +36568,8 @@ layoutVideoOptions.forEach((container) => {
 let layoutCount = document.querySelectorAll(".layout-option")
 layoutCount.forEach((container) => {
 	try {
-		container.addEventListener("click", () => {
+		container.addEventListener("click", (e) => {
+			e.stopPropagation()
 			try {
 				usersVariable.selectLayoutCount({ container, socket })
 			} catch (error) {
@@ -36590,11 +36689,94 @@ hangUpButton.addEventListener("click", async () => {
 	}
 })
 
+const closeDideBarContainer = document.getElementById("close-side-bar")
+closeDideBarContainer.addEventListener("click", () => {
+	try {
+		eventListenerCollection.closeSideBarContainer()
+	} catch (error) {
+		console.log("- Error Side Bar Container : ", error)
+	}
+})
+
+const layoutModalContainer = document.getElementById("layout-modal")
+layoutModalContainer.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+	} catch (error) {
+		console.log("- Error Modal Layout : ", error)
+	}
+})
+
+const videoQualityContainer = document.getElementById("video-quality-container")
+videoQualityContainer.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+	} catch (error) {
+		console.log("- Error Close Video Quality Container : ", error)
+	}
+})
+
+const videoQualityCButton = document.getElementById("video-quality-button")
+videoQualityCButton.addEventListener("click", (e) => {
+	try {
+		eventListenerCollection.openVideoQualityContainer()
+	} catch (error) {
+		console.log("- Error Video Quality Container : ", error)
+	}
+})
+
+let upstreamOption = document.querySelectorAll(".upstream-option")
+upstreamOption.forEach((container) => {
+	try {
+		container.addEventListener("click", async (e) => {
+			e.stopPropagation()
+			try {
+				const upStream = await eventListenerCollection.selectUpstream({ container })
+				const inputStringToNumber = Number(upStream)
+				await mediasoupClientVariable.videoProducer.setMaxSpatialLayer(inputStringToNumber)
+			} catch (error) {
+				console.log("- Error Select Video Layout : ", error)
+			}
+		})
+	} catch (error) {
+		console.log("- Error Looping Select Video Layout : ", error)
+	}
+})
+
+let downstreamOption = document.querySelectorAll(".downstream-option")
+downstreamOption.forEach((container) => {
+	try {
+		container.addEventListener("click", async (e) => {
+			e.stopPropagation()
+			try {
+				const downStream = await eventListenerCollection.selectDownstream({ container })
+				usersVariable.allUsers.forEach((u) => {
+					if (u.userId != usersVariable.userId) {
+						u.consumer.forEach((c) => {
+							if (c.kind == "video") {
+								console.log("- Number : ", Number(downStream))
+								socket.emit("set-consumer-quality", { consumerId: Number(downStream), SL: downStream, TL: 2 })
+							}
+						})
+					}
+				})
+			} catch (error) {
+				console.log("- Error Select Video Layout : ", error)
+			}
+		})
+	} catch (error) {
+		console.log("- Error Looping Select Video Layout : ", error)
+	}
+})
+
 // Click Oustide Container
 document.addEventListener("click", function (e) {
 	try {
+		e.stopPropagation()
 		eventListenerCollection.hideButton()
 		eventListenerCollection.hideUserOptionButton()
+		eventListenerCollection.closeVideoLayout()
+		eventListenerCollection.closeVideoQualityContainer()
 	} catch (error) {
 		console.log("- Error HideAll Button : ", error)
 	}

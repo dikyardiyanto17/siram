@@ -87,6 +87,45 @@
             </div>
             <div class="layout-modal-footer"></div>
         </div>
+        <div class="video-quality-container" id="video-quality-container" style="top: -50%;">
+            <div class="video-quality-header">
+                <span>Kualitas Video</span>
+            </div>
+            <div class="video-quality-upstream">
+                <span>Upload Stream</span>
+                <div class="upstream-quality">
+                    <div class="upstream-option" data-option="0">
+                        <img class="mini-radio" src="/assets/icons/mini_radio_active.svg" alt="mini_radio" />
+                        <span>Low</span>
+                    </div>
+                    <div class="upstream-option" data-option="1">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>Medium</span>
+                    </div>
+                    <div class="upstream-option" data-option="2">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>High</span>
+                    </div>
+                </div>
+            </div>
+            <div class="video-quality-downstream">
+                <span>Download Stream</span>
+                <div class="downstream-quality">
+                    <div class="downstream-option" data-option="0">
+                        <img class="mini-radio" src="/assets/icons/mini_radio_active.svg" alt="mini_radio" />
+                        <span>Low</span>
+                    </div>
+                    <div class="downstream-option" data-option="1">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>Medium</span>
+                    </div>
+                    <div class="downstream-option" data-option="2">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>High</span>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="block-container d-none" id="block-container"></div>
         <section class="upper-container">
             <div id="audio-collection"></div>
@@ -126,7 +165,7 @@
                     <div class="user-list-header">
                         <div class="user-list-header-title">
                             <span>Anggota (<span id="user-list-total">1</span>)</span>
-                            <i><img src="/assets/icons/close_button.svg" alt="close"></i>
+                            <i id="close-side-bar"><img src="/assets/icons/close_button.svg" alt="close"></i>
                         </div>
                         <div class="user-list-header-search">
                             <div class="search-user">
@@ -241,7 +280,7 @@
                                 <img src="/assets/icons/record.svg" alt="record-icon">
                                 <span>Mulai Merekam</span>
                             </div>
-                            <div class="option-list">
+                            <div class="option-list" id="video-quality-button">
                                 <img src="/assets/icons/video_quality.svg" alt="record-icon">
                                 <span>Kualitas Video</span>
                             </div>

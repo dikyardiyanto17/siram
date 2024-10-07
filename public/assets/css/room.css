@@ -1008,6 +1008,9 @@ input:focus {
     height: 40px;
     display: flex;
     align-items: center;
+    border-radius: 7px;
+    border: 1px solid #ffffff;
+    padding: 0 10px;
 }
 
 .file-attachment {
@@ -1460,4 +1463,91 @@ input:focus {
 #mic-button>ul>li:hover:not(#audio-input):not(#audio-output) {
     background-color: rgba(68, 71, 74, 1);
     border-radius: 10px;
+}
+
+#close-side-bar {
+    cursor: pointer;
+}
+
+.video-quality-container {
+    width: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    background-color: #15181E;
+    border-radius: 15px;
+    z-index: 8;
+    font-size: 13px;
+    transition: 1s;
+}
+
+.video-quality-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.video-quality-upstream {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.video-quality-upstream>span {
+    font-size: 12px;
+}
+
+.upstream-quality {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+}
+
+.upstream-option {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.upstream-option.custom-disable {
+    cursor: not-allowed;
+}
+
+.upstream-option>img {
+    margin-right: 5px;
+}
+
+.video-quality-downstream {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.video-quality-downstream>span {
+    font-size: 12px;
+}
+
+.downstream-quality {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+}
+
+.downstream-option {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.downstream-option.custom-disable {
+    cursor: not-allowed;
+}
+
+.downstream-option>img {
+    margin-right: 5px;
 }

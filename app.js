@@ -12,7 +12,6 @@ const router = require("./routes/index.js")
 const app = express()
 const port = 80
 // const port = 9188
-// const port = 9188
 const { options } = require("./certif")
 const http = require("http")
 const path = require("path")
@@ -531,6 +530,19 @@ io.on("connection", async (socket) => {
 			socket.to(to).emit("mute-all", { status })
 		} catch (error) {
 			console.log("- Error Socket Mute All : ", error)
+		}
+	})
+
+	socket.on("set-consumer-quality", async ({ consumerId, SL, TL }) => {
+		try {
+			mediasoupVariable.consumers.forEach((consumer) => {
+				if (consumer.consumer.id == consumerId) {
+					const { spatialLayer, temporalLayer } = consumer.consumer.currentLayers
+					consumer.consumer.setPreferredLayers({ spatialLayer: SL, temporalLayer: TL })
+				}
+			})
+		} catch (error) {
+			console.log("- Error Set Consumer Quality : ", error)
 		}
 	})
 })

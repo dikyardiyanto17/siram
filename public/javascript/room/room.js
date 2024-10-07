@@ -541,8 +541,9 @@ videoLayoutCloseButton.addEventListener("click", () => {
 let layoutVideoOptions = document.querySelectorAll(".layout-option-container")
 layoutVideoOptions.forEach((container) => {
 	try {
-		container.addEventListener("click", () => {
+		container.addEventListener("click", (e) => {
 			try {
+				e.stopPropagation()
 				usersVariable.selectVideoLayout({ container, socket })
 			} catch (error) {
 				console.log("- Error Select Video Layout : ", error)
@@ -556,7 +557,8 @@ layoutVideoOptions.forEach((container) => {
 let layoutCount = document.querySelectorAll(".layout-option")
 layoutCount.forEach((container) => {
 	try {
-		container.addEventListener("click", () => {
+		container.addEventListener("click", (e) => {
+			e.stopPropagation()
 			try {
 				usersVariable.selectLayoutCount({ container, socket })
 			} catch (error) {
@@ -676,11 +678,94 @@ hangUpButton.addEventListener("click", async () => {
 	}
 })
 
+const closeDideBarContainer = document.getElementById("close-side-bar")
+closeDideBarContainer.addEventListener("click", () => {
+	try {
+		eventListenerCollection.closeSideBarContainer()
+	} catch (error) {
+		console.log("- Error Side Bar Container : ", error)
+	}
+})
+
+const layoutModalContainer = document.getElementById("layout-modal")
+layoutModalContainer.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+	} catch (error) {
+		console.log("- Error Modal Layout : ", error)
+	}
+})
+
+const videoQualityContainer = document.getElementById("video-quality-container")
+videoQualityContainer.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+	} catch (error) {
+		console.log("- Error Close Video Quality Container : ", error)
+	}
+})
+
+const videoQualityCButton = document.getElementById("video-quality-button")
+videoQualityCButton.addEventListener("click", (e) => {
+	try {
+		eventListenerCollection.openVideoQualityContainer()
+	} catch (error) {
+		console.log("- Error Video Quality Container : ", error)
+	}
+})
+
+let upstreamOption = document.querySelectorAll(".upstream-option")
+upstreamOption.forEach((container) => {
+	try {
+		container.addEventListener("click", async (e) => {
+			e.stopPropagation()
+			try {
+				const upStream = await eventListenerCollection.selectUpstream({ container })
+				const inputStringToNumber = Number(upStream)
+				await mediasoupClientVariable.videoProducer.setMaxSpatialLayer(inputStringToNumber)
+			} catch (error) {
+				console.log("- Error Select Video Layout : ", error)
+			}
+		})
+	} catch (error) {
+		console.log("- Error Looping Select Video Layout : ", error)
+	}
+})
+
+let downstreamOption = document.querySelectorAll(".downstream-option")
+downstreamOption.forEach((container) => {
+	try {
+		container.addEventListener("click", async (e) => {
+			e.stopPropagation()
+			try {
+				const downStream = await eventListenerCollection.selectDownstream({ container })
+				usersVariable.allUsers.forEach((u) => {
+					if (u.userId != usersVariable.userId) {
+						u.consumer.forEach((c) => {
+							if (c.kind == "video") {
+								console.log("- Number : ", Number(downStream))
+								socket.emit("set-consumer-quality", { consumerId: Number(downStream), SL: downStream, TL: 2 })
+							}
+						})
+					}
+				})
+			} catch (error) {
+				console.log("- Error Select Video Layout : ", error)
+			}
+		})
+	} catch (error) {
+		console.log("- Error Looping Select Video Layout : ", error)
+	}
+})
+
 // Click Oustide Container
 document.addEventListener("click", function (e) {
 	try {
+		e.stopPropagation()
 		eventListenerCollection.hideButton()
 		eventListenerCollection.hideUserOptionButton()
+		eventListenerCollection.closeVideoLayout()
+		eventListenerCollection.closeVideoQualityContainer()
 	} catch (error) {
 		console.log("- Error HideAll Button : ", error)
 	}

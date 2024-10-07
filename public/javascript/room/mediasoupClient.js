@@ -160,6 +160,10 @@ class MediaSoupClient extends StaticEvent {
 		this.#mystream = stream
 	}
 
+	get videoProducer(){
+		return this.#videoProducer
+	}
+
 	async createDevice() {
 		try {
 			if (!this.#rtpCapabilities) {
