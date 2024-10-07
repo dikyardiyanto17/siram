@@ -34184,6 +34184,7 @@ class EventListener {
 	// #raiseHandListCOntainer
 	#raiseHandListContainer
 	#raiseHandList
+	#raiseHandNotificationContainer
 
 	// Modal Video Container
 	#modalVideoLayoutButton
@@ -34244,6 +34245,7 @@ class EventListener {
 		// Raise Hand
 		this.#raiseHandButton = document.getElementById("raise-hand-button")
 		this.#raiseHandStatus = false
+		this.#raiseHandNotificationContainer = document.getElementById("raise-hand-notification")
 
 		// CC
 		this.#ccButton = document.getElementById("cc-button")
@@ -34952,6 +34954,23 @@ class EventListener {
 			await this.checkRaiseHandList()
 		} catch (error) {
 			console.log("- Error Raise Hand User : ", error)
+		}
+	}
+
+	async raiseHandNotification({ username }) {
+		try {
+			const raisedHandElement = document.createElement("div")
+			raisedHandElement.className = "raised-hand"
+			raisedHandElement.innerHTML = `
+				<img src="/assets/icons/raise_hand.svg" alt=""><span>${username}</span>
+			`
+			this.#raiseHandNotificationContainer.append(raisedHandElement)
+
+			setTimeout(() => {
+				raisedHandElement.remove()
+			}, 3000)
+		} catch (error) {
+			console.log("- Error Notification Raise Hand : ", error)
 		}
 	}
 
@@ -36282,6 +36301,9 @@ socket.on("new-user-notification", async ({ username, picture }) => {
 socket.on("raise-hand", async ({ userId, username, picture, status }) => {
 	try {
 		await eventListenerCollection.methodAddRaiseHandUser({ id: userId, username, picture, status })
+		if (status) {
+			await eventListenerCollection.raiseHandNotification({ username })
+		}
 	} catch (error) {
 		console.log("- Error Socket On Raise Hand : ", error)
 	}

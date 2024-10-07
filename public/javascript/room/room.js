@@ -271,6 +271,9 @@ socket.on("new-user-notification", async ({ username, picture }) => {
 socket.on("raise-hand", async ({ userId, username, picture, status }) => {
 	try {
 		await eventListenerCollection.methodAddRaiseHandUser({ id: userId, username, picture, status })
+		if (status) {
+			await eventListenerCollection.raiseHandNotification({ username })
+		}
 	} catch (error) {
 		console.log("- Error Socket On Raise Hand : ", error)
 	}

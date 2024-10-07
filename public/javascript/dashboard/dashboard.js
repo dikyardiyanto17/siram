@@ -176,7 +176,7 @@ $(function () {
                                     </div>
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/participant_meeting.svg" alt="participant" srcset="">&nbsp;&nbsp;<span>
-                                            ${m.meeting_type == 1 ? m.participants.length : "Publik"}
+                                            ${m.meeting_type == 1 ? `${m.participants.length} Peserta` : "Publik"}
                                             </span>
                                     </div>
                             </div>
