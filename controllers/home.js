@@ -27,7 +27,7 @@ class ControllerHome {
 					return
 				}
 			}
-			await res.render("home")
+			await res.render("home", { authority: req.user.authority })
 		} catch (error) {
 			next(error)
 		}

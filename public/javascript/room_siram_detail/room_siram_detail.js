@@ -81,3 +81,16 @@ $("#customize-table").DataTable({
 		})
 	},
 })
+
+
+
+if (backButton) {
+	const backButton = document.getElementById("back_button")
+	backButton.addEventListener("click", () => {
+		try {
+			window.location.href = `${window.location.origin}/meeting`
+		} catch (error) {
+			console.log("- Error Back Button : ", error)
+		}
+	})
+}

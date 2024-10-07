@@ -12097,6 +12097,18 @@ const setFormStyle = async ({ status }) => {
 	}
 }
 
+const logoutButton = document.getElementById("log-out-button")
+logoutButton.addEventListener("click", async () => {
+	try {
+		const response = await fetch(`${window.location.origin}/logout`)
+		if (response.ok) {
+			window.location.href = `${window.location.href}login`
+		}
+	} catch (error) {
+		console.log("- Error Log Out Button : ", error)
+	}
+})
+
 },{"../socket/socket":46,"sweetalert2":44}],46:[function(require,module,exports){
 const { io } = require("socket.io-client")
 

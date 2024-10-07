@@ -133,3 +133,15 @@ const setFormStyle = async ({ status }) => {
 		console.log("- Error Set Form Style : ", error)
 	}
 }
+
+const logoutButton = document.getElementById("log-out-button")
+logoutButton.addEventListener("click", async () => {
+	try {
+		const response = await fetch(`${window.location.origin}/logout`)
+		if (response.ok) {
+			window.location.href = `${window.location.href}login`
+		}
+	} catch (error) {
+		console.log("- Error Log Out Button : ", error)
+	}
+})

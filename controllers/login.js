@@ -52,7 +52,17 @@ class Login {
 			const token = await encodeToken({ participant_id: user.participant_id, full_name: user.full_name })
 
 			req.session.token = token
+			await req.session.save()
 			await res.status(200).json({ status: true, authority: user.authority })
+		} catch (error) {
+			next(error)
+		}
+	}
+
+	static async logout(req, res, next) {
+		try {
+			await req.session.destroy()
+			await res.status(200).json({ message: "Successfully log out", status: true })
 		} catch (error) {
 			next(error)
 		}

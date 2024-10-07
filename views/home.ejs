@@ -68,6 +68,20 @@
                         <button type="button" id="submit-join" style="display: none;">Join</button>
                     </div>
                 </div>
+
+                <div class="button-container">
+                    [/ if (authority == 1 || authority == 2){ /]
+                    <button id="dashboard-button" type="button">
+                        <a href="/dashboard">
+                            <span>Dashboard</span>
+                        </a>
+                    </button>
+                    [/ }/]
+                    <button type="button" id="log-out-button">
+                        <span>Log Out</span>
+                    </button>
+                </div>
+
             </div>
         </section>
         <section class="right-bar" id="right-bar-id">

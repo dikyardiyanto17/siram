@@ -31,18 +31,21 @@
                     <div class="meeting-detail">
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Tipe Rapat</span></div>
-                            <div class="text-detail-input-wrapper"><span>Non Perkara</span></div>
+                            <div class="text-detail-input-wrapper">
+                                <span>[/= meeting_type == 1 ? "Perkara":"Non Perkara"/]</span>
+                            </div>
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Waktu Mulai</span></div>
                             <div class="text-detail-input-time">
                                 <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
-                                        src="/assets/icons/date-icon.svg" alt="calender" srcset="">&nbsp;<span>Hari
-                                        Ini</span>
+                                        src="/assets/icons/date-icon.svg" alt="calender" srcset="">&nbsp;
+                                    <span>[/= startDate/]</span>
                                 </div>
                                 <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
-                                        src="/assets/icons/clock_meeting.svg" alt="clock"
-                                        srcset="">&nbsp;<span>19.00</span></div>
+                                        src="/assets/icons/clock_meeting.svg" alt="clock" srcset="">&nbsp;
+                                    <span>[/= startTime/]</span>
+                                </div>
                             </div>
                         </div>
                         <div class="detail-wrapper">
@@ -53,17 +56,17 @@
                             <div class="text-detail-wrapper"><span>Waktu Selesai</span></div>
                             <div class="text-detail-input-time">
                                 <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
-                                        src="/assets/icons/date-icon.svg" alt="calender" srcset="">&nbsp;<span>Hari
-                                        Ini</span>
+                                        src="/assets/icons/date-icon.svg" alt="calender" srcset="">&nbsp;
+                                    <span>[/= endDate/]</span>
                                 </div>
                                 <div class="text-detail-input-time-wrapper"><img style="width: 13px;"
-                                        src="/assets/icons/clock_meeting.svg" alt="clock"
-                                        srcset="">&nbsp;<span>19.00</span></div>
+                                        src="/assets/icons/clock_meeting.svg" alt="clock" srcset="">&nbsp;<span>[/=
+                                        endTime/]</span></div>
                             </div>
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Judul Rapat</span></div>
-                            <div class="text-detail-input-wrapper"><span>Rapat Internal Tim IT</span></div>
+                            <div class="text-detail-input-wrapper"><span>[/= room_name/]</span></div>
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Jumlah Peserta</span></div>
@@ -71,13 +74,15 @@
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>ID Room</span></div>
-                            <div class="text-detail-input-wrapper"><span>R_240920_0001</span></div>
+                            <div class="text-detail-input-wrapper"><span>[/= room_id/]</span></div>
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Password</span></div>
-                            <div class="text-detail-input-wrapper"><span>r4an-rfuC-hfu5</span></div>
+                            <div class="text-detail-input-wrapper"><span>[/= password/]</span></div>
                         </div>
                     </div>
+
+                    [/ if (meeting_type == 1) { /]
                     <div class="meeting-participant">
                         <div class="meeting-participant-header">
                             <span>Daftar Peserta</span>
@@ -88,26 +93,29 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>NIK</th>
+                                        <th>ID Peserta</th>
                                         <th>Nama Peserta</th>
                                         <th>Status Peserta</th>
-                                        <th>Alamat Email</th>
+                                        <th>Pengecualian</th>
                                         <th>Status Kehadiran</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    [/ participants.forEach((participant, index) => { /]
                                     <tr>
-                                        <td>1</td>
-                                        <td>1921839219182</td>
-                                        <td>Taufik Hidayat</td>
-                                        <td>Hakim</td>
-                                        <td>taufik@gmail.com</td>
-                                        <td>Hadir</td>
+                                        <td>[/= index+1 /]</td>
+                                        <td>[/= participant.participant_id /]</td>
+                                        <td>[/= participant.full_name/]</td>
+                                        <td>[/= participant.role /]</td>
+                                        <td>[/= participant.exception == 1 ? "Ya":"Tidak" /]</td>
+                                        <td>[/= participant.status == 1? "Hadir" : "Tidak Hadir"/]</td>
                                     </tr>
+                                    [/ }) /]
                                 </tbody>
                             </table>
                         </div>
                     </div>
+                    [/ } /]
                     <div class="chat-history">
                         <div class="chat-history-header">
                             <span>Riwayat Pesan</span>
@@ -115,7 +123,7 @@
                         </div>
                         <div class="chat-history-content">
                             <div class="chat-content">
-                                <div class="message-container-receive">
+                                <!-- <div class="message-container-receive">
                                     <img class="chat-photo-profile" src="/assets/pictures/avatar.png"
                                         alt="photo_profile">
                                     <div class="message-container">
@@ -148,7 +156,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>
@@ -161,6 +169,8 @@
     <script src="/assets/plugins/datatable/datatables.min.js"></script>
     <script>
         const backButton = [/- JSON.stringify(backButton) /];
+        const participants = [/- JSON.stringify(participants) /];
+        console.log(participants)
     </script>
     <script src="/javascript/room_siram_detail/room_siram_detail.js"></script>
 

@@ -11,26 +11,31 @@ const Lobby = require("../controllers/lobby.js")
 const Update_Photo = require("../controllers/update_photo.js")
 const router = express.Router()
 const path = require("path")
+const authorization = require("../middlewares/authorization.js")
 
 router.get("/login", Login.index)
 // router.get("/api/meetings", RoomSiram.findMeetingsWithParticipants)
 router.post("/api/login", Login.postLogin)
 router.get("/verify", Verify.index)
 router.use("/api/token", require("./api/token/token.js"))
+router.get("/logout", Login.logout)
 
 router.use(authenthication)
 
-router.use("/photo", express.static(path.join(__dirname, "../photo")));
+router.get("/", ControllerHome.index)
+router.get("/room/:room", ControllerRoom.index)
+router.use("/photo", express.static(path.join(__dirname, "../photo")))
+
+router.use(authorization)
+
 router.use("/api/room", require("./api/room/room.js"))
 router.use("/api/participant", require("./api/participant/participant.js"))
 router.use("/api/photo", require("./api/photo/photo.js"))
 
-router.get("/", ControllerHome.index)
 router.get("/updatephoto", Update_Photo.index)
 router.get("/meeting", RoomSiram.index)
 // router.get("/lobby", Lobby.index)
 router.get("/meeting/:room_id", RoomSiram.detail)
-router.get("/room/:room", ControllerRoom.index)
 router.get("/dashboard", DashboardRoom.index)
 router.get("/participant", ParticipantSiram.index)
 

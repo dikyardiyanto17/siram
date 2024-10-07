@@ -1,5 +1,5 @@
 const { Op, QueryTypes, where } = require("sequelize")
-const { createdDate, generateRandomId, formatDate } = require("../helper")
+const { createdDate, generateRandomId, formatDate, formatedDate, formatedTime } = require("../helper")
 const { Room, Room_Participant, sequelize, Sequelize, Participant } = require("../models")
 
 class RoomSiram {
@@ -41,7 +41,40 @@ class RoomSiram {
 				await res.render("not_found")
 				return
 			}
-			await res.render("room_siram_detail", { backButton: true, ...room })
+
+			const sortedMeeting = {
+				...room.dataValues,
+				startDate: await formatedDate(room.dataValues.start_date),
+				startTime: await formatedTime(room.dataValues.start_date),
+				endDate: await formatedDate(room.dataValues.end_date),
+				endTime: await formatedTime(room.dataValues.end_date),
+			}
+
+			const meetingsWithParticipants = await Room_Participant.findAll({
+				where: {
+					no_perkara: room.no_perkara,
+					room_id: room.room_id,
+				},
+			})
+
+			const participantWithRole = await Promise.all(
+				meetingsWithParticipants.map(async (participant) => {
+					const role = await Participant.findOne({
+						where: {
+							participant_id: participant.participant_id,
+						},
+					})
+
+					participant.dataValues.role = role ? role.role : null
+					participant.dataValues.full_name = role ? role.full_name : null
+					return participant.dataValues
+				})
+			)
+
+			sortedMeeting.participants = participantWithRole
+			console.log(sortedMeeting.participants)
+
+			await res.render("room_siram_detail", { backButton: true, ...sortedMeeting })
 		} catch (error) {
 			next(error)
 		}
@@ -266,31 +299,6 @@ class RoomSiram {
 		}
 	}
 
-	// static async findMeetingsWithParticipants(req, res, next) {
-	// 	try {
-	// 		const meetings = await sequelize.query(
-	// 			`
-	// 			SELECT
-	// 				r.*,
-	// 				STRING_AGG(rp.participant_id::text, ', ') AS participant_id
-	// 			FROM
-	// 				"Rooms" r
-	// 			LEFT JOIN
-	// 				"Room_Participants" rp ON r.no_perkara = rp.no_perkara
-	// 			GROUP BY
-	// 				r.id
-	// 			`,
-	// 			{
-	// 			  type: QueryTypes.SELECT,
-	// 			}
-	// 		  );
-
-	// 		res.status(200).json(meetings)
-	// 	} catch (error) {
-	// 		next(error)
-	// 	}
-	// }
-
 	static async findMeetingsWithParticipants(req, res, next) {
 		try {
 			const meetings = await Room.findAll()
@@ -300,6 +308,7 @@ class RoomSiram {
 					const participants = await Room_Participant.findAll({
 						where: {
 							no_perkara: meeting.no_perkara,
+							room_id: meeting.room_id,
 						},
 					})
 

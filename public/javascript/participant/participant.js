@@ -158,7 +158,7 @@ const showDetail = async (e) => {
 		status_element.innerHTML = participant.status == 1 ? "Aktif" : "Tidak Aktif"
 
 		// const base64String = btoa(String.fromCharCode(...new Uint8Array(participant.photo.data)))
-		const base64String = convertToBase64(participant.photo.data)
+		// const base64String = convertToBase64(participant.photo.data)
 
 		// photo_element.src = atob(base64String)
 		photo_element.src = `/photo/${participant.photo_path}.png`

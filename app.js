@@ -47,6 +47,8 @@ const sessionMiddleware = session({
 	},
 })
 
+app.set("trust proxy", 1)
+
 app.use(sessionMiddleware)
 
 let mediasoupVariable = new MediaSoup()

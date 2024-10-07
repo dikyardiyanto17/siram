@@ -321,3 +321,52 @@
     color: #ffffff;
     font-size: 11px;
 }
+
+
+#dashboard-button {
+    margin: 20px 0;
+    width: 38%;
+    border: none;
+    padding: 7px;
+    border-radius: 7px;
+    border:1px solid #31A8FF;
+    background-color: #31A8FF;
+}
+
+#dashboard-button a {
+    text-decoration: none !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#dashboard-button span {
+    color: #ffffff;
+    font-size: 12px;
+}
+
+#log-out-button {
+    margin: 20px 0 20px 22px;
+    width: 38%;
+    border: none;
+    padding: 7px;
+    border-radius: 7px;
+    /* background-image: linear-gradient(to bottom right, #FB5A5C, #831617); */
+    background-color: none;
+    border: 1px solid #FB5A5C;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+}
+
+#log-out-button span {
+    color: #FB5A5C;
+    font-size: 12px;
+}
+
+.button-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
