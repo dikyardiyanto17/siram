@@ -219,6 +219,8 @@ $(function () {
 })
 
 $(function () {
+	newMeeting.start_date = moment().add(1, "hours").toDate()
+	newMeeting.end_date = moment(newMeeting.start_date).add(12, "minutes").toDate()
 	$('input[name="start_date"]').daterangepicker(
 		{
 			singleDatePicker: true,
@@ -471,6 +473,7 @@ saveNewMeetingButton.addEventListener("click", async () => {
 		if (meeting_type == 1 && participants.length < 2) {
 			throw { name: "Bad Request", message: "Minimal 2 peserta yang ikut rapat" }
 		}
+
 
 		const differenceInMinutes = (end_date.getTime() - start_date.getTime()) / (1000 * 60)
 
