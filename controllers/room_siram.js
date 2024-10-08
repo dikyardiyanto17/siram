@@ -17,6 +17,7 @@ class RoomSiram {
 					const participants = await Room_Participant.findAll({
 						where: {
 							no_perkara: meeting.no_perkara,
+							room_id: meeting.room_id,
 						},
 					})
 

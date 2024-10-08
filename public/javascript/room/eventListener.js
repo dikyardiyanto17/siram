@@ -376,6 +376,7 @@ class EventListener {
 			this.#userListStatus = false
 			this.#chatButton.classList.remove("active")
 			this.#userListButton.classList.remove("active")
+			this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
 		} catch (error) {
 			console.log("- Error Close Side Bar : ", error)
 		}

@@ -34498,6 +34498,7 @@ class EventListener {
 			this.#userListStatus = false
 			this.#chatButton.classList.remove("active")
 			this.#userListButton.classList.remove("active")
+			this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
 		} catch (error) {
 			console.log("- Error Close Side Bar : ", error)
 		}
@@ -36401,6 +36402,7 @@ let cameraButton = document.getElementById("camera-icon")
 cameraButton.addEventListener("click", () => {
 	try {
 		// eventListenerCollection.changeCameraButton()
+		Users.warning({ message: "Kamera tidak boleh dimatikan!" })
 		console.log("- Do Nothing")
 	} catch (error) {
 		console.log("- Error Camera Button : ", error)
@@ -36790,8 +36792,16 @@ hangUpButton.addEventListener("click", async () => {
 	}
 })
 
-const closeDideBarContainer = document.getElementById("close-side-bar")
-closeDideBarContainer.addEventListener("click", () => {
+const closeSideBarContainer = document.getElementById("close-side-bar")
+const closeSideBarContainer2 = document.getElementById("close-side-bar-chat")
+closeSideBarContainer2.addEventListener("click", () => {
+	try {
+		eventListenerCollection.closeSideBarContainer()
+	} catch (error) {
+		console.log("- Error Close Side Bar Container 2 : ", error)
+	}
+})
+closeSideBarContainer.addEventListener("click", () => {
 	try {
 		eventListenerCollection.closeSideBarContainer()
 	} catch (error) {
