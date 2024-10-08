@@ -365,6 +365,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#audioProducer.observer.on("close", () => {
 				console.log("audio observer close")
 			})
+
+			this.#videoProducer.setMaxSpatialLayer(1)
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
 		}

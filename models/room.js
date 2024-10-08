@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     start_date: DataTypes.DATE,
     end_date: DataTypes.DATE,
     status: DataTypes.INTEGER,
-    location: DataTypes.STRING,
+    note: DataTypes.STRING,
     last_updated_at: DataTypes.DATE,
     deleted_at: DataTypes.DATE,
     created_by: DataTypes.STRING

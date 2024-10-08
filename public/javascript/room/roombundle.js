@@ -35549,6 +35549,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#audioProducer.observer.on("close", () => {
 				console.log("audio observer close")
 			})
+
+			this.#videoProducer.setMaxSpatialLayer(1)
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
 		}
@@ -36730,6 +36732,13 @@ messageInput.addEventListener("keyup", async (event) => {
 				picture: usersVariable.picture,
 			})
 			await eventListenerCollection.appendMessage({ message: messageTemplate })
+			const response = await fetch(`${window.location.origin}/api/message`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ participant_id: usersVariable.userId, message_text: message, sent_at: new Date(), status: 1, room_id: roomName }),
+			})
 			messageInput.value = ""
 		}
 	} catch (error) {
@@ -36774,6 +36783,13 @@ sendMessageButton.addEventListener("click", async (event) => {
 			picture: usersVariable.picture,
 		})
 		await eventListenerCollection.appendMessage({ message: messageTemplate })
+		const response = await fetch(`${window.location.origin}/api/message`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ participant_id: usersVariable.userId, message_text: message, sent_at: new Date(), status: 1, room_id: roomName }),
+		})
 		messageInput.value = ""
 	} catch (error) {
 		console.log("- Error Send Mesage : ", error)

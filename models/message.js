@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     message_id: DataTypes.STRING,
     participant_id: DataTypes.STRING,
     message_text: DataTypes.STRING,
+    room_id: DataTypes.STRING,
     sent_at: DataTypes.DATE,
     status: DataTypes.INTEGER,
     last_updated_at: DataTypes.DATE,

@@ -23,7 +23,7 @@ const startTimeDetail = document.getElementById("detail_start_time")
 const startDateDetail = document.getElementById("detail_start_date")
 const endTimeDetail = document.getElementById("detail_end_time")
 const endDateDetail = document.getElementById("detail_end_date")
-const locationDetail = document.getElementById("detail_location")
+const noteDetail = document.getElementById("detail_note")
 const roomIdDetail = document.getElementById("detail_room_id")
 const passwordDetail = document.getElementById("detail_password")
 const faceRecognitionDetail = document.getElementById("detail_face_recognition")
@@ -116,7 +116,7 @@ let newMeeting = {
 	no_perkara: "",
 	start_date: undefined,
 	end_date: undefined,
-	location: "",
+	note: "",
 	password: initialPassword,
 	participants: [],
 	face_recognition: false,
@@ -172,7 +172,7 @@ $(function () {
                                     </div>
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/institution_meeting.svg" alt="institution" srcset="">&nbsp;&nbsp;
-										<span>${m.location}</span>
+										<span>${m.note}</span>
                                     </div>
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/participant_meeting.svg" alt="participant" srcset="">&nbsp;&nbsp;<span>
@@ -332,7 +332,7 @@ const functionShowDetail = async () => {
 
 					const roomDetail = meetingsInfo.find((m) => m.room_id == parts[0])
 
-					const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, location, participants, face_recognition } =
+					const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, note, participants, face_recognition } =
 						roomDetail
 
 					const startDate = await formatDate(new Date(start_date))
@@ -348,7 +348,7 @@ const functionShowDetail = async () => {
 					startDateDetail.innerHTML = startTime
 					endTimeDetail.innerHTML = endDate
 					endDateDetail.innerHTML = endTime
-					locationDetail.innerHTML = location
+					noteDetail.innerHTML = note
 					roomIdDetail.innerHTML = room_id
 					passwordDetail.innerHTML = password
 					faceRecognitionDetail.innerHTML = face_recognition ? "Ya" : "Tidak"
@@ -408,7 +408,7 @@ setInterval(() => {
 
 // Input new meetings
 const roomNameInput = document.getElementById("room_name")
-const locationInput = document.getElementById("location")
+const noteInput = document.getElementById("note")
 
 roomNameInput.addEventListener("change", (event) => {
 	try {
@@ -418,9 +418,9 @@ roomNameInput.addEventListener("change", (event) => {
 	}
 })
 
-locationInput.addEventListener("change", (event) => {
+noteInput.addEventListener("change", (event) => {
 	try {
-		newMeeting.location = event.target.value
+		newMeeting.note = event.target.value
 	} catch (error) {
 		console.log("- Error Input Room Name: ", error)
 	}
@@ -436,7 +436,7 @@ saveNewMeetingButton.addEventListener("click", async () => {
 		if (newMeeting.meeting_type == 2) {
 			newMeeting.no_perkara = ""
 		}
-		const { end_date, location, meeting_type, no_perkara, room_name, start_date, password, participants, face_recognition } = newMeeting
+		const { end_date, note, meeting_type, no_perkara, room_name, start_date, password, participants, face_recognition } = newMeeting
 
 		if (!room_name && room_name.trim() == "") {
 			throw { name: "Bad Request", message: "Judul rapat wajib di isi" }
@@ -456,10 +456,6 @@ saveNewMeetingButton.addEventListener("click", async () => {
 
 		if (!end_date) {
 			throw { name: "Bad Request", message: "Waktu selesai wajib di isi" }
-		}
-
-		if (!location) {
-			throw { name: "Bad Request", message: "Lokasi wajib di isi" }
 		}
 
 		if (end_date <= start_date) {
@@ -493,7 +489,7 @@ saveNewMeetingButton.addEventListener("click", async () => {
 			await showSuccessModal({ message: "Rapat berhasil dibuat" })
 			await closeModalCreateButton.click()
 			roomNameInput.value = ""
-			locationInput.value = ""
+			noteInput.value = ""
 			document.getElementById("start_date").value = ""
 			document.getElementById("end_date").value = ""
 			setTimeout(() => {

@@ -25,6 +25,7 @@ router.use(authenthication)
 router.get("/", ControllerHome.index)
 router.get("/room/:room", ControllerRoom.index)
 router.use("/photo", express.static(path.join(__dirname, "../photo")))
+router.use("/api/message", require("./api/message/message.js"))
 
 router.use(authorization)
 

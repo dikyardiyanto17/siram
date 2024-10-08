@@ -1,6 +1,6 @@
-const { Op, QueryTypes, where } = require("sequelize")
+const { Op } = require("sequelize")
 const { createdDate, generateRandomId, formatDate, formatedDate, formatedTime } = require("../helper")
-const { Room, Room_Participant, sequelize, Sequelize, Participant } = require("../models")
+const { Room, Room_Participant, sequelize, Participant, Message } = require("../models")
 
 class RoomSiram {
 	static async index(req, res, next) {
@@ -32,6 +32,7 @@ class RoomSiram {
 
 	static async detail(req, res, next) {
 		try {
+			const { participant_id } = req.user
 			const { room_id } = req.params
 			const room = await Room.findOne({
 				where: {
@@ -72,10 +73,32 @@ class RoomSiram {
 				})
 			)
 
-			sortedMeeting.participants = participantWithRole
-			console.log(sortedMeeting.participants)
+			const messages = await Message.findAll({
+				where: {
+					room_id,
+				},
+			})
 
-			await res.render("room_siram_detail", { backButton: true, ...sortedMeeting })
+			const messageWithUsername = await Promise.all(
+				messages.map(async (message) => {
+					const user = await Participant.findOne({
+						attributes: ["full_name", "photo_path"],
+						where: {
+							participant_id: message.participant_id,
+						},
+					})
+					message.dataValues.full_name = user.full_name
+					message.dataValues.photo_path = user.photo_path ? user.photo_path : "P_0000000"
+
+					return message.dataValues
+				})
+			)
+
+			sortedMeeting.messages = messageWithUsername
+
+			sortedMeeting.participants = participantWithRole
+
+			await res.render("room_siram_detail", { backButton: true, ...sortedMeeting, participant_id })
 		} catch (error) {
 			next(error)
 		}
@@ -83,7 +106,7 @@ class RoomSiram {
 
 	static async create(req, res, next) {
 		try {
-			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, location, password, face_recognition } =
+			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, note, password, face_recognition } =
 				req.body
 
 			const room_id = await RoomSiram.createRoomId()
@@ -142,7 +165,7 @@ class RoomSiram {
 						start_date,
 						end_date,
 						status,
-						location,
+						note,
 						password,
 						face_recognition,
 						...createdDate,
@@ -175,7 +198,7 @@ class RoomSiram {
 					end_date,
 					status,
 					password,
-					location,
+					note,
 					face_recognition,
 					...createdDate,
 				})
@@ -240,7 +263,6 @@ class RoomSiram {
 	static async filterMeeting(req, res, next) {
 		try {
 			const { st, et } = req.query
-			console.log("++++++++++", st, et)
 			const startDay = new Date(st)
 			startDay.setHours(0, 0, 0, 0)
 			const endDay = new Date(et)

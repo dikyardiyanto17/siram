@@ -76,8 +76,8 @@
                             </select>
                         </div>
                         <div class="input-meeting">
-                            <span>Lokasi Sidang</span>
-                            <textarea name="location" id="location" placeholder="Lokasi Sidang"></textarea>
+                            <span>Keterangan</span>
+                            <textarea name="note" id="note" placeholder="Keterangan"></textarea>
                         </div>
                         <div class="input-meeting" id="input-meeting-participants">
                             <span>Peserta Meeting</span>
@@ -157,9 +157,9 @@
                                 </div>
                             </div>
                             <div class="detail-wrapper">
-                                <span>Lokasi Persidangan</span>
+                                <span>Keterangan</span>
                                 <div class="info-wrapper">
-                                    <span id="detail_location"></span>
+                                    <span id="detail_note"></span>
                                 </div>
                             </div>
                             <div class="detail-wrapper">
@@ -349,7 +349,7 @@
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/institution_meeting.svg"
                                             alt="institution" srcset="">&nbsp;&nbsp;
-                                        <span>[/= meetings[index].location /]</span>
+                                        <span>[/= meetings[index].note /]</span>
                                     </div>
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/participant_meeting.svg"
