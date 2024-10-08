@@ -566,6 +566,12 @@ class MediaSoupClient extends StaticEvent {
 				if (this.#screenSharingVideoProducer) {
 					socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer?.id, label: "screensharing_video" })
 				}
+				if (this.#screenSharingStream) {
+					const tracks = await this.#screenSharingStream.getTracks()
+					tracks.forEach((track) => {
+						track.stop()
+					})
+				}
 				return null
 			} else {
 				this.#screenSharingStatus = true
@@ -815,7 +821,6 @@ class MediaSoupClient extends StaticEvent {
 			iconCheckListMicrophone.className = `fa-regular fa-square-check`
 			this.#audioDeviceId = deviceId
 			const myVideo = document.getElementById(`v-${userId}`)
-			// console.log(usersVariable.allUsers)
 
 			let config = {
 				audio: {

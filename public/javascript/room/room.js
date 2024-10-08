@@ -868,7 +868,6 @@ searchParticipant.addEventListener("input", (event) => {
 	const userListItems = document.querySelectorAll("#users-list-container .user-list-content")
 	const searchTerm = event.target.value.toLowerCase()
 
-	console.log(userListItems)
 	userListItems.forEach((item) => {
 		const username = item.querySelector(".user-list-username").textContent.toLowerCase() // Get the username and convert it to lowercase
 

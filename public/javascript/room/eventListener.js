@@ -1000,7 +1000,6 @@ class EventListener {
 					const usernameLastMessage = chatContent?.lastElementChild?.lastElementChild?.firstElementChild?.firstElementChild?.innerHTML
 					const dateLastMessage = chatContent?.lastElementChild?.lastElementChild?.firstElementChild?.lastElementChild?.innerHTML
 					if (usernameLastMessage == username && messageDate == dateLastMessage) {
-						console.log(usernameLastMessage, "<><><><>", dateLastMessage)
 						return `
 						<div class="message-profile">
 							<img class="message-profile-photo d-none" src="/photo/${picture}.png"
