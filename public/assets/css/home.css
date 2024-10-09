@@ -328,8 +328,8 @@
     width: 38%;
     border: none;
     padding: 7px;
-    border-radius: 7px;
-    border:1px solid #31A8FF;
+    border-radius: 5px;
+    border: 1px solid #31A8FF;
     background-color: #31A8FF;
 }
 
@@ -350,7 +350,7 @@
     width: 38%;
     border: none;
     padding: 7px;
-    border-radius: 7px;
+    border-radius: 5px;
     /* background-image: linear-gradient(to bottom right, #FB5A5C, #831617); */
     background-color: none;
     border: 1px solid #FB5A5C;
@@ -358,6 +358,15 @@
     justify-content: center;
     align-items: center;
     background-color: transparent;
+}
+
+#log-out-button:hover {
+    background-color: #FB5A5C;
+    color: #ffffff;
+}
+
+#log-out-button:hover span {
+    color: #ffffff;
 }
 
 #log-out-button span {

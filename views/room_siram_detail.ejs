@@ -73,7 +73,7 @@
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Jumlah Peserta</span></div>
-                            <div class="text-detail-input-wrapper"><span>10</span></div>
+                            <div class="text-detail-input-wrapper"><span>[/= meeting_type == 1 ? participants.length : "Publik"/]</span></div>
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>ID Room</span></div>
@@ -136,46 +136,76 @@
                         </div>
                         <div class="chat-history-content">
                             <div class="chat-content">
-                                [/ messages.forEach(message => { /]
+                                [/ let previousMessage = null /]
+                                [/ messages.forEach((message, index) => { /]
+                                [/ let isSame = false /]
+                                [/ let isSameTime = false /]
+
+                                [/ if (messages[index+1] && messages[index+1].participant_id == message.participant_id && new Date(message.sent_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: true, }) == new Date(messages[index+1].sent_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: true, })){/]
+                                [/ isSameTime = false /]
+                                [/ } else {/]
+                                [/ isSameTime = true /]
+                                [/ } /]
+
+                                [/ if (previousMessage != null && previousMessage.participant_id == message.participant_id){ /]
+                                [/ isSame = true /]
+                                [/ } /]
+
                                 [/ if (participant_id == message.participant_id){ /]
                                 <div class="message-container-send">
-                                    <img class="chat-photo-profile" src="/photo/[/= message.photo_path/].png"
-                                        alt="photo_profile">
+                                    <img class="chat-photo-profile [/= isSame ? 'invisible' : 'visible'/]" src="/photo/[/= message.photo_path/].png"
+                                            alt="photo_profile">
+
                                     <div class="message-container">
-                                        <div class="chat-name">
-                                            <span>[/= message.full_name/]</span>
-                                        </div>
+                                        [/ if (!isSame){/]
+                                            <div class="chat-name">
+                                                <span>[/= message.full_name/]</span>
+                                            </div>
+                                        [/ }/]
                                         <div class="message">
                                             <div class="message-content">
                                                 <span>[/= message.message_text/]</span>
                                             </div>
+                                            [/ if (isSameTime){/]
                                             <div class="message-time">
                                                 <span>[/= new Date(message.sent_at).toLocaleTimeString("id-ID", { hour:
                                                     "2-digit", minute: "2-digit", hour12: true, }) /]</span>
                                             </div>
+                                            [/ }/]
                                         </div>
                                     </div>
                                 </div>
                                 [/ } else { /]
                                 <div class="message-container-receive">
-                                    <img class="chat-photo-profile" src="/photo/[/= message.photo_path/].png"
+                                    <img class="chat-photo-profile [/= isSame ? 'invisible' : 'visible'/]" src="/photo/[/= message.photo_path/].png"
                                         alt="photo_profile">
                                     <div class="message-container">
+                                        [/ if (!isSame){ /]
                                         <div class="chat-name">
                                             <span>[/= message.full_name/]</span>
                                         </div>
+                                        [/ }/]
+
                                         <div class="message">
                                             <div class="message-content">
                                                 <span>[/= message.message_text/]</span>
                                             </div>
+
+                                            [/ if (isSameTime){/]
+
+                                            
                                             <div class="message-time">
                                                 <span>[/= new Date(message.sent_at).toLocaleTimeString("id-ID", { hour:
                                                     "2-digit", minute: "2-digit", hour12: true, }) /]</span>
                                             </div>
+
+                                            [/ } /]
+
                                         </div>
                                     </div>
                                 </div>
                                 [/ } /]
+                                [/ previousMessage = message /]
                                 [/ }) /]
 
                             </div>
