@@ -35210,11 +35210,14 @@ class StaticEvent {
 	static changeUserList({ type, id, isActive }) {
 		try {
 			if (type == "mic") {
+				const microphoneVideo = document.getElementById(`video-mic-${id}`)
 				const targetElement = document.getElementById(`mic-ul-${id}`)
 				if (isActive) {
 					targetElement.src = "/assets/icons/user_list_mic_active.svg"
+					microphoneVideo.src = "/assets/icons/mic_muted.svg"
 				} else {
 					targetElement.src = "/assets/icons/user_list_mic.svg"
+					microphoneVideo.src = "/assets/icons/mic_muted.svg"
 				}
 			}
 		} catch (error) {
@@ -36171,8 +36174,15 @@ socket.on("cancel-waiting", ({ socketId, userId }) => {
 	}
 })
 
-socket.on("user-list", ({ type, userId, isActive }) => {
+socket.on("user-list", async ({ type, userId, isActive }) => {
 	try {
+		const users = await usersVariable.allUsers.find((u) => u.userId == userId)
+		users.consumer.forEach((c) => {
+			if (c.appData.label == "audio") {
+				console.log(c.track)
+			}
+		})
+		console.log(users)
 		mediasoupClientVariable.reverseConsumerTrack({ userId, isActive })
 	} catch (error) {
 		console.log("- Error On User List : ", error)
@@ -37382,7 +37392,7 @@ class Users extends StaticEvent {
 
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
-					if (this.#faceRecognition){
+					if (this.#faceRecognition) {
 						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
@@ -37435,7 +37445,7 @@ class Users extends StaticEvent {
 				await this.insertVideo({ track, id: userId })
 
 				if (!userId.startsWith("ssv_")) {
-					if (this.#faceRecognition){
+					if (this.#faceRecognition) {
 						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
@@ -37925,11 +37935,14 @@ class Users extends StaticEvent {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
 					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
 
 					// let track = u.consumer.find((t) => t.kind == "video")
 					for (const track of tracks) {
 						if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
+							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
+
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
@@ -37952,6 +37965,7 @@ class Users extends StaticEvent {
 				await this.hideShowUpDownButton({ status: false })
 				this.#allUsers.forEach(async (u) => {
 					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
 
 					for (const track of tracks) {
 						if (track.focus) {
@@ -37960,6 +37974,7 @@ class Users extends StaticEvent {
 								track: track.track,
 								username: u.username,
 							})
+							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
@@ -37979,6 +37994,7 @@ class Users extends StaticEvent {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
 					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
 					for (const track of tracks) {
 						if (track.focus) {
 							await this.addFocusVideo({
@@ -37986,10 +38002,12 @@ class Users extends StaticEvent {
 								userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId,
 								username: u.username,
 							})
+							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							socket.emit("consumer-resume", { serverConsumerId: track.id })
 						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							customIndex++
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
+							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}

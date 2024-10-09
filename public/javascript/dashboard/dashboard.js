@@ -220,7 +220,7 @@ $(function () {
 
 $(function () {
 	newMeeting.start_date = moment().add(1, "hours").toDate()
-	newMeeting.end_date = moment(newMeeting.start_date).add(12, "minutes").toDate()
+	newMeeting.end_date = moment(newMeeting.start_date).add(11, "minutes").toDate()
 	$('input[name="start_date"]').daterangepicker(
 		{
 			singleDatePicker: true,
@@ -253,7 +253,7 @@ $(function () {
 			showDropdowns: true,
 			timePicker: true,
 			timePicker24Hour: true,
-			minDate: moment().add(1, "hours"),
+			minDate: moment().add(1, "hours").add(11, "minutes"),
 			maxDate: moment().add(3, "months"),
 			locale: {
 				format: "MM/DD/YYYY HH:mm",
@@ -332,8 +332,7 @@ const functionShowDetail = async () => {
 
 					const roomDetail = meetingsInfo.find((m) => m.room_id == parts[0])
 
-					const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, note, participants, face_recognition } =
-						roomDetail
+					const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, note, participants, face_recognition } = roomDetail
 
 					const startDate = await formatDate(new Date(start_date))
 					const endDate = await formatDate(new Date(end_date))
@@ -469,7 +468,6 @@ saveNewMeetingButton.addEventListener("click", async () => {
 		if (meeting_type == 1 && participants.length < 2) {
 			throw { name: "Bad Request", message: "Minimal 2 peserta yang ikut rapat" }
 		}
-
 
 		const differenceInMinutes = (end_date.getTime() - start_date.getTime()) / (1000 * 60)
 

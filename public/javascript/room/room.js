@@ -134,8 +134,15 @@ socket.on("cancel-waiting", ({ socketId, userId }) => {
 	}
 })
 
-socket.on("user-list", ({ type, userId, isActive }) => {
+socket.on("user-list", async ({ type, userId, isActive }) => {
 	try {
+		const users = await usersVariable.allUsers.find((u) => u.userId == userId)
+		users.consumer.forEach((c) => {
+			if (c.appData.label == "audio") {
+				console.log(c.track)
+			}
+		})
+		console.log(users)
 		mediasoupClientVariable.reverseConsumerTrack({ userId, isActive })
 	} catch (error) {
 		console.log("- Error On User List : ", error)

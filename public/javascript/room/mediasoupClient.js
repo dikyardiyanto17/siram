@@ -27,11 +27,14 @@ class StaticEvent {
 	static changeUserList({ type, id, isActive }) {
 		try {
 			if (type == "mic") {
+				const microphoneVideo = document.getElementById(`video-mic-${id}`)
 				const targetElement = document.getElementById(`mic-ul-${id}`)
 				if (isActive) {
 					targetElement.src = "/assets/icons/user_list_mic_active.svg"
+					microphoneVideo.src = "/assets/icons/mic_muted.svg"
 				} else {
 					targetElement.src = "/assets/icons/user_list_mic.svg"
+					microphoneVideo.src = "/assets/icons/mic_muted.svg"
 				}
 			}
 		} catch (error) {
