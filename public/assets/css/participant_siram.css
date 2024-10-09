@@ -191,3 +191,18 @@ a {
     align-items: center;
     background-color: #F3F5F6;
 }
+
+.loading-show {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(3, 3, 3, 0.299);
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+
+.loading-hide {
+    display: none;
+}

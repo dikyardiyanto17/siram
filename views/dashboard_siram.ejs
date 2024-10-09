@@ -19,6 +19,9 @@
 
 <body>
     <div class="full-container">
+        <div id="loading-id" class="loading-show">
+            <img src="/assets/pictures/loading.svg" alt="loading-bar" />
+        </div>
         <div id="warning-modal" class="alert alert-danger warning-modal" role="alert">
             <span id="warning-message">
             </span>
@@ -347,9 +350,9 @@
                                             srcset="">&nbsp;&nbsp;<span>[/= startTime /] - [/= endTime /]</span>
                                     </div>
                                     <div>
-                                        <img style="width: 10px;" src="/assets/icons/institution_meeting.svg"
-                                            alt="institution" srcset="">&nbsp;&nbsp;
-                                        <span>[/= meetings[index].note /]</span>
+                                        <img style="width: 10px;" src="/assets/icons/note.svg"
+                                            alt="note" srcset="">&nbsp;&nbsp;
+                                        <span>[/= meetings[index].note || meetings[index].note.trim() != "" ? meetings[index].note : "-"/]</span>
                                     </div>
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/participant_meeting.svg"

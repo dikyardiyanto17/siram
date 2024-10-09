@@ -18,10 +18,13 @@
 
 <body>
     <div class="full-container">
+        <div id="loading-id" class="loading-show">
+            <img src="/assets/pictures/loading.svg" alt="loading-bar" />
+        </div>
         <div id="warning-container" class="warning-container">
             <span id="warning-message"></span>
         </div>
-        <div class="login-form-container">
+        <form class="login-form-container" id="login-form-container">
             <div class="login-form-header">
                 <span>Silahkan masukan Nama dan ID Peserta Anda</span>
             </div>
@@ -36,9 +39,9 @@
                 </div>
             </div>
             <div class="login-form-footer">
-                <button id="submit-button" type="button" class="next-button">Lanjutkan</button>
+                <button id="submit-button" type="submit" class="next-button">Lanjutkan</button>
             </div>
-        </div>
+        </form>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <script src="/javascript/login/login.js"></script>

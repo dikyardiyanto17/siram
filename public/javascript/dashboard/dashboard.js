@@ -30,6 +30,10 @@ const faceRecognitionDetail = document.getElementById("detail_face_recognition")
 const participantsListDetail = document.getElementById("detail_participant_list")
 const clipboardDetail = document.getElementById("clipboard-button")
 
+document.addEventListener("DOMContentLoaded", (e) => {
+	document.getElementById("loading-id").className = "loading-hide"
+})
+
 $(function () {
 	$("#participants").chosen({
 		search_contains: true,
@@ -143,7 +147,8 @@ $(function () {
 				const { data } = meeting
 				meetingsInfo = data
 				if (meetingsInfo.length == 0) {
-					overviewContentContainer.innerHTML = "Tidak ada meeting"
+					overviewContentContainer.innerHTML = "-"
+					foundContainer.innerHTML = "Tidak ada jadwal persidangan"
 				} else {
 					let template = ""
 					meetingsInfo.forEach((m) => {
@@ -171,8 +176,8 @@ $(function () {
 										<span>${formatTime(new Date(m.start_date))} - ${formatTime(new Date(m.end_date))}</span>
                                     </div>
                                     <div>
-                                        <img style="width: 10px;" src="/assets/icons/institution_meeting.svg" alt="institution" srcset="">&nbsp;&nbsp;
-										<span>${m.note}</span>
+                                        <img style="width: 10px;" src="/assets/icons/note.svg" alt="note" srcset="">&nbsp;&nbsp;
+										<span>${m.note || m.note.trim() != "" ? m.note : "-"}</span>
                                     </div>
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/participant_meeting.svg" alt="participant" srcset="">&nbsp;&nbsp;<span>
@@ -183,7 +188,7 @@ $(function () {
 						`
 					})
 					overviewContentContainer.innerHTML = template
-					foundContainer.innerHTML = `${meetingsInfo.length} jadwal persidangan ditemukan`
+					foundContainer.innerHTML = meetingsInfo.length != 0 ? `${meetingsInfo.length} jadwal persidangan ditemukan` : "Tidak ada jadwal persidangan"
 					return meetingsInfo
 				}
 			})
@@ -347,7 +352,7 @@ const functionShowDetail = async () => {
 					startDateDetail.innerHTML = startTime
 					endTimeDetail.innerHTML = endDate
 					endDateDetail.innerHTML = endTime
-					noteDetail.innerHTML = note
+					noteDetail.innerHTML = note || note.trim() != "" ? note : "-"
 					roomIdDetail.innerHTML = room_id
 					passwordDetail.innerHTML = password
 					faceRecognitionDetail.innerHTML = face_recognition ? "Ya" : "Tidak"

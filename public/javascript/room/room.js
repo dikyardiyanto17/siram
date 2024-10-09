@@ -91,6 +91,7 @@ const connectSocket = async () => {
 							})
 						}
 						await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
+						document.getElementById("loading-id").className = "loading-hide"
 					} else {
 						window.location.href = window.location.origin
 					}

@@ -3,6 +3,10 @@ const loginForm = {
 	full_name: "",
 }
 
+document.addEventListener("DOMContentLoaded", (e) => {
+	document.getElementById("loading-id").className = "loading-hide"
+})
+
 const urlParam = new URL(window.location.href)
 const params = new URLSearchParams(urlParam.search)
 
@@ -26,13 +30,12 @@ const warning = ({ message }) => {
 	}
 }
 
-const submitButton = document.getElementById("submit-button")
-
-submitButton.addEventListener("click", async () => {
+const loginFormElement = document.getElementById("login-form-container")
+loginFormElement.addEventListener("submit", async (event) => {
 	try {
+		event.preventDefault()
 		loginForm.full_name = document.getElementById("full_name").value
 		loginForm.participant_id = document.getElementById("participant_id").value
-		console.log(baseUrl)
 
 		if (!loginForm.full_name || loginForm.full_name.trim() == "") {
 			throw { message: "Nama Lengkap Wajib Di isi" }
@@ -65,9 +68,10 @@ submitButton.addEventListener("click", async () => {
 					window.location.href = `${baseUrl}/${rid && rid.trim() != "" && pw && pw.trim() != "" ? `?rid=${rid}&pw=${pw}` : ""}`
 				}
 			}
+		} else {
+			await warning({ message: "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
 		}
 	} catch (error) {
-		console.log("- Error Submit Button : ", error)
-		await warning({ message: error.message })
+		console.log("- Error Submmit Login : ", error)
 	}
 })

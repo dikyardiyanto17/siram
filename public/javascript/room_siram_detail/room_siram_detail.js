@@ -82,6 +82,9 @@ $("#customize-table").DataTable({
 	},
 })
 
+document.addEventListener("DOMContentLoaded", (e) => {
+	document.getElementById("loading-id").className = "loading-hide"
+})
 
 
 if (backButton) {
@@ -94,3 +97,5 @@ if (backButton) {
 		}
 	})
 }
+
+

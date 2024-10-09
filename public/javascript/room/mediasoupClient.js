@@ -267,7 +267,7 @@ class MediaSoupClient extends StaticEvent {
 					try {
 						console.log("- State Change Producer : ", e)
 						if (e == "failed") {
-							window.location.reload()
+							window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
 						}
 					} catch (error) {
 						console.log("- Error Connecting State Change Producer : ", error)
@@ -316,7 +316,7 @@ class MediaSoupClient extends StaticEvent {
 
 				this.#consumerTransport.on("connectionstatechange", async (e) => {
 					if (e === "failed") {
-						window.location.reload()
+						window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
 					}
 					console.log("- Receiver Transport State : ", e)
 				})
@@ -349,7 +349,7 @@ class MediaSoupClient extends StaticEvent {
 			})
 
 			this.#videoProducer.on("transportclose", () => {
-				window.location.reload()
+				window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
 				console.log("video transport ended")
 			})
 

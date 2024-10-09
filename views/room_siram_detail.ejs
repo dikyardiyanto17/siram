@@ -21,6 +21,9 @@
 <body>
     <div class="full-container">
         [/- include('partial/header') /]
+        <div id="loading-id" class="loading-show">
+            <img src="/assets/pictures/loading.svg" alt="loading-bar" />
+        </div>
         <div class="main-container">
             <div class="main-container-wrapper">
                 <div class="main-content-wrapper">
@@ -82,12 +85,13 @@
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Face Recognition</span></div>
-                            <div class="text-detail-input-wrapper"><span>[/= face_recognition == 1 ? "Ya" :
-                                    "Tidak"/]</span></div>
+                            <div class="text-detail-input-wrapper"><span>
+                                    [/= face_recognition == 1 ? "Ya" : "Tidak"/]</span></div>
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Keterangan</span></div>
-                            <div class="text-detail-input-wrapper"><span>[/= note/]</span></div>
+                            <div class="text-detail-input-wrapper"><span>
+                                    [/= note || note.trim() != "" ? note : "-"/]</span></div>
                         </div>
                     </div>
 
