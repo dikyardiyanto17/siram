@@ -5,7 +5,9 @@ const { Room, Room_Participant, sequelize, Participant, Message } = require("../
 class Rooms {
 	static async index(req, res, next) {
 		try {
-			const meetings = await Room.findAll()
+			const meetings = await Room.findAll({
+				order: [['created_at', 'DESC']]
+			  })
 			const sortedMeeting = meetings.map((m) => {
 				m.dataValues.start_date = formatDate(m.dataValues.start_date)
 				m.dataValues.end_date = formatDate(m.dataValues.end_date)
