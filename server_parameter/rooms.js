@@ -1,4 +1,4 @@
-class Rooms {
+class Rooms_Server {
 	#rooms = []
 	#waitingList = []
 	#videoParams = {}
@@ -185,4 +185,4 @@ class Rooms {
 	}
 }
 
-module.exports = { Rooms }
+module.exports = Rooms_Server
