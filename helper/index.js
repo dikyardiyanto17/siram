@@ -1,4 +1,4 @@
-const createdDate = { createdAt: new Date(), updatedAt: new Date(), last_updated_at: new Date() }
+const createdDate = { created_at: new Date(), updated_at: new Date(), last_updated_at: new Date() }
 
 const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) => {
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
