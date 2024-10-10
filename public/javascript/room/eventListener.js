@@ -663,8 +663,8 @@ class EventListener {
 				this.#elapsedTime = undefined
 				clearInterval(this.#timerFunction)
 				this.#timerTitle.innerHTML = "Merekam :"
-				await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
-				await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
+				// await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
+				// await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
 				this.#timerCounter = "00:00:00"
 				this.#timerSpan.innerHTML = this.#timerCounter
 			}
@@ -677,8 +677,8 @@ class EventListener {
 		try {
 			clearInterval(this.#timerFunction)
 			this.#timerTitle.innerHTML = "Dijeda :"
-			await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
-			await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
+			// await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
+			// await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
 		} catch (error) {
 			console.log("- Error Pause Timer : ", error)
 		}
@@ -689,8 +689,8 @@ class EventListener {
 			if (this.#recordStatus) {
 				this.#timerTitle.innerHTML = "Merekam :"
 				this.timer()
-				await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: true })
-				await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: false })
+				// await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: true })
+				// await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: false })
 			}
 		} catch (error) {
 			console.log("- Error Resume Timer : ", error)

@@ -86,7 +86,6 @@ document.addEventListener("DOMContentLoaded", (e) => {
 	document.getElementById("loading-id").className = "loading-hide"
 })
 
-
 if (backButton) {
 	const backButton = document.getElementById("back_button")
 	backButton.addEventListener("click", () => {
@@ -98,4 +97,20 @@ if (backButton) {
 	})
 }
 
+const copyClipboard = async () => {
+	try {
+		await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomId}&pw=${password}`)
+		console.log(roomId, password)
 
+		const clipboardSuccess = document.getElementById("clipboard-success")
+
+		clipboardSuccess.style.opacity = 1
+		setTimeout(() => {
+			clipboardSuccess.removeAttribute("style")
+		}, 2000)
+	} catch (error) {
+		console.log("- Error Copy Clipboard : ", error)
+	}
+}
+const clipboardDetail = document.getElementById("clipboard-button")
+clipboardDetail.addEventListener("click", copyClipboard)

@@ -34785,8 +34785,8 @@ class EventListener {
 				this.#elapsedTime = undefined
 				clearInterval(this.#timerFunction)
 				this.#timerTitle.innerHTML = "Merekam :"
-				await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
-				await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
+				// await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
+				// await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
 				this.#timerCounter = "00:00:00"
 				this.#timerSpan.innerHTML = this.#timerCounter
 			}
@@ -34799,8 +34799,8 @@ class EventListener {
 		try {
 			clearInterval(this.#timerFunction)
 			this.#timerTitle.innerHTML = "Dijeda :"
-			await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
-			await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
+			// await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: false })
+			// await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: true })
 		} catch (error) {
 			console.log("- Error Pause Timer : ", error)
 		}
@@ -34811,8 +34811,8 @@ class EventListener {
 			if (this.#recordStatus) {
 				this.#timerTitle.innerHTML = "Merekam :"
 				this.timer()
-				await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: true })
-				await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: false })
+				// await this.normalHideAndDisplay({ element: this.#pauseRecordButton, status: true })
+				// await this.normalHideAndDisplay({ element: this.#resumeRecordButton, status: false })
 			}
 		} catch (error) {
 			console.log("- Error Resume Timer : ", error)
@@ -36586,14 +36586,14 @@ recordButton.addEventListener("click", () => {
 	}
 })
 
-let pauseRecord = document.getElementById("pause-record")
-pauseRecord.addEventListener("click", () => {
-	try {
-		eventListenerCollection.pauseRecord()
-	} catch (error) {
-		console.log("- Error Pause Record : ", error)
-	}
-})
+// let pauseRecord = document.getElementById("pause-record")
+// pauseRecord.addEventListener("click", () => {
+// 	try {
+// 		eventListenerCollection.pauseRecord()
+// 	} catch (error) {
+// 		console.log("- Error Pause Record : ", error)
+// 	}
+// })
 
 let resumeRecord = document.getElementById("resume-record")
 resumeRecord.addEventListener("click", () => {
@@ -38236,24 +38236,30 @@ class Users extends StaticEvent {
 
 	async recordMeeting({ from, RecordRTC }) {
 		try {
-			if (!from && this.#record.isRecording) {
-				return
-			}
+			// if (!from && this.#record.isRecording) {
+			// 	return
+			// }
 			const recordButton = document.getElementById("record-button")
-			if (this.#record.isRecording) {
+			if (from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
 				recordButton.firstElementChild.src = "/assets/icons/record.svg"
 				recordButton.lastElementChild.innerHTML = "Mulai Merekam"
-				recordButton.removeAttribute("pointer-events")
+				this.#record.isRecording = false
+			} else if (this.#record.isRecording && !from) {
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
+				recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				recordButton.lastElementChild.innerHTML = "Mulai Merekam"
+				// recordButton.removeAttribute("pointer-events")
+				this.#record.isRecording = !this.#record.isRecording
 			} else {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: true })
 				recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
 				recordButton.lastElementChild.innerHTML = "Berhenti Merekam"
-				recordButton.setAttribute("pointer-events", "none")
+				// recordButton.setAttribute("pointer-events", "none")
+				this.#record.isRecording = !this.#record.isRecording
 			}
-			this.#record.isRecording = !this.#record.isRecording
-			await this.timer()
 			await this.recordMeetingVideo({ RecordRTC })
+			await this.timer()
 		} catch (error) {
 			console.log("- Error Record Meeting : ", error)
 		}
@@ -38278,8 +38284,8 @@ class Users extends StaticEvent {
 			}
 			if (this.#record.isRecording) {
 				this.#startTime = Date.now() - this.#elapsedTime // Adjust startTime by the elapsed time
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: false })
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: true })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: false })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: true })
 
 				this.#timerFunction = setInterval(() => {
 					let currentTime = Date.now()
@@ -38296,8 +38302,8 @@ class Users extends StaticEvent {
 				this.#elapsedTime = undefined
 				clearInterval(this.#timerFunction)
 				document.getElementById("timer-title").innerHTML = "Merekam :"
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: false })
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: true })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: false })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: true })
 				this.#timerCounter = "00:00:00"
 				document.getElementById("timer-span").innerHTML = this.#timerCounter
 				await this.resetTimer()

@@ -73,7 +73,8 @@
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>Jumlah Peserta</span></div>
-                            <div class="text-detail-input-wrapper"><span>[/= meeting_type == 1 ? participants.length : "Publik"/]</span></div>
+                            <div class="text-detail-input-wrapper"><span>[/= meeting_type == 1 ? participants.length :
+                                    "Publik"/]</span></div>
                         </div>
                         <div class="detail-wrapper">
                             <div class="text-detail-wrapper"><span>ID Room</span></div>
@@ -92,6 +93,11 @@
                             <div class="text-detail-wrapper"><span>Keterangan</span></div>
                             <div class="text-detail-input-wrapper"><span>
                                     [/= note || note.trim() != "" ? note : "-"/]</span></div>
+                        </div>
+                        <div style="position: relative;">
+                            <div id="clipboard-success"><span>Copied</span></div>
+                            <button type="button" id="clipboard-button"><i class="far fa-copy"></i>&nbsp;Copy
+                                Link</button>
                         </div>
                     </div>
 
@@ -141,26 +147,31 @@
                                 [/ let isSame = false /]
                                 [/ let isSameTime = false /]
 
-                                [/ if (messages[index+1] && messages[index+1].participant_id == message.participant_id && new Date(message.sent_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: true, }) == new Date(messages[index+1].sent_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: true, })){/]
+                                [/ if (messages[index+1] && messages[index+1].participant_id == message.participant_id
+                                && new Date(message.sent_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute:
+                                "2-digit", hour12: true, }) == new
+                                Date(messages[index+1].sent_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute:
+                                "2-digit", hour12: true, })){/]
                                 [/ isSameTime = false /]
                                 [/ } else {/]
                                 [/ isSameTime = true /]
                                 [/ } /]
 
-                                [/ if (previousMessage != null && previousMessage.participant_id == message.participant_id){ /]
+                                [/ if (previousMessage != null && previousMessage.participant_id ==
+                                message.participant_id){ /]
                                 [/ isSame = true /]
                                 [/ } /]
 
                                 [/ if (participant_id == message.participant_id){ /]
                                 <div class="message-container-send">
-                                    <img class="chat-photo-profile [/= isSame ? 'invisible' : 'visible'/]" src="/photo/[/= message.photo_path/].png"
-                                            alt="photo_profile">
+                                    <img class="chat-photo-profile [/= isSame ? 'invisible' : 'visible'/]"
+                                        src="/photo/[/= message.photo_path/].png" alt="photo_profile">
 
                                     <div class="message-container">
                                         [/ if (!isSame){/]
-                                            <div class="chat-name">
-                                                <span>[/= message.full_name/]</span>
-                                            </div>
+                                        <div class="chat-name">
+                                            <span>[/= message.full_name/]</span>
+                                        </div>
                                         [/ }/]
                                         <div class="message">
                                             <div class="message-content">
@@ -177,8 +188,8 @@
                                 </div>
                                 [/ } else { /]
                                 <div class="message-container-receive">
-                                    <img class="chat-photo-profile [/= isSame ? 'invisible' : 'visible'/]" src="/photo/[/= message.photo_path/].png"
-                                        alt="photo_profile">
+                                    <img class="chat-photo-profile [/= isSame ? 'invisible' : 'visible'/]"
+                                        src="/photo/[/= message.photo_path/].png" alt="photo_profile">
                                     <div class="message-container">
                                         [/ if (!isSame){ /]
                                         <div class="chat-name">
@@ -193,7 +204,7 @@
 
                                             [/ if (isSameTime){/]
 
-                                            
+
                                             <div class="message-time">
                                                 <span>[/= new Date(message.sent_at).toLocaleTimeString("id-ID", { hour:
                                                     "2-digit", minute: "2-digit", hour12: true, }) /]</span>
@@ -222,7 +233,8 @@
         const backButton = [/- JSON.stringify(backButton) /];
         const participants = [/- JSON.stringify(participants) /];
         const messages = [/- JSON.stringify(messages) /];
-        console.log(messages)
+        const roomId = [/- JSON.stringify(room_id) /];
+        const password = [/- JSON.stringify(password) /];
     </script>
     <script src="/javascript/room_siram_detail/room_siram_detail.js"></script>
 

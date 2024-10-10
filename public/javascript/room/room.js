@@ -546,14 +546,14 @@ recordButton.addEventListener("click", () => {
 	}
 })
 
-let pauseRecord = document.getElementById("pause-record")
-pauseRecord.addEventListener("click", () => {
-	try {
-		eventListenerCollection.pauseRecord()
-	} catch (error) {
-		console.log("- Error Pause Record : ", error)
-	}
-})
+// let pauseRecord = document.getElementById("pause-record")
+// pauseRecord.addEventListener("click", () => {
+// 	try {
+// 		eventListenerCollection.pauseRecord()
+// 	} catch (error) {
+// 		console.log("- Error Pause Record : ", error)
+// 	}
+// })
 
 let resumeRecord = document.getElementById("resume-record")
 resumeRecord.addEventListener("click", () => {

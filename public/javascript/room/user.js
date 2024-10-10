@@ -1272,24 +1272,30 @@ class Users extends StaticEvent {
 
 	async recordMeeting({ from, RecordRTC }) {
 		try {
-			if (!from && this.#record.isRecording) {
-				return
-			}
+			// if (!from && this.#record.isRecording) {
+			// 	return
+			// }
 			const recordButton = document.getElementById("record-button")
-			if (this.#record.isRecording) {
+			if (from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
 				recordButton.firstElementChild.src = "/assets/icons/record.svg"
 				recordButton.lastElementChild.innerHTML = "Mulai Merekam"
-				recordButton.removeAttribute("pointer-events")
+				this.#record.isRecording = false
+			} else if (this.#record.isRecording && !from) {
+				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
+				recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				recordButton.lastElementChild.innerHTML = "Mulai Merekam"
+				// recordButton.removeAttribute("pointer-events")
+				this.#record.isRecording = !this.#record.isRecording
 			} else {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: true })
 				recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
 				recordButton.lastElementChild.innerHTML = "Berhenti Merekam"
-				recordButton.setAttribute("pointer-events", "none")
+				// recordButton.setAttribute("pointer-events", "none")
+				this.#record.isRecording = !this.#record.isRecording
 			}
-			this.#record.isRecording = !this.#record.isRecording
-			await this.timer()
 			await this.recordMeetingVideo({ RecordRTC })
+			await this.timer()
 		} catch (error) {
 			console.log("- Error Record Meeting : ", error)
 		}
@@ -1314,8 +1320,8 @@ class Users extends StaticEvent {
 			}
 			if (this.#record.isRecording) {
 				this.#startTime = Date.now() - this.#elapsedTime // Adjust startTime by the elapsed time
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: false })
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: true })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: false })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: true })
 
 				this.#timerFunction = setInterval(() => {
 					let currentTime = Date.now()
@@ -1332,8 +1338,8 @@ class Users extends StaticEvent {
 				this.#elapsedTime = undefined
 				clearInterval(this.#timerFunction)
 				document.getElementById("timer-title").innerHTML = "Merekam :"
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: false })
-				await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: true })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("pause-record"), status: false })
+				// await this.constructor.normalHideAndDisplay({ element: document.getElementById("resume-record"), status: true })
 				this.#timerCounter = "00:00:00"
 				document.getElementById("timer-span").innerHTML = this.#timerCounter
 				await this.resetTimer()
