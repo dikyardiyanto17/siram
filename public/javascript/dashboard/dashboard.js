@@ -2,6 +2,8 @@ const overviewContentContainer = document.getElementById("overview-content")
 const foundContainer = document.getElementById("found")
 const modalDetail = document.getElementById("modal-detail")
 const modalCreate = document.getElementById("create-modal")
+const modalDetailContainer = document.getElementById("modal-detail-container")
+const modalCreateContainer = document.getElementById("create-meeting=container")
 const blocker = document.getElementById("blocker")
 const closeModalDetailButton = document.getElementById("close-detail-modal-button")
 const closeModalCreateButton = document.getElementById("close-create-modal-button")
@@ -316,8 +318,9 @@ const showNewMeetingModal = () => {
 	}
 }
 
-newMeetingButton.addEventListener("click", () => {
+newMeetingButton.addEventListener("click", (e) => {
 	try {
+		e.stopPropagation()
 		showNewMeetingModal()
 	} catch (error) {
 		console.log("- Error New Meeting Button : ", error)
@@ -328,8 +331,9 @@ const functionShowDetail = async () => {
 	try {
 		const cards = document.querySelectorAll(".card-meetings")
 		cards.forEach((card) => {
-			card.addEventListener("click", async () => {
+			card.addEventListener("click", async (e) => {
 				try {
+					e.stopPropagation()
 					const selectedRoomId = card.id
 					const parts = selectedRoomId.split("-")
 					blocker.classList.remove("d-none")
@@ -605,5 +609,32 @@ noPerkaraInput.addEventListener("input", (e) => {
 		newMeeting.no_perkara = e.target.value
 	} catch (error) {
 		console.log("- Error No Perkara Input : ", error)
+	}
+})
+
+modalCreateContainer.addEventListener("click", (e) => {
+	e.stopPropagation()
+})
+
+modalDetailContainer.addEventListener("click", (e) => {
+	e.stopPropagation()
+})
+
+document.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+		console.log(modalCreate.style.top)
+		console.log(modalDetail.style.top)
+		if (!blocker.classList.contains("d-none")) {
+			blocker.classList.add("d-none")
+		}
+		if (modalCreate.style.top != "-100%") {
+			modalCreate.style.top = "-100%"
+		}
+		if (modalDetail.style.top != "-100%") {
+			modalDetail.style.top = "-100%"
+		}
+	} catch (error) {
+		console.log("- Error Closing From Blocker : ", error)
 	}
 })
