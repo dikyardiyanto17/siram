@@ -21,11 +21,11 @@ const { Rooms } = require("./server_parameter/rooms.js")
 const { Users } = require("./server_parameter/users.js")
 const { MediaSoup } = require("./server_parameter/mediasoup.js")
 const errorHandler = require("./middlewares/errorHandler.js")
-const ControllerRoom = require("./controllers/room.js")
+const Meeting = require("./controllers/meeting/index.js")
 const { decodeToken } = require("./helper/jwt.js")
 const { LiveMeeting } = require("./server_parameter/live_meeting.js")
 const { saveSession } = require("./helper/index.js")
-const RoomSiram = require("./controllers/room_siram.js")
+const Rooms = require("./controllers/room/index.js")
 
 app.use(cors())
 app.set("view engine", "ejs")
@@ -112,7 +112,7 @@ io.on("connection", async (socket) => {
 			}
 
 			// Check if room is exist or not
-			const meetingRoom = await ControllerRoom.joinRoom({
+			const meetingRoom = await Meeting.joinRoom({
 				room_id: roomId,
 				participant_id,
 				password: position == "room" ? userSession.password : password,
@@ -488,7 +488,7 @@ io.on("connection", async (socket) => {
 
 	socket.on("check-room", async ({ roomId }, callback) => {
 		try {
-			const room = await RoomSiram.find({ roomId })
+			const room = await Rooms.find({ roomId })
 			if (!room) {
 				console.log("Room Tidak Ditemukan")
 				callback({ response: 2, roomId })

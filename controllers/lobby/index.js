@@ -1,7 +1,7 @@
 class Lobby {
 	static async index(req, res, next) {
 		try {
-			res.render("lobby")
+			res.render("pages/lobby/index")
 		} catch (error) {
 			next(error)
 		}

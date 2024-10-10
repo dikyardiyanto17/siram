@@ -28,10 +28,14 @@ module.exports = (sequelize, DataTypes) => {
     note: DataTypes.STRING,
     last_updated_at: DataTypes.DATE,
     deleted_at: DataTypes.DATE,
-    created_by: DataTypes.STRING
+    created_by: DataTypes.STRING,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE,
   }, {
     sequelize,
     modelName: 'Room',
+    tableName: 'rooms', 
+    timestamps: false,
   });
   return Room;
 };

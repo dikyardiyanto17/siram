@@ -27,10 +27,14 @@ module.exports = (sequelize, DataTypes) => {
 			nik: DataTypes.STRING,
 			nrp: DataTypes.STRING,
 			authority: DataTypes.INTEGER,
+			created_at: DataTypes.DATE,
+			updated_at: DataTypes.DATE,
 		},
 		{
 			sequelize,
 			modelName: "Participant",
+			tableName: 'participants', 
+			timestamps: false,
 		}
 	)
 	return Participant

@@ -1,8 +1,8 @@
 const { Op } = require("sequelize")
-const { createdDate, generateRandomId, formatDate, formatedDate, formatedTime } = require("../helper")
-const { Room, Room_Participant, sequelize, Participant, Message } = require("../models")
+const { createdDate, generateRandomId, formatDate, formatedDate, formatedTime } = require("../../helper")
+const { Room, Room_Participant, sequelize, Participant, Message } = require("../../models")
 
-class RoomSiram {
+class Rooms {
 	static async index(req, res, next) {
 		try {
 			const meetings = await Room.findAll()
@@ -24,7 +24,7 @@ class RoomSiram {
 					meeting.participants = participants?.length
 				})
 			)
-			await res.render("room_siram", { backButton: true, meetings: sortedMeeting })
+			await res.render("pages/room/index", { backButton: true, meetings: sortedMeeting })
 		} catch (error) {
 			next(error)
 		}
@@ -40,7 +40,7 @@ class RoomSiram {
 				},
 			})
 			if (!room) {
-				await res.render("not_found")
+				await res.render("pages/not_found/index")
 				return
 			}
 
@@ -98,7 +98,7 @@ class RoomSiram {
 
 			sortedMeeting.participants = participantWithRole
 
-			await res.render("room_siram_detail", { backButton: true, ...sortedMeeting, participant_id })
+			await res.render("pages/room/detail/index", { backButton: true, ...sortedMeeting, participant_id })
 		} catch (error) {
 			next(error)
 		}
@@ -109,7 +109,7 @@ class RoomSiram {
 			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, note, password, face_recognition } =
 				req.body
 
-			const room_id = await RoomSiram.createRoomId()
+			const room_id = await Rooms.createRoomId()
 			const status = 1
 			const max_participants = 100
 
@@ -427,11 +427,11 @@ class RoomSiram {
 				return room_id
 			}
 
-			return await RoomSiram.createRoomId()
+			return await Rooms.createRoomId()
 		} catch (error) {
 			console.log("- Error Check Room Id : ", error)
 		}
 	}
 }
 
-module.exports = RoomSiram
+module.exports = Rooms

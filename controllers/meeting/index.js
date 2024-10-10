@@ -1,6 +1,6 @@
-const { Room, Participant, Room_Participant } = require("../models")
+const { Room, Participant, Room_Participant } = require("../../models")
 const { Op, where } = require("sequelize")
-class ControllerRoom {
+class Meeting {
 	static index(req, res) {
 		try {
 			const { roomId, meetingType, password, faceRecognition } = req.session
@@ -10,7 +10,7 @@ class ControllerRoom {
 				return
 			}
 
-			res.render("room", { authority, participant_id, roomId, meetingType, picture, password, faceRecognition })
+			res.render("pages/meeting/index", { authority, participant_id, roomId, meetingType, picture, password, faceRecognition })
 		} catch (error) {
 			console.log(error)
 		}
@@ -61,4 +61,4 @@ class ControllerRoom {
 		}
 	}
 }
-module.exports = ControllerRoom
+module.exports = Meeting

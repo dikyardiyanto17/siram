@@ -1,4 +1,4 @@
-const ParticipantSiram = require("../controllers/participant_siram")
+const Participants = require("../controllers/participants")
 const { decodeToken } = require("../helper/jwt")
 
 const authorization
@@ -15,7 +15,7 @@ const authorization
 			return
 		}
 
-		const user = await ParticipantSiram.findUser({ participant_id: payload.participant_id, full_name: payload.full_name })
+		const user = await Participants.findUser({ participant_id: payload.participant_id, full_name: payload.full_name })
 
 		if (!user) throw { name: "Invalid_User", message: "User tidak valid" }
 

@@ -1,5 +1,5 @@
-const { decodeToken, encodeToken } = require("../helper/jwt")
-const { Participant } = require("../models")
+const { decodeToken, encodeToken } = require("../../helper/jwt")
+const { Participant } = require("../../models")
 
 class Login {
 	static async index(req, res, next) {
@@ -9,14 +9,14 @@ class Login {
 			const { rid, pw } = req.query
 
 			if (!token) {
-				await res.render("login")
+				await res.render("pages/login/index")
 				return
 			}
 
 			const decodedUser = await decodeToken(token)
 
 			if (!decodedUser) {
-				await res.render("login")
+				await res.render("pages/login/index")
 				return
 			}
 

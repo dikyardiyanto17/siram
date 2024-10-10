@@ -22,10 +22,14 @@ module.exports = (sequelize, DataTypes) => {
     status: DataTypes.INTEGER,
     last_updated_at: DataTypes.DATE,
     deleted_at: DataTypes.DATE,
-    created_by: DataTypes.STRING
+    created_by: DataTypes.STRING,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE,
   }, {
     sequelize,
     modelName: 'Recording',
+    tableName: 'recordings', 
+    timestamps: false,
   });
   return Recording;
 };

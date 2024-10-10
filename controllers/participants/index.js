@@ -1,12 +1,12 @@
 const { Op, where } = require("sequelize")
-const { createdDate } = require("../helper")
-const { Participant } = require("../models")
+const { createdDate } = require("../../helper")
+const { Participant } = require("../../models")
 
-class ParticipantSiram {
+class Participants {
 	static async index(req, res) {
 		try {
 			const participants = await Participant.findAll()
-			await res.render("participant_siram", { backButton: true, participants })
+			await res.render("pages/participant/index", { backButton: true, participants })
 		} catch (error) {
 			console.log(error)
 		}
@@ -109,4 +109,4 @@ class ParticipantSiram {
 	}
 }
 
-module.exports = ParticipantSiram
+module.exports = Participants

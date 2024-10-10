@@ -1,5 +1,5 @@
-const { decodeToken, encodeToken } = require("../helper/jwt")
-const ParticipantSiram = require("./participant_siram")
+const { decodeToken, encodeToken } = require("../../helper/jwt")
+const Participants = require("../participants")
 
 class Verify {
 	static async index(req, res, next) {
@@ -7,17 +7,17 @@ class Verify {
 			const { user } = req.query
 
 			if (!user) {
-				res.render("verify_user", { status: false, message: "Invalid User" })
+				res.render("pages/verify_user/index", { status: false, message: "Invalid User" })
 				return
 			}
 
 			const decodedUser = await decodeToken(user)
 			if (!decodedUser) {
-				res.render("verify_user", { status: false, message: "Invalid User" })
+				res.render("pages/verify_user/index", { status: false, message: "Invalid User" })
 				return
 			}
 			req.session.token = user
-			res.render("verify_user", { status: true, message: "Verified User", token: user })
+			res.render("pages/verify_user/index", { status: true, message: "Verified User", token: user })
 		} catch (error) {
 			next(error)
 		}
@@ -26,7 +26,7 @@ class Verify {
 	static async encodeToken(req, res, next) {
 		try {
 			const { participant_id, full_name } = req.body
-			const user = await ParticipantSiram.findUser({ participant_id, full_name })
+			const user = await Participants.findUser({ participant_id, full_name })
 			if (!user) {
 				throw { name: "Invalid", message: "Invalid User" }
 			}

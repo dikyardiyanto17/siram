@@ -1,5 +1,5 @@
-const { Message } = require("../models")
-const { createdDate } = require("../helper")
+const { Message } = require("../../models")
+const { createdDate } = require("../../helper")
 class Messages {
 	static async create(req, res, next) {
 		try {

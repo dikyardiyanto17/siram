@@ -1,7 +1,7 @@
 const express = require("express")
-const ParticipantSiram = require("../../../controllers/participant_siram")
+const Participants = require("../../../controllers/participants")
 const router = express.Router()
 
-router.post("/", ParticipantSiram.create)
+router.post("/", Participants.create)
 
 module.exports = router

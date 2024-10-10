@@ -1,8 +1,8 @@
 const express = require("express")
-const RoomSiram = require("../../../controllers/room_siram")
+const Rooms = require("../../../controllers/room")
 const router = express.Router()
 
-router.post("/", RoomSiram.create)
-router.get("/", RoomSiram.filterMeeting)
+router.post("/", Rooms.create)
+router.get("/", Rooms.filterMeeting)
 
 module.exports = router

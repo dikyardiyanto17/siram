@@ -1,11 +1,11 @@
 const { Op } = require("sequelize")
-const { createdDate } = require("../helper")
-const { Room_Participant } = require("../models")
+const { createdDate } = require("../../helper")
+const { Room_Participant } = require("../../models")
 
-class RoomParticipantSiram {
+class Room_Participants {
 	static async index(req, res, next) {
 		try {
-			await res.render("participant")
+			await res.render("pages/participant/index")
 		} catch (error) {
 			next(error)
 		}
@@ -61,4 +61,4 @@ class RoomParticipantSiram {
 	}
 }
 
-module.exports = { RoomParticipantSiram }
+module.exports = Room_Participants
