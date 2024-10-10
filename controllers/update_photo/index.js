@@ -28,7 +28,7 @@ class Update_Photo {
 				}
 				const base64Data = photo.replace(/^data:image\/\w+;base64,/, "")
 
-				const uploadsDir = path.join(__dirname, "../photo/")
+				const uploadsDir = path.join(__dirname, "../../photo/")
 				if (!fs.existsSync(uploadsDir)) {
 					fs.mkdirSync(uploadsDir, { recursive: true })
 				}
