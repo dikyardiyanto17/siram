@@ -375,6 +375,12 @@
     font-size: 12px;
 }
 
+#update-photo-button>button {
+    text-decoration: none;
+    background-color: transparent;
+    border: none;
+}
+
 
 #update-photo-button {
     margin: 20px 0 20px 22px;
@@ -405,7 +411,7 @@
     font-size: 12px;
 }
 
-#update-photo-button a {
+a {
     text-decoration: none !important;
 }
 
