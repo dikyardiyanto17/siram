@@ -53,11 +53,7 @@ loginFormElement.addEventListener("submit", async (event) => {
 			body: JSON.stringify(loginForm),
 		})
 
-		if (!response.status) {
-			throw { message: "Peserta Tidak ditemukan" }
-		}
-
-		if (response.status) {
+		if (response.ok) {
 			const { status, authority } = await response.json()
 			if (status) {
 				if (rid && rid.trim() != "" && pw && pw.trim() != "") {
@@ -69,9 +65,10 @@ loginFormElement.addEventListener("submit", async (event) => {
 				}
 			}
 		} else {
-			await warning({ message: "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
+			throw { message: "Peserta Tidak ditemukan" }
 		}
 	} catch (error) {
 		console.log("- Error Submmit Login : ", error)
+		await warning({ message: "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
 	}
 })

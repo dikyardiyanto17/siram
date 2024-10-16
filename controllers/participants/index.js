@@ -6,7 +6,9 @@ class Participants {
 	static async index(req, res) {
 		try {
 			const { participant_id } = req.user
-			const participants = await Participant.findAll()
+			const participants = await Participant.findAll({
+				order: [["participant_id", "ASC"]],
+			})
 			await res.render("pages/participant/index", { backButton: true, participants, participant_id })
 		} catch (error) {
 			console.log(error)
