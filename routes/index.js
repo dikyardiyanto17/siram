@@ -26,6 +26,7 @@ router.get("/", Home.index)
 router.get("/room/:room", Meeting.index)
 router.use("/photo", express.static(path.join(__dirname, "../photo")))
 router.use("/api/message", require("./api/message/message.js"))
+router.get("/updatephoto", Update_Photo.index)
 
 router.use(authorization)
 
@@ -33,7 +34,6 @@ router.use("/api/room", require("./api/room/room.js"))
 router.use("/api/participant", require("./api/participant/participant.js"))
 router.use("/api/photo", require("./api/photo/photo.js"))
 
-router.get("/updatephoto", Update_Photo.index)
 router.get("/meeting", Rooms.index)
 // router.get("/lobby", Lobby.index)
 router.get("/meeting/:room_id", Rooms.detail)

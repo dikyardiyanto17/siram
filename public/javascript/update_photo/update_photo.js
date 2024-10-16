@@ -96,11 +96,11 @@ const startFR = async () => {
 			if (
 				!image_data_url &&
 				isValidPosition.length < 20 &&
-				Math.abs(xCalculation) <= 27 &&
-				Math.abs(yCalculation) <= 27 &&
-				Math.abs(widthCalculation) <= 150 &&
-				Math.abs(heightCalculation) <= 150 &&
-				resizedDetections[0].score >= 0.95
+				Math.abs(xCalculation) <= 50 &&
+				Math.abs(yCalculation) <= 50 &&
+				Math.abs(widthCalculation) <= 200 &&
+				Math.abs(heightCalculation) <= 200 &&
+				resizedDetections[0].score >= 0.90
 			) {
 				console.log("VALID")
 				progressBar.value = isValidPosition.length * 5

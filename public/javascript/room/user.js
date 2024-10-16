@@ -41,7 +41,7 @@ class StaticEvent {
                                     <img style="cursor: pointer;" id="ul-o-${id}" src="/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
 									<div class="user-list-icons-option d-none" id="ul-oc-${id}"><span id="ul-o-f-${id}">Pin</span>
-									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">Usir</span>` : ""}
+									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">Keluarkan</span>` : ""}
 									</div>
                                 </div>
                             `
@@ -185,6 +185,10 @@ class Users extends StaticEvent {
 		// Record
 		this.#timerCounter = "00:00:00"
 		this.#elapsedTime = 0
+	}
+
+	get record(){
+		return this.#record
 	}
 
 	get faceRecognition() {
@@ -492,7 +496,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async insertVideo({ track, id }) {
+	async insertVideo({ track, id, count = 0 }) {
 		try {
 			if (track.kind !== "video") {
 				throw new Error("Provided track is not a video track")
@@ -500,6 +504,13 @@ class Users extends StaticEvent {
 
 			const videoElement = document.getElementById("v-" + id)
 
+			if (!videoElement && count < 50) {
+				let counter = 0
+				if (count != 0) {
+					counter = count + 1
+				}
+				await this.insertVideo({ track, id, count: counter })
+			}
 			if (videoElement) {
 				videoElement.muted = true
 				const mediaStream = new MediaStream([track])
@@ -508,8 +519,6 @@ class Users extends StaticEvent {
 				videoElement.onerror = (event) => {
 					console.log("Video playback error: ", event)
 				}
-			} else {
-				throw new Error(`Video element with id v-${id} not found`)
 			}
 		} catch (error) {
 			console.log("- Error Inserting Video: ", error)
@@ -722,7 +731,7 @@ class Users extends StaticEvent {
 					optionKickUser.addEventListener("click", (e) => {
 						try {
 							e.stopPropagation()
-							socket.emit("kick-user", { to: socketId, message: "Anda telah di usir dari ruangan" })
+							socket.emit("kick-user", { to: socketId, message: "Anda telah di dikeluarkan dari ruangan" })
 						} catch (error) {
 							console.log("- Error Kick User : ", error)
 						}
@@ -998,7 +1007,7 @@ class Users extends StaticEvent {
 					await this.previousVideo({ socket })
 				}
 			} else if (this.#currentLayout == 2) {
-				this.hideShowPreviousNextButton({ status: false })
+				await this.hideShowPreviousNextButton({ status: false })
 				await this.hideShowUpDownButton({ status: false })
 				this.#allUsers.forEach(async (u) => {
 					let tracks = u.consumer.filter((t) => t.kind == "video")
@@ -1157,13 +1166,12 @@ class Users extends StaticEvent {
 								c.focus = true
 							}
 						})
-						console.log("- User : ", user)
 						this.changeScreenSharingMode({ status: false, userId, socket, username: user.username, picture: user.consumer[0].appData.picture })
 					}
 					if (label == "screensharing_audio") {
 						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_audio")
 						user.consumer.forEach((c) => {
-							if (c.kind == "video" && c.appData.label == "video") {
+							if (c.kind == "audio" && c.appData.label == "audio") {
 								c.focus = true
 							}
 						})
@@ -1523,43 +1531,50 @@ class Users extends StaticEvent {
 	}
 
 	async startFR({ picture, name, id }) {
-		document.getElementById(`cfr-${id}`)?.remove()
 		try {
+			if (document.getElementById(`cfr-${id}`)) {
+				document.getElementById(`cfr-${id}`).remove()
+			}
 			const user = await this.#allUsers.find((u) => u.userId == id)
 			const video = document.getElementById(`v-${id}`)
-			video.addEventListener("play", async () => {
-				const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
-				let faceContainer = document.getElementById(`face-recognition-${id}`)
-				// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
-				const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
-				const canvas = faceapi.createCanvasFromMedia(video)
-				canvas.id = `cfr-${id}`
-				faceContainer.appendChild(canvas)
+			// if (!video) {
+			// 	await this.startFR({ picture, name, id })
+			// }
+			if (video) {
+				video.addEventListener("play", async () => {
+					const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
+					let faceContainer = document.getElementById(`face-recognition-${id}`)
+					// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
+					const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
+					const canvas = faceapi.createCanvasFromMedia(video)
+					canvas.id = `cfr-${id}`
+					faceContainer.appendChild(canvas)
 
-				const displaySize = { width: video.videoWidth, height: video.videoHeight }
-				// faceContainer.style.width = `${video.clientWidth}px`
-				faceapi.matchDimensions(canvas, displaySize)
-				user.frInterval = setInterval(async () => {
-					const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
-					const resizedDetections = faceapi.resizeResults(detections, displaySize)
-					canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
-					const results = resizedDetections.map((d) => {
-						return faceMatcher.findBestMatch(d.descriptor)
-					})
-					results.forEach((result, i) => {
-						const box = resizedDetections[i].detection.box
-						const drawBox = new faceapi.draw.DrawBox(box, {
-							label: result,
-							boxColor: result._distance <= 0.45 ? "blue" : "red",
-							// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
-							// lineWidth: isCurrentUser ? 1 : 0.2,
-							drawLabelOptions: { fontSize: 8 },
-							lineWidth: 0.2,
+					const displaySize = { width: video.videoWidth, height: video.videoHeight }
+					// faceContainer.style.width = `${video.clientWidth}px`
+					faceapi.matchDimensions(canvas, displaySize)
+					user.frInterval = setInterval(async () => {
+						const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
+						const resizedDetections = faceapi.resizeResults(detections, displaySize)
+						canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
+						const results = resizedDetections.map((d) => {
+							return faceMatcher.findBestMatch(d.descriptor)
 						})
-						drawBox.draw(canvas)
-					})
-				}, 100)
-			})
+						results.forEach((result, i) => {
+							const box = resizedDetections[i].detection.box
+							const drawBox = new faceapi.draw.DrawBox(box, {
+								label: result,
+								boxColor: result._distance <= 0.45 ? "blue" : "red",
+								// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
+								// lineWidth: isCurrentUser ? 1 : 0.2,
+								drawLabelOptions: { fontSize: 8 },
+								lineWidth: 0.2,
+							})
+							drawBox.draw(canvas)
+						})
+					}, 100)
+				})
+			}
 		} catch (error) {
 			// if (user?.frInterval) {
 			// 	clearInterval(user.frInterval)

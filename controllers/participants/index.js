@@ -5,8 +5,9 @@ const { Participant } = require("../../models")
 class Participants {
 	static async index(req, res) {
 		try {
+			const { participant_id } = req.user
 			const participants = await Participant.findAll()
-			await res.render("pages/participant/index", { backButton: true, participants })
+			await res.render("pages/participant/index", { backButton: true, participants, participant_id })
 		} catch (error) {
 			console.log(error)
 		}

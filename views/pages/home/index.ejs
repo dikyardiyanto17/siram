@@ -77,12 +77,19 @@
                         </a>
                     </button>
                     [/ }/]
-                    <button class="[/= authority == 3 ? 'ml-0': ''/]" type="button" id="log-out-button">
-                        <span>Log Out</span>
+                    <button class="[/= authority == 3 ? 'ml-0': ''/]" id="update-photo-button" type="button">
+                        <a href="/updatephoto?uid=[/= participant_id /]">
+                            <span>Update Photo</span>
+                        </a>
                     </button>
+
                 </div>
 
+
             </div>
+            <button class="ml-0" type="button" id="log-out-button">
+                <span>Log Out</span>
+            </button>
         </section>
         <section class="right-bar" id="right-bar-id">
             <img class="join-image" src="/assets/pictures/homePic.png" />

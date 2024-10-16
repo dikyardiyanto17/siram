@@ -36961,6 +36961,49 @@ document.addEventListener("click", function (e) {
 	}
 })
 
+window.addEventListener("beforeunload", function (event) {
+	try {
+		if (usersVariable.record.recordedStream) {
+			usersVariable.record.recordedMedia.stopRecording(() => {
+				// socket.send({ type: 'uploading' })
+				usersVariable.record.isRecording = false
+				let blob = usersVariable.record.recordedMedia.getBlob()
+
+				// require('recordrtc').getSeekableBlob(recordedMediaRef.current.getBlob(), (seekable) => {
+				//     console.log("- SeekableBlob : ", seekable)
+				//     downloadRTC(seekable)
+				// })
+				// downloadRTC(blob)
+				const currentDate = new Date()
+				const formattedDate = currentDate
+					.toLocaleDateString("en-GB", {
+						day: "2-digit",
+						month: "2-digit",
+						year: "numeric",
+					})
+					.replace(/\//g, "") // Remove slashes from the formatted date
+
+				const file = new File([blob], formattedDate, {
+					type: "video/mp4",
+				})
+				require("recordrtc").invokeSaveAsDialog(file, file.name)
+				usersVariable.record.recordedStream.getTracks().forEach((track) => track.stop())
+				usersVariable.record.recordedStream = null
+				usersVariable.record.recordedMedia.reset()
+				usersVariable.record.recordedMedia = null
+				usersVariable.timer()
+			})
+			let confirmationMessage = "Anda yakin ingin menutup tab ini?"
+			// (Standar) For modern browsers
+			event.returnValue = confirmationMessage
+
+			// (IE) For Internet Explorer
+			return confirmationMessage
+		}
+		// window.location.href = window.location.origin
+		// socket.close()
+	} catch (error) {}
+})
 },{"../socket/socket":106,"./eventListener":102,"./mediasoupClient":103,"./user":105,"recordrtc":80,"sweetalert2":100}],105:[function(require,module,exports){
 class StaticEvent {
 	static generateRandomId(length = 12, separator = "-", separatorInterval = 4) {
@@ -37005,7 +37048,7 @@ class StaticEvent {
                                     <img style="cursor: pointer;" id="ul-o-${id}" src="/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
 									<div class="user-list-icons-option d-none" id="ul-oc-${id}"><span id="ul-o-f-${id}">Pin</span>
-									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">Usir</span>` : ""}
+									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">Keluarkan</span>` : ""}
 									</div>
                                 </div>
                             `
@@ -37149,6 +37192,10 @@ class Users extends StaticEvent {
 		// Record
 		this.#timerCounter = "00:00:00"
 		this.#elapsedTime = 0
+	}
+
+	get record(){
+		return this.#record
 	}
 
 	get faceRecognition() {
@@ -37456,7 +37503,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async insertVideo({ track, id }) {
+	async insertVideo({ track, id, count = 0 }) {
 		try {
 			if (track.kind !== "video") {
 				throw new Error("Provided track is not a video track")
@@ -37464,6 +37511,13 @@ class Users extends StaticEvent {
 
 			const videoElement = document.getElementById("v-" + id)
 
+			if (!videoElement && count < 50) {
+				let counter = 0
+				if (count != 0) {
+					counter = count + 1
+				}
+				await this.insertVideo({ track, id, count: counter })
+			}
 			if (videoElement) {
 				videoElement.muted = true
 				const mediaStream = new MediaStream([track])
@@ -37472,8 +37526,6 @@ class Users extends StaticEvent {
 				videoElement.onerror = (event) => {
 					console.log("Video playback error: ", event)
 				}
-			} else {
-				throw new Error(`Video element with id v-${id} not found`)
 			}
 		} catch (error) {
 			console.log("- Error Inserting Video: ", error)
@@ -37686,7 +37738,7 @@ class Users extends StaticEvent {
 					optionKickUser.addEventListener("click", (e) => {
 						try {
 							e.stopPropagation()
-							socket.emit("kick-user", { to: socketId, message: "Anda telah di usir dari ruangan" })
+							socket.emit("kick-user", { to: socketId, message: "Anda telah di dikeluarkan dari ruangan" })
 						} catch (error) {
 							console.log("- Error Kick User : ", error)
 						}
@@ -37962,7 +38014,7 @@ class Users extends StaticEvent {
 					await this.previousVideo({ socket })
 				}
 			} else if (this.#currentLayout == 2) {
-				this.hideShowPreviousNextButton({ status: false })
+				await this.hideShowPreviousNextButton({ status: false })
 				await this.hideShowUpDownButton({ status: false })
 				this.#allUsers.forEach(async (u) => {
 					let tracks = u.consumer.filter((t) => t.kind == "video")
@@ -38121,13 +38173,12 @@ class Users extends StaticEvent {
 								c.focus = true
 							}
 						})
-						console.log("- User : ", user)
 						this.changeScreenSharingMode({ status: false, userId, socket, username: user.username, picture: user.consumer[0].appData.picture })
 					}
 					if (label == "screensharing_audio") {
 						user.consumer = user.consumer.filter((c) => c.appData.label != "screensharing_audio")
 						user.consumer.forEach((c) => {
-							if (c.kind == "video" && c.appData.label == "video") {
+							if (c.kind == "audio" && c.appData.label == "audio") {
 								c.focus = true
 							}
 						})
@@ -38487,43 +38538,50 @@ class Users extends StaticEvent {
 	}
 
 	async startFR({ picture, name, id }) {
-		document.getElementById(`cfr-${id}`)?.remove()
 		try {
+			if (document.getElementById(`cfr-${id}`)) {
+				document.getElementById(`cfr-${id}`).remove()
+			}
 			const user = await this.#allUsers.find((u) => u.userId == id)
 			const video = document.getElementById(`v-${id}`)
-			video.addEventListener("play", async () => {
-				const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
-				let faceContainer = document.getElementById(`face-recognition-${id}`)
-				// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
-				const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
-				const canvas = faceapi.createCanvasFromMedia(video)
-				canvas.id = `cfr-${id}`
-				faceContainer.appendChild(canvas)
+			// if (!video) {
+			// 	await this.startFR({ picture, name, id })
+			// }
+			if (video) {
+				video.addEventListener("play", async () => {
+					const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
+					let faceContainer = document.getElementById(`face-recognition-${id}`)
+					// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
+					const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
+					const canvas = faceapi.createCanvasFromMedia(video)
+					canvas.id = `cfr-${id}`
+					faceContainer.appendChild(canvas)
 
-				const displaySize = { width: video.videoWidth, height: video.videoHeight }
-				// faceContainer.style.width = `${video.clientWidth}px`
-				faceapi.matchDimensions(canvas, displaySize)
-				user.frInterval = setInterval(async () => {
-					const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
-					const resizedDetections = faceapi.resizeResults(detections, displaySize)
-					canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
-					const results = resizedDetections.map((d) => {
-						return faceMatcher.findBestMatch(d.descriptor)
-					})
-					results.forEach((result, i) => {
-						const box = resizedDetections[i].detection.box
-						const drawBox = new faceapi.draw.DrawBox(box, {
-							label: result,
-							boxColor: result._distance <= 0.45 ? "blue" : "red",
-							// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
-							// lineWidth: isCurrentUser ? 1 : 0.2,
-							drawLabelOptions: { fontSize: 8 },
-							lineWidth: 0.2,
+					const displaySize = { width: video.videoWidth, height: video.videoHeight }
+					// faceContainer.style.width = `${video.clientWidth}px`
+					faceapi.matchDimensions(canvas, displaySize)
+					user.frInterval = setInterval(async () => {
+						const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
+						const resizedDetections = faceapi.resizeResults(detections, displaySize)
+						canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
+						const results = resizedDetections.map((d) => {
+							return faceMatcher.findBestMatch(d.descriptor)
 						})
-						drawBox.draw(canvas)
-					})
-				}, 100)
-			})
+						results.forEach((result, i) => {
+							const box = resizedDetections[i].detection.box
+							const drawBox = new faceapi.draw.DrawBox(box, {
+								label: result,
+								boxColor: result._distance <= 0.45 ? "blue" : "red",
+								// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
+								// lineWidth: isCurrentUser ? 1 : 0.2,
+								drawLabelOptions: { fontSize: 8 },
+								lineWidth: 0.2,
+							})
+							drawBox.draw(canvas)
+						})
+					}, 100)
+				})
+			}
 		} catch (error) {
 			// if (user?.frInterval) {
 			// 	clearInterval(user.frInterval)

@@ -920,3 +920,47 @@ document.addEventListener("click", function (e) {
 		console.log("- Error HideAll Button : ", error)
 	}
 })
+
+window.addEventListener("beforeunload", function (event) {
+	try {
+		if (usersVariable.record.recordedStream) {
+			usersVariable.record.recordedMedia.stopRecording(() => {
+				// socket.send({ type: 'uploading' })
+				usersVariable.record.isRecording = false
+				let blob = usersVariable.record.recordedMedia.getBlob()
+
+				// require('recordrtc').getSeekableBlob(recordedMediaRef.current.getBlob(), (seekable) => {
+				//     console.log("- SeekableBlob : ", seekable)
+				//     downloadRTC(seekable)
+				// })
+				// downloadRTC(blob)
+				const currentDate = new Date()
+				const formattedDate = currentDate
+					.toLocaleDateString("en-GB", {
+						day: "2-digit",
+						month: "2-digit",
+						year: "numeric",
+					})
+					.replace(/\//g, "") // Remove slashes from the formatted date
+
+				const file = new File([blob], formattedDate, {
+					type: "video/mp4",
+				})
+				require("recordrtc").invokeSaveAsDialog(file, file.name)
+				usersVariable.record.recordedStream.getTracks().forEach((track) => track.stop())
+				usersVariable.record.recordedStream = null
+				usersVariable.record.recordedMedia.reset()
+				usersVariable.record.recordedMedia = null
+				usersVariable.timer()
+			})
+			let confirmationMessage = "Anda yakin ingin menutup tab ini?"
+			// (Standar) For modern browsers
+			event.returnValue = confirmationMessage
+
+			// (IE) For Internet Explorer
+			return confirmationMessage
+		}
+		// window.location.href = window.location.origin
+		// socket.close()
+	} catch (error) {}
+})

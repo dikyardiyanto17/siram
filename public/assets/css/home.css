@@ -346,8 +346,7 @@
 }
 
 #log-out-button {
-    margin: 20px 0 20px 22px;
-    width: 38%;
+    position: absolute;
     border: none;
     padding: 7px;
     border-radius: 5px;
@@ -358,6 +357,8 @@
     justify-content: center;
     align-items: center;
     background-color: transparent;
+    left: 20px;
+    top: 20px;
 }
 
 #log-out-button:hover {
@@ -372,6 +373,40 @@
 #log-out-button span {
     color: #FB5A5C;
     font-size: 12px;
+}
+
+
+#update-photo-button {
+    margin: 20px 0 20px 22px;
+    width: 38%;
+    border: none;
+    padding: 7px;
+    border-radius: 5px;
+    /* background-image: linear-gradient(to bottom right, #FB5A5C, #831617); */
+    background-color: none;
+    border: 1px solid #73EC8B;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+}
+
+#update-photo-button:hover {
+    background-color: #73EC8B;
+    color: #ffffff;
+}
+
+#update-photo-button:hover span {
+    color: #ffffff;
+}
+
+#update-photo-button span {
+    color: #73EC8B;
+    font-size: 12px;
+}
+
+#update-photo-button a {
+    text-decoration: none !important;
 }
 
 .button-container {
