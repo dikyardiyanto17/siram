@@ -11,8 +11,9 @@ const session = require("express-session")
 const router = require("./routes/index.js")
 const app = express()
 // const port = 3001
-const port = 80
+// const port = 80
 // const port = 9188
+const port = 9100
 const { options } = require("./certif")
 const http = require("http")
 const path = require("path")
@@ -38,11 +39,12 @@ app.use(express.static("public"))
 app.use(express.static(path.join(__dirname, "public")))
 
 const sessionMiddleware = session({
-	secret: process.env.EXPRESS_SESSION_SECRET,
+	secret: process.env.EXPRESS_SESSION_SECRET || "ISULOSTNEMUCODSDRTPSESSION",
 	resave: false,
 	saveUninitialized: false,
 	cookie: {
 		secure: true,
+		// secure: false,
 		sameSite: true,
 	},
 })
