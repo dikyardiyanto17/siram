@@ -179,6 +179,14 @@ class EventListener {
 		this.#timerTitle = document.getElementById("timer-title")
 	}
 
+	get chatStatus() {
+		return this.#chatStatus
+	}
+
+	set chatStatus(status) {
+		this.#chatStatus = status
+	}
+
 	get microphoneStatus() {
 		return this.#microphoneStatus
 	}
@@ -256,6 +264,10 @@ class EventListener {
 				this.#chatButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
+				const newMessageLine = document.getElementById("new-message-line")
+				if (newMessageLine) {
+					newMessageLine.remove()
+				}
 			} else {
 				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
 				this.#chatButton.classList.add("active")
@@ -263,6 +275,10 @@ class EventListener {
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
 				let chatContent = document.getElementById("chat-content")
 				chatContent.scrollTop = chatContent.scrollHeight
+				const redDotCHat = document.getElementById("red-dot-chat")
+				if (!redDotCHat.classList.contains("d-none")) {
+					redDotCHat.classList.add("d-none")
+				}
 			}
 			await this.changeSideBarContainer()
 			this.#chatStatus = !this.#chatStatus
@@ -708,6 +724,8 @@ class EventListener {
 	// Method Join
 	async methodAddWaitingUser({ id, username, socket, picture }) {
 		try {
+			const redDotUserList = document.getElementById("red-dot-user-list")
+			redDotUserList.classList.remove("d-none")
 			let userWaitingListElement = document.createElement("div")
 			userWaitingListElement.className = "user-list-content"
 			userWaitingListElement.id = `wait-${id}`
@@ -912,11 +930,17 @@ class EventListener {
 	async checkWaitingList() {
 		try {
 			this.#userListWaiting = document.getElementById("waiting-list-users")
+			// Display
 			if (this.#userListWaiting.firstElementChild) {
 				await this.normalHideAndDisplay({ element: this.#userListWaitingContainer, status: true })
 			} else {
+				// Hide
 				if (!this.#userListWaitingContainer.classList.contains("d-none")) {
 					await this.normalHideAndDisplay({ element: this.#userListWaitingContainer, status: false })
+				}
+				const redDotUserList = document.getElementById("red-dot-user-list")
+				if (!redDotUserList.classList.contains("d-none")){
+					redDotUserList.classList.add("d-none")
 				}
 			}
 		} catch (error) {

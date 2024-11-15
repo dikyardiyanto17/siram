@@ -2,9 +2,10 @@ const mediasoup = require("mediasoup")
 
 class MediaSoup {
 	#privateIp = "0.0.0.0"
+	#publicIp = "147.139.177.186" // Wire Guard
 	// #publicIp = "192.167.71.20" // RDS Lantai 1
 	// #publicIp = "192.168.81.3" // Hotspot
-	#publicIp = "203.175.10.29" // VPS
+	// #publicIp = "203.175.10.29" // VPS
 	// #publicIp = "203.194.113.166" // VPS	2 Core Pak Indra
 	// #publicIp = "192.168.20.177" // KOS
 	// #publicIp = "192.168.205.229" // RDS co.id
@@ -73,11 +74,13 @@ class MediaSoup {
 					protocol: "udp",
 					ip: this.#privateIp,
 					announcedIp: this.#publicIp,
+					port: 1040,
 				},
 				{
 					protocol: "tcp",
 					ip: this.#privateIp,
 					announcedIp: this.#publicIp,
+					port: 1040,
 				},
 			],
 		}
@@ -204,7 +207,7 @@ class MediaSoup {
 			let configuration = {
 				webRtcServer: worker.webrtcServer,
 				enableUdp: true,
-				enableTcp: true,
+				enableTcp: false,
 				preferUdp: true,
 				appData: {
 					userId,
@@ -351,7 +354,7 @@ class MediaSoup {
 
 				producer.on("score", (score) => {
 					try {
-						console.log(`Producer (score) ${transport.transport.id} => ${producer.id} =>`, score)
+						// console.log(`Producer (score) ${transport.transport.id} => ${producer.id} =>`, score)
 					} catch (error) {
 						console.log("- Error Producer (score) : ", error)
 					}
@@ -509,7 +512,7 @@ class MediaSoup {
 
 			consumer.on("score", (score) => {
 				try {
-					console.log(`Consumer (score) ${consumerTransport.id} => ${consumer.id} => `, score)
+					// console.log(`Consumer (score) ${consumerTransport.id} => ${consumer.id} => `, score)
 				} catch (error) {
 					console.log("- Error Consumer (score) => ", error)
 				}

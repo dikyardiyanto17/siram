@@ -34301,6 +34301,14 @@ class EventListener {
 		this.#timerTitle = document.getElementById("timer-title")
 	}
 
+	get chatStatus() {
+		return this.#chatStatus
+	}
+
+	set chatStatus(status) {
+		this.#chatStatus = status
+	}
+
 	get microphoneStatus() {
 		return this.#microphoneStatus
 	}
@@ -34378,6 +34386,10 @@ class EventListener {
 				this.#chatButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
+				const newMessageLine = document.getElementById("new-message-line")
+				if (newMessageLine) {
+					newMessageLine.remove()
+				}
 			} else {
 				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
 				this.#chatButton.classList.add("active")
@@ -34385,6 +34397,10 @@ class EventListener {
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
 				let chatContent = document.getElementById("chat-content")
 				chatContent.scrollTop = chatContent.scrollHeight
+				const redDotCHat = document.getElementById("red-dot-chat")
+				if (!redDotCHat.classList.contains("d-none")) {
+					redDotCHat.classList.add("d-none")
+				}
 			}
 			await this.changeSideBarContainer()
 			this.#chatStatus = !this.#chatStatus
@@ -34830,6 +34846,8 @@ class EventListener {
 	// Method Join
 	async methodAddWaitingUser({ id, username, socket, picture }) {
 		try {
+			const redDotUserList = document.getElementById("red-dot-user-list")
+			redDotUserList.classList.remove("d-none")
 			let userWaitingListElement = document.createElement("div")
 			userWaitingListElement.className = "user-list-content"
 			userWaitingListElement.id = `wait-${id}`
@@ -35034,11 +35052,17 @@ class EventListener {
 	async checkWaitingList() {
 		try {
 			this.#userListWaiting = document.getElementById("waiting-list-users")
+			// Display
 			if (this.#userListWaiting.firstElementChild) {
 				await this.normalHideAndDisplay({ element: this.#userListWaitingContainer, status: true })
 			} else {
+				// Hide
 				if (!this.#userListWaitingContainer.classList.contains("d-none")) {
 					await this.normalHideAndDisplay({ element: this.#userListWaitingContainer, status: false })
+				}
+				const redDotUserList = document.getElementById("red-dot-user-list")
+				if (!redDotUserList.classList.contains("d-none")){
+					redDotUserList.classList.add("d-none")
 				}
 			}
 		} catch (error) {
@@ -35379,7 +35403,7 @@ class MediaSoupClient extends StaticEvent {
 
 	async getMyStream() {
 		try {
-			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: this.#audioSetting, video: true })
+			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: { ...this.#audioSetting }, video: true })
 		} catch (error) {
 			console.log("- Error Get My Stream : ", error)
 		}
@@ -36016,16 +36040,18 @@ class MediaSoupClient extends StaticEvent {
 					echoCancellation: true,
 				},
 			}
+			// myVideo.srcObject.getAudioTracks()[0].stop()
 
-			myVideo.srcObject.getAudioTracks()[0].stop()
+			this.#mystream.getAudioTracks()[0].stop()
 
 			let newStream = await navigator.mediaDevices.getUserMedia(config)
 			newStream.getAudioTracks()[0].enabled = this.#mystream.getAudioTracks()[0].enabled
-			this.#mystream.getAudioTracks()[0].stop()
+			// this.#mystream.getAudioTracks()[0].stop()
+			// console.log(usersVariable.userId, document.getElementById(`audio-visualizer-${usersVariable.userId}`).remove())
 			this.#mystream.removeTrack(this.#mystream.getAudioTracks()[0])
 			this.#mystream.addTrack(newStream.getAudioTracks()[0])
 			this.#audioProducer.replaceTrack({ track: newStream.getAudioTracks()[0] })
-			document.getElementById(`audio-visualizer-${usersVariable.userId}`).remove()
+			// document.getElementById(`video-mic-${usersVariable.userId}`).remove()
 			await usersVariable.createAudioVisualizer({ id: usersVariable.userId, track: newStream.getAudioTracks()[0] })
 		} catch (error) {
 			console.log("- Error Switching Microphone : ", error)
@@ -36055,12 +36081,14 @@ usersVariable.faceRecognition = faceRecognition
 const connectSocket = async () => {
 	try {
 		socket.connect()
-
+		
 		socket.emit(
 			"joining-room",
 			{ roomId: roomName, userId: userId, position: "room" },
 			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
+				console.log(socket.id)
 				try {
+					console.log("- Room Id : ", roomId)
 					if (status) {
 						let filteredRtpCapabilities = { ...rtpCapabilities }
 						filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
@@ -36069,6 +36097,9 @@ const connectSocket = async () => {
 						usersVariable.username = username
 						usersVariable.userId = userId
 						usersVariable.authority = authority
+						if (authority == 3){
+							document.getElementById("mute-all-button").remove()
+						}
 						const devices = await navigator.mediaDevices.enumerateDevices()
 						usersVariable.picture = picture
 
@@ -36160,7 +36191,6 @@ if (faceRecognition) {
 
 socket.on("member-joining-room", ({ id, socketId, username, picture }) => {
 	try {
-		console.log("- Picture : ", picture)
 		eventListenerCollection.methodAddWaitingUser({ id: id, username: username, socket, picture })
 	} catch (error) {
 		console.log("- Member Error Join Room : ", error)
@@ -36211,6 +36241,15 @@ socket.on("message", async ({ userId, message, username, picture }) => {
 			minute: "2-digit",
 		})
 		const isSender = false
+		if (!eventListenerCollection.chatStatus && !document.getElementById("new-message-line")) {
+			const chatContent = document.getElementById("chat-content")
+			const newMessageLine = document.createElement("div")
+			newMessageLine.id = "new-message-line"
+			newMessageLine.innerHTML = `<span>New Message</span>`
+			chatContent.appendChild(newMessageLine)
+			const redDotChat = document.getElementById("red-dot-chat")
+			redDotChat.classList.remove("d-none")
+		}
 		const messageTemplate = await eventListenerCollection.messageTemplate({
 			isSender,
 			username: username,
@@ -36552,7 +36591,7 @@ optionButton.addEventListener("click", (e) => {
 
 // Mute All
 let muteAllButton = document.getElementById("mute-all-button")
-muteAllButton.addEventListener("click", async () => {
+muteAllButton?.addEventListener("click", async () => {
 	try {
 		const muteAllStatus = await eventListenerCollection.changeMuteAllButton()
 		usersVariable.muteAllStatus = muteAllStatus
@@ -37004,6 +37043,7 @@ window.addEventListener("beforeunload", function (event) {
 		// socket.close()
 	} catch (error) {}
 })
+
 },{"../socket/socket":106,"./eventListener":102,"./mediasoupClient":103,"./user":105,"recordrtc":80,"sweetalert2":100}],105:[function(require,module,exports){
 class StaticEvent {
 	static generateRandomId(length = 12, separator = "-", separatorInterval = 4) {
@@ -37194,7 +37234,7 @@ class Users extends StaticEvent {
 		this.#elapsedTime = 0
 	}
 
-	get record(){
+	get record() {
 		return this.#record
 	}
 
@@ -37554,22 +37594,22 @@ class Users extends StaticEvent {
 				audioElement.onunmute = () => {
 					console.log("Audio is unmuted")
 				}
-				if (typeof audioElement.setSinkId !== "undefined") {
-					audioElement
-						.setSinkId(this.#sinkId)
-						.then(() => {
-							console.log(`Success, audio output device attached: ${this.#sinkId}`)
-						})
-						.catch((error) => {
-							let errorMessage = error
-							if (error.name === "SecurityError") {
-								errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`
-							}
-							console.error(errorMessage)
-						})
-				} else {
-					console.warn("Browser does not support output device selection.")
-				}
+				// if (typeof audioElement.setSinkId !== "undefined") {
+				// 	audioElement
+				// 		.setSinkId(this.#sinkId)
+				// 		.then(() => {
+				// 			console.log(`Success, audio output device attached: ${this.#sinkId}`)
+				// 		})
+				// 		.catch((error) => {
+				// 			let errorMessage = error
+				// 			if (error.name === "SecurityError") {
+				// 				errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`
+				// 			}
+				// 			console.error(errorMessage)
+				// 		})
+				// } else {
+				// 	console.warn("Browser does not support output device selection.")
+				// }
 			}
 		} catch (error) {
 			console.log("- Error Creating Audio: ", error)
@@ -37601,10 +37641,12 @@ class Users extends StaticEvent {
 			const checkUserElement = document.getElementById(`a-${userId}`)
 			if (checkUserElement) {
 				const tracks = await checkUserElement.srcObject.getTracks()
+				console.log()
 				tracks.forEach((track) => {
 					track.stop()
 				})
-				checkUserElement.remove()
+				const checkUserAduioElement = document.getElementById(`ac-${userId}`)
+				checkUserAduioElement.remove()
 			}
 		} catch (error) {
 			console.log("- Error Delete Audio : ", error)
@@ -37757,6 +37799,10 @@ class Users extends StaticEvent {
 				const optionUserListContainer = document.getElementById(`ul-oc-${userId}`)
 				optionUserListContainer.addEventListener("click", async () => {
 					try {
+						if (this.#screenSharingMode) {
+							this.constructor.warning({ message: "Cannot pin the selected user in screensharing" })
+							return
+						}
 						this.#allUsers.forEach((u) => {
 							if (u.userId == userId) {
 								u.consumer.forEach((c) => {
@@ -37784,7 +37830,7 @@ class Users extends StaticEvent {
 				const user = this.#allUsers.find((u) => u.userId == userId)
 				user.consumer.push({ kind, id: consumerId, track, appData, focus })
 			}
-			if (kind == "audio" && consumerId != null && appData.label == "audio") {
+			if (kind == "audio" && consumerId && appData.label == "audio") {
 				await this.createAudio({ id: userId, track })
 				await this.createAudioVisualizer({ id: userId, track })
 			}
@@ -37993,6 +38039,7 @@ class Users extends StaticEvent {
 					// let track = u.consumer.find((t) => t.kind == "video")
 					for (const track of tracks) {
 						if (customIndex + 1 >= min && customIndex + 1 <= max) {
+							console.log("display video : ", customIndex)
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 
@@ -38056,7 +38103,9 @@ class Users extends StaticEvent {
 								username: u.username,
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
-							socket.emit("consumer-resume", { serverConsumerId: track.id })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
 						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							customIndex++
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })

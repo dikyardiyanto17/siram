@@ -224,6 +224,7 @@ input:focus {
     border: 1px solid #4B6486;
     border-radius: 10px;
     justify-content: center;
+    overflow: hidden;
 }
 
 .video-container-normal-view {
@@ -245,6 +246,7 @@ input:focus {
     justify-content: center;
     align-items: center;
     position: relative;
+    overflow: hidden;
 }
 
 #arrow-up {
@@ -1141,7 +1143,7 @@ input:focus {
     outline: none;
 }
 
-#red-dot-user-list {
+.red-dot {
     width: 4px;
     aspect-ratio: 1;
     border-radius: 50%;
@@ -1633,4 +1635,12 @@ input:focus {
 
 .loading-hide {
     display: none;
+}
+
+#new-message-line {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    border-bottom: 1px;
+    border: 1px solid #ffffff;
 }

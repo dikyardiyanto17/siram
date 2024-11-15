@@ -187,7 +187,7 @@ class Users extends StaticEvent {
 		this.#elapsedTime = 0
 	}
 
-	get record(){
+	get record() {
 		return this.#record
 	}
 
@@ -547,22 +547,22 @@ class Users extends StaticEvent {
 				audioElement.onunmute = () => {
 					console.log("Audio is unmuted")
 				}
-				if (typeof audioElement.setSinkId !== "undefined") {
-					audioElement
-						.setSinkId(this.#sinkId)
-						.then(() => {
-							console.log(`Success, audio output device attached: ${this.#sinkId}`)
-						})
-						.catch((error) => {
-							let errorMessage = error
-							if (error.name === "SecurityError") {
-								errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`
-							}
-							console.error(errorMessage)
-						})
-				} else {
-					console.warn("Browser does not support output device selection.")
-				}
+				// if (typeof audioElement.setSinkId !== "undefined") {
+				// 	audioElement
+				// 		.setSinkId(this.#sinkId)
+				// 		.then(() => {
+				// 			console.log(`Success, audio output device attached: ${this.#sinkId}`)
+				// 		})
+				// 		.catch((error) => {
+				// 			let errorMessage = error
+				// 			if (error.name === "SecurityError") {
+				// 				errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`
+				// 			}
+				// 			console.error(errorMessage)
+				// 		})
+				// } else {
+				// 	console.warn("Browser does not support output device selection.")
+				// }
 			}
 		} catch (error) {
 			console.log("- Error Creating Audio: ", error)
@@ -594,10 +594,12 @@ class Users extends StaticEvent {
 			const checkUserElement = document.getElementById(`a-${userId}`)
 			if (checkUserElement) {
 				const tracks = await checkUserElement.srcObject.getTracks()
+				console.log()
 				tracks.forEach((track) => {
 					track.stop()
 				})
-				checkUserElement.remove()
+				const checkUserAduioElement = document.getElementById(`ac-${userId}`)
+				checkUserAduioElement.remove()
 			}
 		} catch (error) {
 			console.log("- Error Delete Audio : ", error)
@@ -750,6 +752,10 @@ class Users extends StaticEvent {
 				const optionUserListContainer = document.getElementById(`ul-oc-${userId}`)
 				optionUserListContainer.addEventListener("click", async () => {
 					try {
+						if (this.#screenSharingMode) {
+							this.constructor.warning({ message: "Cannot pin the selected user in screensharing" })
+							return
+						}
 						this.#allUsers.forEach((u) => {
 							if (u.userId == userId) {
 								u.consumer.forEach((c) => {
@@ -777,7 +783,7 @@ class Users extends StaticEvent {
 				const user = this.#allUsers.find((u) => u.userId == userId)
 				user.consumer.push({ kind, id: consumerId, track, appData, focus })
 			}
-			if (kind == "audio" && consumerId != null && appData.label == "audio") {
+			if (kind == "audio" && consumerId && appData.label == "audio") {
 				await this.createAudio({ id: userId, track })
 				await this.createAudioVisualizer({ id: userId, track })
 			}
@@ -986,6 +992,7 @@ class Users extends StaticEvent {
 					// let track = u.consumer.find((t) => t.kind == "video")
 					for (const track of tracks) {
 						if (customIndex + 1 >= min && customIndex + 1 <= max) {
+							console.log("display video : ", customIndex)
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 
@@ -1049,7 +1056,9 @@ class Users extends StaticEvent {
 								username: u.username,
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
-							socket.emit("consumer-resume", { serverConsumerId: track.id })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
 						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							customIndex++
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })

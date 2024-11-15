@@ -10,7 +10,7 @@ class Meeting {
 				return
 			}
 
-			res.render("pages/meeting/index", { authority, participant_id, roomId, meetingType, picture, password, faceRecognition })
+			res.render("pages/meeting/index", { authority, participant_id, roomId, meetingType, picture: picture ? picture:"P_0000000", password, faceRecognition })
 		} catch (error) {
 			console.log(error)
 		}

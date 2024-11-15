@@ -15,12 +15,14 @@ usersVariable.faceRecognition = faceRecognition
 const connectSocket = async () => {
 	try {
 		socket.connect()
-
+		
 		socket.emit(
 			"joining-room",
 			{ roomId: roomName, userId: userId, position: "room" },
 			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
+				console.log(socket.id)
 				try {
+					console.log("- Room Id : ", roomId)
 					if (status) {
 						let filteredRtpCapabilities = { ...rtpCapabilities }
 						filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
@@ -29,6 +31,9 @@ const connectSocket = async () => {
 						usersVariable.username = username
 						usersVariable.userId = userId
 						usersVariable.authority = authority
+						if (authority == 3){
+							document.getElementById("mute-all-button").remove()
+						}
 						const devices = await navigator.mediaDevices.enumerateDevices()
 						usersVariable.picture = picture
 
@@ -120,7 +125,6 @@ if (faceRecognition) {
 
 socket.on("member-joining-room", ({ id, socketId, username, picture }) => {
 	try {
-		console.log("- Picture : ", picture)
 		eventListenerCollection.methodAddWaitingUser({ id: id, username: username, socket, picture })
 	} catch (error) {
 		console.log("- Member Error Join Room : ", error)
@@ -171,6 +175,15 @@ socket.on("message", async ({ userId, message, username, picture }) => {
 			minute: "2-digit",
 		})
 		const isSender = false
+		if (!eventListenerCollection.chatStatus && !document.getElementById("new-message-line")) {
+			const chatContent = document.getElementById("chat-content")
+			const newMessageLine = document.createElement("div")
+			newMessageLine.id = "new-message-line"
+			newMessageLine.innerHTML = `<span>New Message</span>`
+			chatContent.appendChild(newMessageLine)
+			const redDotChat = document.getElementById("red-dot-chat")
+			redDotChat.classList.remove("d-none")
+		}
 		const messageTemplate = await eventListenerCollection.messageTemplate({
 			isSender,
 			username: username,
@@ -512,7 +525,7 @@ optionButton.addEventListener("click", (e) => {
 
 // Mute All
 let muteAllButton = document.getElementById("mute-all-button")
-muteAllButton.addEventListener("click", async () => {
+muteAllButton?.addEventListener("click", async () => {
 	try {
 		const muteAllStatus = await eventListenerCollection.changeMuteAllButton()
 		usersVariable.muteAllStatus = muteAllStatus

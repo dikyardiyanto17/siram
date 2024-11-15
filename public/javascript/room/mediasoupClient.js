@@ -196,7 +196,7 @@ class MediaSoupClient extends StaticEvent {
 
 	async getMyStream() {
 		try {
-			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: this.#audioSetting, video: true })
+			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: { ...this.#audioSetting }, video: true })
 		} catch (error) {
 			console.log("- Error Get My Stream : ", error)
 		}
@@ -833,16 +833,18 @@ class MediaSoupClient extends StaticEvent {
 					echoCancellation: true,
 				},
 			}
+			// myVideo.srcObject.getAudioTracks()[0].stop()
 
-			myVideo.srcObject.getAudioTracks()[0].stop()
+			this.#mystream.getAudioTracks()[0].stop()
 
 			let newStream = await navigator.mediaDevices.getUserMedia(config)
 			newStream.getAudioTracks()[0].enabled = this.#mystream.getAudioTracks()[0].enabled
-			this.#mystream.getAudioTracks()[0].stop()
+			// this.#mystream.getAudioTracks()[0].stop()
+			// console.log(usersVariable.userId, document.getElementById(`audio-visualizer-${usersVariable.userId}`).remove())
 			this.#mystream.removeTrack(this.#mystream.getAudioTracks()[0])
 			this.#mystream.addTrack(newStream.getAudioTracks()[0])
 			this.#audioProducer.replaceTrack({ track: newStream.getAudioTracks()[0] })
-			document.getElementById(`audio-visualizer-${usersVariable.userId}`).remove()
+			// document.getElementById(`video-mic-${usersVariable.userId}`).remove()
 			await usersVariable.createAudioVisualizer({ id: usersVariable.userId, track: newStream.getAudioTracks()[0] })
 		} catch (error) {
 			console.log("- Error Switching Microphone : ", error)

@@ -54,15 +54,21 @@ app.set("trust proxy", 1)
 app.use(sessionMiddleware)
 
 let mediasoupVariable = new MediaSoup()
-let roomsVariable = new Rooms_Server()
-let usersVariable = new Users()
 let liveMeeting = new LiveMeeting()
 
-const httpsServer = https.createServer(options, app)
-httpsServer.listen(port, async () => {
+// const httpsServer = https.createServer(options, app)
+// httpsServer.listen(port, async () => {
+// 	console.log("App On : " + port)
+// })
+// const io = new Server(httpsServer, {
+// 	path: "/socket",
+// })
+
+const httpServer = http.createServer(app)
+httpServer.listen(port, async () => {
 	console.log("App On : " + port)
 })
-const io = new Server(httpsServer, {
+const io = new Server(httpServer, {
 	path: "/socket",
 })
 
