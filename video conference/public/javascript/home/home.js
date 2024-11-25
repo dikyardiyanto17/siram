@@ -17,28 +17,67 @@ const waitingModal = document.getElementById("waiting-modal-container")
 const roomId = document.getElementById("room_id")
 
 joinSubmit.addEventListener("click", async (e) => {
-	e.preventDefault()
-	await socket.connect()
-	const roomId = document.getElementById("room_id").value
-	const password = document.getElementById("password").value
-	if (!roomId || roomId.trim() == "") {
-		await Swal.fire({
-			title: "Bad Request",
-			text: "ID Room wajib di isi",
-			icon: "error",
-		})
-		return
-	}
+	try {
+		e.preventDefault()
+		await socket.connect()
+		const roomId = document.getElementById("room_id").value
+		const password = document.getElementById("password").value
+		if (!roomId || roomId.trim() == "") {
+			await Swal.fire({
+				title: "Bad Request",
+				text: "ID Room wajib di isi",
+				icon: "error",
+			})
+			return
+		}
 
-	if (!password || password.trim() == "") {
-		await Swal.fire({
-			title: "Bad Request",
-			text: "Password room wajib di isi",
-			icon: "error",
+		if (!password || password.trim() == "") {
+			await Swal.fire({
+				title: "Bad Request",
+				text: "Password room wajib di isi",
+				icon: "error",
+			})
+			return
+		}
+
+		const responseDatabaseRoom = await fetch(`${serverUrl}/api/video_conference/room?rid=${roomId}&pw=${password}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
 		})
-		return
+
+		if (responseDatabaseRoom.ok) {
+			const dataResponseDatabaseRoom = await responseDatabaseRoom.json()
+			if (dataResponseDatabaseRoom.status) {
+				await joiningRoom({
+					roomId: dataResponseDatabaseRoom.room_id,
+					password: dataResponseDatabaseRoom.password,
+					token: dataResponseDatabaseRoom.token,
+				})
+			} else {
+				throw { message: dataResponseDatabaseRoom?.message || "ISE" }
+			}
+		} else {
+			throw { message: "ID Ruangan tidak valid" }
+		}
+	} catch (error) {
+		console.log("- error Joining room : ", error)
+		if (error.message) {
+			Swal.fire({
+				title: "Invalid",
+				text: error.message,
+				icon: "error",
+			})
+		} else {
+			Swal.fire({
+				title: "Internal Server Error",
+				text: "Gagal mendapatkan data dari server!",
+				icon: "error",
+			})
+		}
 	}
-	await joiningRoom({ roomId, password })
 })
 
 socket.on("response-member-waiting", async ({ response, roomId, id }) => {
@@ -60,21 +99,17 @@ socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	}
 })
 
-const joiningRoom = async ({ roomId, password }) => {
+const joiningRoom = async ({ roomId, password, token }) => {
 	try {
-		socket.emit("joining-room", { roomId, position: "home", password }, ({ status, roomName, meetingDate, meeting_type }) => {
+		socket.emit("joining-room", { position: "home", token }, ({ status, roomName, meetingDate, meeting_type }) => {
+			console.log(status, roomName, meetingDate, meeting_type)
 			if (status) {
 				window.location.href = url.origin + "/room/" + roomName.replace(/\s+/g, "-")
 			} else {
 				if (meeting_type == 1) {
-					Swal.fire({
-						title: "Invalid Room",
-						text: "Pastikan ID Room dan Password benar!",
-						icon: "error",
-					})
+					window.location.href = `${window.location.origin}`
 					return
 				}
-
 				if (!meetingDate || !roomName || roomName.trim() == "") {
 					Swal.fire({
 						title: "Invalid Room",
@@ -85,11 +120,9 @@ const joiningRoom = async ({ roomId, password }) => {
 				}
 				let hours = new Date(meetingDate).getHours()
 				let minutes = new Date(meetingDate).getMinutes()
-
 				hours = hours < 10 ? "0" + hours : hours
 				minutes = minutes < 10 ? "0" + minutes : minutes
 				const timeString = `${hours}.${minutes}`
-
 				setFormStyle({ status: false })
 				modalTitle.innerHTML = roomName
 				document.getElementById("start_date_modal").innerHTML = timeString
@@ -111,9 +144,8 @@ document.addEventListener("DOMContentLoaded", (e) => {
 		passwordInput.value = pw
 		roomId.value = rid
 		joinSubmit.click()
-	} else {
-		setFormStyle({ status: true })
 	}
+	setFormStyle({ status: true })
 })
 
 const setFormStyle = async ({ status }) => {

@@ -15,10 +15,9 @@ usersVariable.faceRecognition = faceRecognition
 const connectSocket = async () => {
 	try {
 		socket.connect()
-		
 		socket.emit(
 			"joining-room",
-			{ roomId: roomName, userId: userId, position: "room" },
+			{ position: "room", token },
 			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
 				console.log(socket.id)
 				try {
@@ -31,7 +30,7 @@ const connectSocket = async () => {
 						usersVariable.username = username
 						usersVariable.userId = userId
 						usersVariable.authority = authority
-						if (authority == 3){
+						if (authority == 3) {
 							document.getElementById("mute-all-button").remove()
 						}
 						const devices = await navigator.mediaDevices.enumerateDevices()

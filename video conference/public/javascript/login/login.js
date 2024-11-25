@@ -1,3 +1,4 @@
+const baseUrl = window.location.origin
 const loginForm = {
 	participant_id: "",
 	full_name: "",
@@ -12,8 +13,6 @@ const params = new URLSearchParams(urlParam.search)
 
 const rid = params.get("rid")
 const pw = params.get("pw")
-
-const baseUrl = window.location.origin
 
 const warning = ({ message }) => {
 	try {
@@ -45,7 +44,7 @@ loginFormElement.addEventListener("submit", async (event) => {
 			throw { message: "Id Peserta Wajib Di isi" }
 		}
 
-		const response = await fetch(`${baseUrl}/api/login`, {
+		const response = await fetch(`${serverUrl}/api/login`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -54,21 +53,38 @@ loginFormElement.addEventListener("submit", async (event) => {
 		})
 
 		if (response.ok) {
-			const { status, authority } = await response.json()
+			const { status, message, token } = await response.json()
 			if (status) {
-				if (rid && rid.trim() != "" && pw && pw.trim() != "") {
-					window.location.href = `${baseUrl}/${rid && rid.trim() != "" && pw && pw.trim() != "" ? `?rid=${rid}&pw=${pw}` : ""}`
-				} else if (authority == 1 || authority == 2) {
-					window.location.href = `${baseUrl}/dashboard`
-				} else if (authority == 3) {
-					window.location.href = `${baseUrl}/${rid && rid.trim() != "" && pw && pw.trim() != "" ? `?rid=${rid}&pw=${pw}` : ""}`
+				const responseVideoConference = await fetch(`${baseUrl}/api/login`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(loginForm),
+				})
+
+				if (responseVideoConference.ok) {
+					const data = await responseVideoConference.json()
+					if (data.status) {
+						if (rid && rid.trim() != "" && pw && pw.trim() != "") {
+							window.location.href = `${baseUrl}/${rid && rid.trim() != "" && pw && pw.trim() != "" ? `?rid=${rid}&pw=${pw}` : ""}`
+						} else {
+							console.log(data)
+							window.location.href = `${baseUrl}`
+						}
+					} else {
+						throw { message: "Login failed" }
+					}
 				}
+			} else {
+				throw { message: "Peserta Tidak ditemukan" }
 			}
 		} else {
 			throw { message: "Peserta Tidak ditemukan" }
 		}
 	} catch (error) {
 		console.log("- Error Submmit Login : ", error)
-		await warning({ message: "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
+		await warning({ message: error.message || "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
 	}
 })

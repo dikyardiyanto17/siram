@@ -4,7 +4,6 @@ const { decodeToken } = require("../helper/jwt")
 const authenthication = async (req, res, next) => {
 	try {
 		const { token } = req.session
-
 		const path = req.path
 
 		if (path == "/" && !token) {
@@ -19,16 +18,16 @@ const authenthication = async (req, res, next) => {
 
 		if (!token) throw { name: "Invalid_User", message: "User tidak valid" }
 
-		const payload = decodeToken(token)
+		const { user } = decodeToken(token)
 
-		if (!payload) {
+		if (!user) {
 			await res.redirect("login")
 			return
 		}
 
-		const user = await Participants.findUser({ participant_id: payload.participant_id, full_name: payload.full_name })
+		// const user = await Participants.findUser({ participant_id: payload.participant_id, full_name: payload.full_name })
 
-		if (!user) throw { name: "Invalid_User", message: "User tidak valid" }
+		// if (!user) throw { name: "Invalid_User", message: "User tidak valid" }
 
 		req.user = { participant_id: user.participant_id, authority: user.authority, full_name: user.full_name, picture: user.photo_path }
 		next()

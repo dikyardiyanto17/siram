@@ -14,30 +14,32 @@ const path = require("path")
 const authorization = require("../middlewares/authorization.js")
 
 router.get("/login", Login.index)
-// router.get("/api/meetings", Rooms.findMeetingsWithParticipants)
-router.post("/api/login", Login.postLogin)
-router.get("/verify", Verify.index)
-router.use("/api/token", require("./api/token/token.js"))
-router.get("/logout", Login.logout)
+router.use("/api/login", require("./api/login/index.js"))
 
 router.use(authenthication)
 
 router.get("/", Home.index)
+// // router.get("/api/meetings", Rooms.findMeetingsWithParticipants)
+// router.get("/verify", Verify.index)
+// router.use("/api/token", require("./api/token/token.js"))
+// router.get("/logout", Login.logout)
+
+
 router.get("/room/:room", Meeting.index)
 router.use("/photo", express.static(path.join(__dirname, "../photo")))
-router.use("/api/message", require("./api/message/message.js"))
-router.get("/updatephoto", Update_Photo.index)
-router.use("/api/photo", require("./api/photo/photo.js"))
+// router.use("/api/message", require("./api/message/message.js"))
+// router.get("/updatephoto", Update_Photo.index)
+// router.use("/api/photo", require("./api/photo/photo.js"))
 
-router.use(authorization)
+// router.use(authorization)
 
-router.use("/api/room", require("./api/room/room.js"))
-router.use("/api/participant", require("./api/participant/participant.js"))
+// router.use("/api/room", require("./api/room/room.js"))
+// router.use("/api/participant", require("./api/participant/participant.js"))
 
-router.get("/meeting", Rooms.index)
-// router.get("/lobby", Lobby.index)
-router.get("/meeting/:room_id", Rooms.detail)
-router.get("/dashboard", Dashboard.index)
-router.get("/participant", Participants.index)
+// router.get("/meeting", Rooms.index)
+router.get("/lobby", Lobby.index)
+// router.get("/meeting/:room_id", Rooms.detail)
+// router.get("/dashboard", Dashboard.index)
+// router.get("/participant", Participants.index)
 
 module.exports = router

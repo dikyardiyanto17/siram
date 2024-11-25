@@ -1,12 +1,15 @@
 const { decodeToken, encodeToken } = require("../../helper/jwt")
-const { Participant } = require("../../models")
 
 class Login {
 	static async index(req, res, next) {
 		try {
 			const { token } = req.session
 
-			const { rid, pw } = req.query
+			if (token) {
+				const { authority, participant_id } = decodeToken(token)
+				await res.render("pages/home/index", { authority: authority, participant_id: participant_id, token: req.session.token })
+				return
+			}
 
 			if (!token) {
 				await res.render("pages/login/index")
@@ -20,7 +23,7 @@ class Login {
 				return
 			}
 
-			res.redirect(`/${rid && rid.trim() != "" && pw && pw.trim() != "" ? `rid=${rid}&pw=${pw}` : ""}`)
+			await res.render("pages/home/index", { authority: req.user.authority, participant_id: req.user.participant_id, token: req.session.token })
 		} catch (error) {
 			next(error)
 		}
@@ -28,32 +31,21 @@ class Login {
 
 	static async postLogin(req, res, next) {
 		try {
-			const { full_name, participant_id } = req.body
-			const { rid, pw } = req.query
-
-			if (!full_name || full_name.trim() == "") {
-				throw { name: "Required", message: "Nama lengkap kosong" }
+			const authHeader = req.headers["authorization"]
+			const token = authHeader && authHeader.split(" ")[1]
+			if (!token) {
+				throw { name: "Invalid token", message: "Invalid user" }
 			}
 
-			if (!participant_id || participant_id.trim() == "") {
-				throw { name: "Required", message: "ID Peserta kosong" }
-			}
+			const { user } = await decodeToken(token)
 
-			const user = await Participant.findOne({
-				where: {
-					participant_id,
-					full_name,
-				},
-			})
 			if (!user) {
-				throw { name: "Not_Found", message: "User Is Not Found" }
+				throw { name: "Invalid token", message: "Invalid user" }
 			}
-
-			const token = await encodeToken({ participant_id: user.participant_id, full_name: user.full_name })
 
 			req.session.token = token
-			await req.session.save()
-			await res.status(200).json({ status: true, authority: user.authority })
+
+			await res.status(200).json({ status: true, authority: user.authority, message: "Successfully Login" })
 		} catch (error) {
 			next(error)
 		}
@@ -61,8 +53,8 @@ class Login {
 
 	static async logout(req, res, next) {
 		try {
-			await req.session.destroy()
-			await res.status(200).json({ message: "Successfully log out", status: true })
+			// await req.session.destroy()
+			// await res.status(200).json({ message: "Successfully log out", status: true })
 		} catch (error) {
 			next(error)
 		}

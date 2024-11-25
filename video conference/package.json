@@ -26,15 +26,10 @@
     "jsonwebtoken": "^9.0.2",
     "mediasoup": "^3.14.9",
     "mediasoup-client": "^3.7.14",
-    "pg": "^8.12.0",
     "recordrtc": "^5.6.2",
-    "sequelize": "^6.37.3",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "sweetalert2": "^11.12.2",
     "url-parse": "^1.5.10"
-  },
-  "devDependencies": {
-    "sequelize-cli": "^6.6.2"
   }
 }

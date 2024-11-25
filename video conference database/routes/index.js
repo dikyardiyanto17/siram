@@ -1,0 +1,25 @@
+const express = require("express")
+const authenthication = require("../middlewares/authentication.js")
+const router = express.Router()
+const path = require("path")
+const authorization = require("../middlewares/authorization.js")
+const Login = require("../controllers/login/index.js")
+const Dashboard = require("../controllers/dashboard/index.js")
+const Participants = require("../controllers/participants/index.js")
+const Rooms = require("../controllers/room/index.js")
+const authenthication_user = require("../middlewares/authenthication_user.js")
+
+router.get("/login", Login.index)
+router.use("/api/login", require("./api/login"))
+
+router.use("/api/video_conference", authenthication_user, require("./api/video_conference"))
+
+router.use(authenthication)
+
+router.get("/meeting", Rooms.index)
+router.use("/photo", express.static(path.join(__dirname, "../photo")))
+router.get("/", Dashboard.index)
+router.get("/participant", Participants.index)
+router.use("/api/room", require("./api/room"))
+
+module.exports = router

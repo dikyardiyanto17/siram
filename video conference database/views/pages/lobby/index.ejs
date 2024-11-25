@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/assets/css/lobby.css">
+    <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <title>Telepati</title>
+</head>
+
+<body>
+    <div class="full-container">
+        <div class="waiting-modal-container d-none" id="waiting-modal-container">
+            <div class="waiting-modal">
+                <div class="waiting-modal-header">
+                    <div class="modal-title-container">
+                        <p>Ruang Sidang <span id="modal-title"></span></p>
+                    </div>
+                    <div class="modal-event">
+                        <img src="/assets/icons/date.svg" alt="date_icon" />
+                        <span>Hari Ini</span>
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                        <img src="/assets/icons/clock.svg" alt="clock_icon" />
+                        <span id="start_date_modal"></span>
+                    </div>
+                </div>
+                <div class="waiting-modal-content">
+                    <div class="waiting-modal-content-left">
+                        <img src="/assets/pictures/waitingPic.png" alt="waiting">
+                    </div>
+                    <div class="waiting-modal-content-right">
+                        <div class="left-line"></div>
+                        <div class="waiting-modal-description">
+                            <p>Selamat Datang di Ruang Tunggu Persidangan!</p>
+                            <span>Mohon sabar, Host akan mempersilahkan Anda masuk.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="loading">
+            <img src="/assets/icons/spinner.svg" alt="loading-bar" />
+        </div>
+        <div id="warning-container" class="warning-container">
+            <span id="warning-message"></span>
+        </div>
+        <div class="face-recognition-container">
+            <div class="photo-booth">
+                <canvas id="canvas-element" style="display: none;"></canvas>
+                <img id="image--output" alt="verifikasi wajah" class="image-output d-none">
+                <video id="local-video" poster="/assets/icons/spinner.svg" preload="auto" autoplay class="user-video"
+                    muted></video>
+                <canvas id="face-matcher-box" style="position: absolute;"></canvas>
+                <div class="face-recognition" id="face-recognition-id"></div>
+            </div>
+            <div class="verification-proccess-container">
+                <div class="verification-proccess">
+                    <img id="proccess-icon" class="proccess-icon" src="/assets/icons/warn.svg" alt="ongoing-proccess">
+                    &nbsp;&nbsp;<span id="proccess-message">Mohon posisi wajah disesuaikan sesuai frame.</span>
+                </div>
+            </div>
+            <progress class="progress-bar-custom" id="progress-bar" max="100" value="0"></progress>
+            <div class="try-again-container d-none" id="try-again-container-id">
+                <button type="button" id="try-again-id"><span>Coba Lagi</span></button>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="/assets/plugins/face-api/face-api.min.js"></script>
+    <script>
+        const userPhoto = [/- JSON.stringify(photo_path) /]
+        const meetingDate = [/- JSON.stringify(start_date) /]
+        const roomName = [/- JSON.stringify(room_name) /]
+        const roomId = [/- JSON.stringify(room_id) /]
+        const password = [/- JSON.stringify(password) /]
+    </script>
+    <script src="/javascript/lobby/lobbybundle.js"></script>
+</body>
+
+</html>
