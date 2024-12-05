@@ -350,15 +350,16 @@
                                             srcset="">&nbsp;&nbsp;<span>[/= startTime /] - [/= endTime /]</span>
                                     </div>
                                     <div>
-                                        <img style="width: 10px;" src="/assets/icons/note.svg"
-                                            alt="note" srcset="">&nbsp;&nbsp;
-                                        <span>[/= meetings[index].note || meetings[index].note.trim() != "" ? meetings[index].note : "-"/]</span>
+                                        <img style="width: 10px;" src="/assets/icons/note.svg" alt="note"
+                                            srcset="">&nbsp;&nbsp;
+                                        <span>[/= meetings[index].note || meetings[index].note.trim() != "" ?
+                                            meetings[index].note : "-"/]</span>
                                     </div>
                                     <div>
                                         <img style="width: 10px;" src="/assets/icons/participant_meeting.svg"
                                             alt="participant" srcset="">&nbsp;&nbsp;
-                                            <span> [/ if (meetings[index].meeting_type == 1) { /]
-                                            
+                                        <span> [/ if (meetings[index].meeting_type == 1) { /]
+
                                             [/ } else if (meetings[index].meeting_type == 2){ /]
                                             Publik
                                             [/ } else { /]
@@ -382,6 +383,7 @@
     <script>
         let meetingsInfo = [/- JSON.stringify(meetings)/]
     </script>
+    <script src="/javascript/url/url.js"></script>
     <script src="/javascript/dashboard/dashboard.js"></script>
 </body>
 

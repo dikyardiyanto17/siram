@@ -2,6 +2,7 @@ const { decodeToken } = require("../helper/jwt")
 
 const authenthication = async (req, res, next) => {
 	try {
+
 		const { token } = req.session
 
 		const path = req.path

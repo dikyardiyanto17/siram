@@ -40,7 +40,7 @@ joinSubmit.addEventListener("click", async (e) => {
 			return
 		}
 
-		const responseDatabaseRoom = await fetch(`${serverUrl}/api/room?rid=${roomId}&pw=${password}`, {
+		const responseDatabaseRoom = await fetch(`${window.location.origin}/api/room?rid=${roomId}&pw=${password}`, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",

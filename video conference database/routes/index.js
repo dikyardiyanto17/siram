@@ -8,16 +8,19 @@ const Dashboard = require("../controllers/dashboard/index.js")
 const Participants = require("../controllers/participants/index.js")
 const Rooms = require("../controllers/room/index.js")
 const authenthication_user = require("../middlewares/authenthication_user.js")
+const authenthication_photo = require("../middlewares/authentication_photo.js")
 
 router.get("/login", Login.index)
 router.use("/api/login", require("./api/login"))
 
 router.use("/api/video_conference", authenthication_user, require("./api/video_conference"))
+// router.use("/photo", authenthication_photo, express.static(path.join(__dirname, "../photo")))
+router.use("/photo", express.static(path.join(__dirname, "../photo")))
 
 router.use(authenthication)
 
 router.get("/meeting", Rooms.index)
-router.use("/photo", express.static(path.join(__dirname, "../photo")))
+router.get("/meeting/:room_id", Rooms.detail)
 router.get("/", Dashboard.index)
 router.get("/participant", Participants.index)
 router.use("/api/room", require("./api/room"))

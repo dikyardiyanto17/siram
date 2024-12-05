@@ -238,10 +238,10 @@ socket.on("stop-screensharing", async ({ producerId, label }) => {
 	}
 })
 
-socket.on("screensharing-permission", async ({ socketId, userId, to, type, response }) => {
+socket.on("screensharing-permission", async ({ socketId, userId, to, type, response, username }) => {
 	try {
 		if (type == "request") {
-			await usersVariable.screenSharingPermissionForAdmin({ socket, userId, socketId, roomId: eventListenerCollection.roomId })
+			await usersVariable.screenSharingPermissionForAdmin({ socket, userId, socketId, roomId: eventListenerCollection.roomId, username })
 		} else if (type == "response") {
 			if (document.getElementById(`screensharing-permission-${usersVariable.userId}`)) {
 				document.getElementById(`screensharing-permission-${usersVariable.userId}`).remove()
@@ -270,6 +270,7 @@ socket.on("force-stop-screensharing", async ({ message }) => {
 
 socket.on("admin-response", async ({ type, id, roomId }) => {
 	try {
+		console.log("ADMIN RESPONSE : ", id)
 		if (type == "waiting-list") {
 			eventListenerCollection.removeWaitingList({ id })
 		} else if (type == "screen-sharing-permission") {
@@ -308,7 +309,7 @@ socket.on("transcribe", async ({ randomId, message, username, picture }) => {
 		ccContainer.id = `cc_${randomId}`
 		const imageCC = document.createElement("img")
 		imageCC.className = "cc-profile-picture"
-		imageCC.src = `/photo/${picture}.png`
+		imageCC.src = `${serverUrl}/photo/${picture}.png`
 		ccContainer.append(imageCC)
 		const ccMessage = document.createElement("div")
 		ccMessage.className = "cc-message"
@@ -376,6 +377,7 @@ microphoneButton.addEventListener("click", async () => {
 		await usersVariable.startSpeechToText({ socket, status: isActive })
 		const producerId = mediasoupClientVariable.audioProducer.id
 		socket.emit("producer-app-data", { isActive, producerId })
+		document.getElementById(`video-mic-${userId}`).src = isActive ? "/assets/icons/mic_level_0.svg" : "/assets/icons/mic_muted.svg"
 		usersVariable.allUsers.forEach((user) => {
 			if (user.userId != userId) {
 				socket.emit("user-list", { type: "mic", userId: userId, to: user.socketId, isActive })
@@ -719,14 +721,18 @@ messageInput.addEventListener("keyup", async (event) => {
 				picture: usersVariable.picture,
 			})
 			await eventListenerCollection.appendMessage({ message: messageTemplate })
-			const response = await fetch(`${window.location.origin}/api/message`, {
+			let chatContent = document.getElementById("chat-content")
+			chatContent.scrollTop = chatContent.scrollHeight
+			messageInput.value = ""
+			const response = await fetch(`${serverUrl}/api/video_conference/message`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					Authorization: `Bearer ${userToken}`,
 				},
 				body: JSON.stringify({ participant_id: usersVariable.userId, message_text: message, sent_at: new Date(), status: 1, room_id: roomName }),
 			})
-			messageInput.value = ""
+			console.log(response)
 		}
 	} catch (error) {
 		console.log("- Error Send Message : ", error)
@@ -770,14 +776,17 @@ sendMessageButton.addEventListener("click", async (event) => {
 			picture: usersVariable.picture,
 		})
 		await eventListenerCollection.appendMessage({ message: messageTemplate })
-		const response = await fetch(`${window.location.origin}/api/message`, {
+		let chatContent = document.getElementById("chat-content")
+		chatContent.scrollTop = chatContent.scrollHeight
+		messageInput.value = ""
+		const response = await fetch(`${serverUrl}/api/video_conference/message`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				Authorization: `Bearer ${userToken}`,
 			},
 			body: JSON.stringify({ participant_id: usersVariable.userId, message_text: message, sent_at: new Date(), status: 1, room_id: roomName }),
 		})
-		messageInput.value = ""
 	} catch (error) {
 		console.log("- Error Send Mesage : ", error)
 	}

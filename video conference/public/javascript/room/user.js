@@ -28,7 +28,7 @@ class StaticEvent {
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="/photo/${picture}.png" alt="user-list-picture"
+                                    <img src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -88,6 +88,23 @@ class StaticEvent {
 			}
 		} catch (error) {
 			console.log("- Error Normal Hide/Display : ", error)
+		}
+	}
+
+	static hideUserOptionButton() {
+		try {
+			const allOptionUserList = document.querySelectorAll(".user-list-icons-option")
+			allOptionUserList.forEach((e) => {
+				try {
+					if (!e.classList.contains("d-none")) {
+						e.classList.add("d-none")
+					}
+				} catch (error) {
+					console.log("- Error Hide It : ", error)
+				}
+			})
+		} catch (error) {
+			console.log("- Error Hide User Option Button : ", error)
 		}
 	}
 }
@@ -434,7 +451,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				// await this.adjustFR()
@@ -487,7 +504,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -742,6 +759,7 @@ class Users extends StaticEvent {
 				const optionUserList = document.getElementById(`ul-o-${userId}`)
 				optionUserList.addEventListener("click", (e) => {
 					e.stopPropagation()
+					this.constructor.hideUserOptionButton()
 					const optionUserListContainerLatest = document.getElementById(`ul-oc-${userId}`)
 					if (optionUserListContainerLatest.classList.contains("d-none")) {
 						optionUserListContainerLatest.classList.remove("d-none")
@@ -972,7 +990,12 @@ class Users extends StaticEvent {
 			await this.updateVideoContainerLayout()
 			if (this.#currentLayout == 1) {
 				if (this.#totalLayout == 5) {
-					this.#totalLayout = 6
+					// this.#totalLayout = 6
+					this.#layoutCountContainer.forEach((c) => {
+						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+							this.#totalLayout = c.dataset.option
+						}
+					})
 				}
 				if (this.#videoContainer.classList.contains("d-none")) {
 					this.#videoContainer.classList.remove("d-none")
@@ -992,7 +1015,6 @@ class Users extends StaticEvent {
 					// let track = u.consumer.find((t) => t.kind == "video")
 					for (const track of tracks) {
 						if (customIndex + 1 >= min && customIndex + 1 <= max) {
-							console.log("display video : ", customIndex)
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 
@@ -1089,7 +1111,7 @@ class Users extends StaticEvent {
 			userListElement.id = `ul-ss-${userId}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
+                                    <img src="${serverUrl}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -1194,7 +1216,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async screenSharingPermissionForAdmin({ socket, userId, socketId, roomId }) {
+	async screenSharingPermissionForAdmin({ socket, userId, socketId, roomId, username }) {
 		try {
 			const permissionContainer = document.getElementById("screensharing-permissions")
 
@@ -1204,7 +1226,7 @@ class Users extends StaticEvent {
 
 			const permissionTitle = document.createElement("div")
 			permissionTitle.className = "permission-title"
-			permissionTitle.innerHTML = `${userId} ingin berbagi layar`
+			permissionTitle.innerHTML = `${username} ingin berbagi layar`
 
 			const permissionButton = document.createElement("div")
 			permissionButton.className = "permission-button"
@@ -1270,7 +1292,14 @@ class Users extends StaticEvent {
 			const admin = await this.findAdmin()
 
 			admin.forEach((u) => {
-				socket.emit("screensharing-permission", { socketId: socket.id, userId: this.#userId, to: u.socketId, type: "request", response: false })
+				socket.emit("screensharing-permission", {
+					socketId: socket.id,
+					userId: this.#userId,
+					to: u.socketId,
+					type: "request",
+					response: false,
+					username: this.#username,
+				})
 			})
 
 			const permissionContainer = document.getElementById("screensharing-permissions")
@@ -1650,7 +1679,7 @@ class Users extends StaticEvent {
 				ccContainer.id = `cc_${randomId}`
 				const imageCC = document.createElement("img")
 				imageCC.className = "cc-profile-picture"
-				imageCC.src = `/photo/${this.#picture}.png`
+				imageCC.src = `${serverUrl}/photo/${this.#picture}.png`
 				ccContainer.append(imageCC)
 				const ccMessage = document.createElement("div")
 				ccMessage.className = "cc-message"

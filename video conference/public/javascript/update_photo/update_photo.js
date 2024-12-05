@@ -100,7 +100,7 @@ const startFR = async () => {
 				Math.abs(yCalculation) <= 50 &&
 				Math.abs(widthCalculation) <= 200 &&
 				Math.abs(heightCalculation) <= 200 &&
-				resizedDetections[0].score >= 0.90
+				resizedDetections[0].score >= 0.9
 			) {
 				console.log("VALID")
 				progressBar.value = isValidPosition.length * 5
@@ -130,35 +130,61 @@ const capturePicture = async () => {
 		document.getElementById("face-matcher-box").classList.add("d-none")
 		document.getElementById("face-recognition-id").classList.add("d-none")
 
-		// Get the current URL from the browser
-		const currentUrl = window.location.href
-
-		// Create a URL object and use URLSearchParams
-		const urlObj = new URL(currentUrl)
-		const uid = urlObj.searchParams.get("uid")
-
-		const response = await fetch(`${baseUrl}/api/photo?uid=${uid}`, {
+		const response = await fetch(`${serverUrl}/api/video_conference/photo`, {
 			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify({ photo: image_data_url }),
 		})
 
 		if (response.ok) {
 			const data = await response.json()
-			console.log(data)
-			const { status } = data
+			const { status, newToken } = data
 			if (status) {
 				proccessIcon.src = `/assets/icons/success.svg`
 				proccessMessage.innerHTML = "Photo berhasil di perbarui"
-				setTimeout(() => {
-					window.location.href = `${baseUrl}/participant`
+				setTimeout(async () => {
+					const urlParam = new URL(window.location.href)
+					const params = new URLSearchParams(urlParam.search)
+
+					const rid = params.get("rid")
+					const pw = params.get("pw")
+					const updateTokenResponse = await fetch(`${baseUrl}/updatetoken?nt=${newToken}`, {
+						method: "get",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${token}`,
+						},
+					})
+					if (updateTokenResponse.ok) {
+						const updateTokenData = await updateTokenResponse.json()
+						if (updateTokenData.status) {
+							if (rid && pw) {
+								window.location.href = `${baseUrl}/lobby`
+							} else {
+								window.location.href = `${baseUrl}`
+							}
+						} else {
+							throw { message: updateTokenData.message || "Gagal memperbarui token" }
+						}
+					} else {
+						throw { message: "Gagal memperbarui token" }
+					}
 				}, 3000)
+			} else {
+				throw { message: data.message || "Gagal upload photo ke server" }
 			}
+		} else {
+			throw { message: "Gagal upload photo ke server" }
 		}
 	} catch (error) {
 		console.error("Error capturing picture:", error)
+		if (error.message) {
+			proccessIcon.src = `/assets/icons/reject.svg`
+			proccessMessage.innerHTML = error.message
+		}
 	}
 }
 

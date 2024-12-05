@@ -14,6 +14,7 @@ class Meeting {
 				password,
 				faceRecognition,
 				token: roomToken,
+				user_token: req.session.token
 			})
 		} catch (error) {
 			next(error)

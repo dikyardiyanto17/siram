@@ -50,7 +50,7 @@ $(function () {
 
 const copyClipboard = async () => {
 	try {
-		await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomIdDetail.innerHTML}&pw=${passwordDetail.innerHTML}`)
+		await navigator.clipboard.writeText(`${applicationUrl}/?rid=${roomIdDetail.innerHTML}&pw=${passwordDetail.innerHTML}`)
 
 		const clipboardSuccess = document.getElementById("clipboard-success")
 
@@ -139,7 +139,7 @@ $(function () {
 		const startDate = start.format("YYYY-MM-DD")
 		const endDate = end.format("YYYY-MM-DD")
 
-		fetch(`${window.location.origin}/api/room?st=${startDate}&et=${endDate}`)
+		fetch(`${baseUrl}/api/room?st=${startDate}&et=${endDate}`)
 			.then((response) => {
 				if (response.ok) {
 					return response.json()
@@ -500,7 +500,7 @@ saveNewMeetingButton.addEventListener("click", async () => {
 			document.getElementById("start_date").value = ""
 			document.getElementById("end_date").value = ""
 			setTimeout(() => {
-				window.location.href = `${window.location.origin}/dashboard`
+				window.location.href = `${baseUrl}`
 			}, 2000)
 		} else {
 			throw { name: "Bad Request", message: "Rapat gagal dibuat" }

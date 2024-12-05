@@ -43,8 +43,8 @@ const sessionMiddleware = session({
 	resave: false,
 	saveUninitialized: false,
 	cookie: {
-		// secure: true,
-		secure: false,
+		secure: true,
+		// secure: false,
 		sameSite: true,
 	},
 })
@@ -148,6 +148,7 @@ io.on("connection", async (socket) => {
 					nik: nik,
 					nrp: role,
 					roomName: room_name,
+					startDate: start_date,
 				}
 				userSession.roomToken = token
 				await saveSession(userSession)
@@ -184,6 +185,7 @@ io.on("connection", async (socket) => {
 					await liveMeeting.changeVerifiedList({ participantId: participant_id, roomId: room_id, status: true })
 					await liveMeeting.changeWaitingList({ participantId: participant_id, status: false, roomId: room_id })
 
+					console.log(room_name, meeting_type, start_date, meeting_type)
 					// Send signal to user if the permit is granted
 					callback({ status: true, roomName: room_name, meetingDate: start_date, meeting_type })
 				} else if (authority == 3) {
@@ -473,9 +475,9 @@ io.on("connection", async (socket) => {
 		}
 	})
 
-	socket.on("screensharing-permission", async ({ socketId, userId, to, type, response }) => {
+	socket.on("screensharing-permission", async ({ socketId, userId, to, type, response, username }) => {
 		try {
-			socket.to(to).emit("screensharing-permission", { socketId, userId, to, type, response })
+			socket.to(to).emit("screensharing-permission", { socketId, userId, to, type, response, username })
 		} catch (error) {
 			console.log("- Error Getting Screen Sharing Permission : ", error)
 		}

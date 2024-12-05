@@ -263,9 +263,9 @@
                     </button>
                     <div class="record-container d-none" id="record-container">
                         <span id="timer-title">Merekam :</span>&nbsp;<span
-                            id="timer-span">00:00:00</span>&nbsp;&nbsp;&nbsp;<img id="pause-record" class="record-icons d-none"
-                            src="/assets/icons/pause_record.svg" alt="pause_button" /><img id="resume-record"
-                            class="record-icons d-none" src="/assets/icons/resume_record.svg"
+                            id="timer-span">00:00:00</span>&nbsp;&nbsp;&nbsp;<img id="pause-record"
+                            class="record-icons d-none" src="/assets/icons/pause_record.svg" alt="pause_button" /><img
+                            id="resume-record" class="record-icons d-none" src="/assets/icons/resume_record.svg"
                             alt="pause_button" />&nbsp;&nbsp;<img id="stop-record" class="record-icons"
                             src="/assets/icons/stop_record.svg" alt="stop_button" />
                     </div>
@@ -320,6 +320,7 @@
         </section>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="/javascript/url/url.js"></script>
     <script src="/assets/plugins/face-api/face-api.min.js"></script>
     <script>
         const roomName = [/- JSON.stringify(roomId) /]
@@ -329,6 +330,7 @@
         const password = [/- JSON.stringify(password) /]
         const faceRecognition = [/- JSON.stringify(faceRecognition) /]
         const token = [/- JSON.stringify(token) /]
+        const userToken = [/- JSON.stringify(user_token) /]
     </script>
     <script src="/javascript/room/roombundle.js"></script>
 </body>

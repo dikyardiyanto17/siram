@@ -11977,7 +11977,7 @@ const waitingModal = document.getElementById("waiting-modal-container")
 const modalTitle = document.getElementById("modal-title")
 let image_data_url
 const baseUrl = window.location.origin
-let base64Photo = `${window.location.origin}/photo/${userPhoto}.png`
+let base64Photo = `${serverUrl}/photo/${userPhoto}.png`
 let descriptors = { desc1: null, desc2: null }
 let intervalFR
 let result = false
@@ -11995,7 +11995,7 @@ Promise.all([
 const joiningRoom = async ({ roomId, password }) => {
 	try {
 		await socket.connect()
-		await socket.emit("joining-room", { roomId, position: "lobby", password }, ({ status, roomName, meetingDate, meeting_type }) => {
+		await socket.emit("joining-room", { position: "lobby", token }, ({ status, roomName, meetingDate, meeting_type }) => {
 			console.log(status, roomName, meeting_type)
 			if (status) {
 				window.location.href = window.location.origin + "/room/" + roomName.replace(/\s+/g, "-")
@@ -12173,11 +12173,11 @@ const startFR = async () => {
 			if (
 				!image_data_url &&
 				isValidPosition.length < 20 &&
-				Math.abs(xCalculation) <= 27 &&
-				Math.abs(yCalculation) <= 27 &&
-				Math.abs(widthCalculation) <= 150 &&
-				Math.abs(heightCalculation) <= 150 &&
-				resizedDetections[0].score >= 0.95
+				Math.abs(xCalculation) <= 50 &&
+				Math.abs(yCalculation) <= 50 &&
+				Math.abs(widthCalculation) <= 200 &&
+				Math.abs(heightCalculation) <= 200 &&
+				resizedDetections[0].score >= 0.9
 			) {
 				progressBar.value = isValidPosition.length * 5
 				proccessIcon.src = `/assets/icons/warn.svg`

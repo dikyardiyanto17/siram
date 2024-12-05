@@ -39,7 +39,6 @@ class Login {
 			}
 			const token = encodeToken({ user })
 			req.session.token = token
-			console.log("- In Post Login : ", req.session)
 			await res.status(200).json({ status: true, message: "User is valid", token })
 		} catch (error) {
 			next(error)

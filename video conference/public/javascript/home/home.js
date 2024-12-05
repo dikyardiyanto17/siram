@@ -102,12 +102,11 @@ socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 const joiningRoom = async ({ roomId, password, token }) => {
 	try {
 		socket.emit("joining-room", { position: "home", token }, ({ status, roomName, meetingDate, meeting_type }) => {
-			console.log(status, roomName, meetingDate, meeting_type)
 			if (status) {
 				window.location.href = url.origin + "/room/" + roomName.replace(/\s+/g, "-")
 			} else {
 				if (meeting_type == 1) {
-					window.location.href = `${window.location.origin}`
+					window.location.href = `${window.location.origin}/lobby`
 					return
 				}
 				if (!meetingDate || !roomName || roomName.trim() == "") {

@@ -731,7 +731,7 @@ class EventListener {
 			userWaitingListElement.id = `wait-${id}`
 			userWaitingListElement.innerHTML = `
 									<div class="user-list-profile">
-										<img  src="/photo/${picture}.png" alt="user-list-picture"
+										<img  src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
 											class="user-list-picture" />
 										<span class="user-list-username">${username}</span>
 									</div>
@@ -832,7 +832,7 @@ class EventListener {
 					raiseHandElement.id = `raise-${id}`
 					raiseHandElement.innerHTML = `
 											<div class="user-list-profile">
-												<img src="/photo/${picture}.png" alt="user-list-picture"
+												<img src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
 													class="user-list-picture" />
 												<span class="user-list-username">${username}</span>
 											</div>
@@ -898,9 +898,9 @@ class EventListener {
 		}
 	}
 
-	async removeScreenSharingPermissionUser(id) {
+	async removeScreenSharingPermissionUser({ id }) {
 		try {
-			const screenSharingPermissionElement = document.getElementById(`screensharing-permission-${userId}`)
+			const screenSharingPermissionElement = document.getElementById(`screensharing-permission-${id}`)
 			if (screenSharingPermissionElement) {
 				screenSharingPermissionElement.remove()
 			}
@@ -915,7 +915,7 @@ class EventListener {
 			const newUserContainer = document.createElement("section")
 			newUserContainer.className = "new-user-join"
 			newUserContainer.innerHTML = `<img src="${
-				picture ? `/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
+				picture ? `${serverUrl}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
 			}" alt="new-user-join" class="new-user-profile-picture"><span class="notification-text">${username} join the room</span>`
 			newUserNotificationContainer.appendChild(newUserContainer)
 			setTimeout(() => {
@@ -939,7 +939,7 @@ class EventListener {
 					await this.normalHideAndDisplay({ element: this.#userListWaitingContainer, status: false })
 				}
 				const redDotUserList = document.getElementById("red-dot-user-list")
-				if (!redDotUserList.classList.contains("d-none")){
+				if (!redDotUserList.classList.contains("d-none")) {
 					redDotUserList.classList.add("d-none")
 				}
 			}
@@ -996,7 +996,7 @@ class EventListener {
 							</div>
 						</div>
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${serverUrl}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 					`
@@ -1015,7 +1015,7 @@ class EventListener {
 						</div>
 					</div>
 					<div class="message-profile">
-						<img class="message-profile-photo" src="/photo/${picture}.png"
+						<img class="message-profile-photo" src="${serverUrl}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 				`
@@ -1026,7 +1026,7 @@ class EventListener {
 					if (usernameLastMessage == username && messageDate == dateLastMessage) {
 						return `
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${serverUrl}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 						<div class="message-content">
@@ -1045,7 +1045,7 @@ class EventListener {
 				}
 				return `
 					<div class="message-profile">
-						<img class="message-profile-photo" src="/photo/${picture}.png"
+						<img class="message-profile-photo" src="${serverUrl}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 					<div class="message-content">

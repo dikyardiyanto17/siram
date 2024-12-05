@@ -6,7 +6,13 @@ const { findRoom } = require("../room")
 class Home {
 	static async index(req, res, next) {
 		try {
-			await res.render("pages/home/index", { authority: req.user.authority, participant_id: req.user.participant_id, token: req.session.token })
+			const { picture } = req.user
+			await res.render("pages/home/index", {
+				authority: req.user.authority,
+				participant_id: req.user.participant_id,
+				token: req.session.token,
+				picture,
+			})
 		} catch (error) {
 			next(error)
 		}

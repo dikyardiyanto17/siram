@@ -1,18 +1,12 @@
 const { decodeToken } = require("../helper/jwt")
 
-const authenthication_user = async (req, res, next) => {
+const authenthication_photo = async (req, res, next) => {
 	try {
-		const authHeader = req.headers["authorization"]
-		if (!authHeader) {
-			throw { name: "NoTokenProvided", message: "Authorization header is missing" }
-		}
-
-		const token = authHeader.split(" ")[1]
-
+		const { token } = req.query
 		if (!token) {
 			throw { name: "Invalid token", message: "Token not found" }
 		}
-		console.log("- Token : ", token)
+
 		const { user } = await decodeToken(token)
 
 		if (!user) {
@@ -26,4 +20,4 @@ const authenthication_user = async (req, res, next) => {
 	}
 }
 
-module.exports = authenthication_user
+module.exports = authenthication_photo

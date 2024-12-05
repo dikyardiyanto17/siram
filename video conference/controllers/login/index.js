@@ -5,12 +5,6 @@ class Login {
 		try {
 			const { token } = req.session
 
-			if (token) {
-				const { authority, participant_id } = decodeToken(token)
-				await res.render("pages/home/index", { authority: authority, participant_id: participant_id, token: req.session.token })
-				return
-			}
-
 			if (!token) {
 				await res.render("pages/login/index")
 				return
@@ -22,8 +16,14 @@ class Login {
 				await res.render("pages/login/index")
 				return
 			}
+			const { user } = decodedUser
 
-			await res.render("pages/home/index", { authority: req.user.authority, participant_id: req.user.participant_id, token: req.session.token })
+			await res.render("pages/home/index", {
+				authority: user.authority,
+				participant_id: user.participant_id,
+				token: token,
+				picture: user.photo_path,
+			})
 		} catch (error) {
 			next(error)
 		}
