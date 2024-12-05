@@ -99,8 +99,7 @@ if (backButton) {
 
 const copyClipboard = async () => {
 	try {
-		await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomId}&pw=${password}`)
-		console.log(roomId, password)
+		await navigator.clipboard.writeText(`${applicationUrl}/?rid=${roomId}&pw=${password}`)
 
 		const clipboardSuccess = document.getElementById("clipboard-success")
 

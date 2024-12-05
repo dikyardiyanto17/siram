@@ -27,7 +27,6 @@ const Meeting = require("./controllers/meeting/index.js")
 const { decodeToken } = require("./helper/jwt.js")
 const { LiveMeeting } = require("./server_parameter/live_meeting.js")
 const { saveSession } = require("./helper/index.js")
-const Rooms = require("./controllers/room/index.js")
 
 app.use(cors())
 app.set("view engine", "ejs")
@@ -43,8 +42,8 @@ const sessionMiddleware = session({
 	resave: false,
 	saveUninitialized: false,
 	cookie: {
-		secure: true,
-		// secure: false,
+		// secure: true,
+		secure: false,
 		sameSite: true,
 	},
 })
@@ -59,21 +58,21 @@ if (mediasoupVariable.workers.length == 0) {
 	mediasoupVariable.createWorker()
 }
 
-// const httpsServer = https.createServer(options, app)
-// httpsServer.listen(port, async () => {
-// 	console.log("App On : " + port)
-// })
-// const io = new Server(httpsServer, {
-// 	path: "/socket",
-// })
-
-const httpServer = http.createServer(app)
-httpServer.listen(port, async () => {
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(port, async () => {
 	console.log("App On : " + port)
 })
-const io = new Server(httpServer, {
+const io = new Server(httpsServer, {
 	path: "/socket",
 })
+
+// const httpServer = http.createServer(app)
+// httpServer.listen(port, async () => {
+// 	console.log("App On : " + port)
+// })
+// const io = new Server(httpServer, {
+// 	path: "/socket",
+// })
 
 io.use((socket, next) => {
 	sessionMiddleware(socket.request, socket.request.res || {}, next)
@@ -500,20 +499,6 @@ io.on("connection", async (socket) => {
 			})
 		} catch (error) {
 			console.log("- Error Admin response : ", error)
-		}
-	})
-
-	socket.on("check-room", async ({ roomId }, callback) => {
-		try {
-			const room = await Rooms.find({ roomId })
-			if (!room) {
-				console.log("Room Tidak Ditemukan")
-				callback({ response: 2, roomId })
-			}
-			callback({ response: 1, roomId })
-			console.log("- Room : ", room)
-		} catch (error) {
-			console.log("- Error Check Room : ", error)
 		}
 	})
 

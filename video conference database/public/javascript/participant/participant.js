@@ -152,17 +152,6 @@ const showDetail = async (e) => {
 		e.stopPropagation()
 		const participantId = e.target.dataset.option
 		const participant = participants.find((p) => p.participant_id == participantId)
-		if (participant_id == participant.participant_id){
-			update_photo_element.classList.remove("d-none")
-			update_photo_element.href = `/updatephoto?uid=${participant.participant_id}`
-		} else {
-			if (!update_photo_element.classList.contains("d-none")){
-				update_photo_element.classList.add("d-none")
-			}
-		}
-		if (update_photo_element){
-			update_photo_element.href = `/updatephoto?uid=${participant.participant_id}`
-		}
 		full_name_element.innerHTML = participant.full_name
 		nik_element.innerHTML = participant.nik
 		nrp_element.innerHTML = participant.nrp ? participant.nrp : "-"

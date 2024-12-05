@@ -1,1 +1,0 @@
-console.error("Error: Can't walk dependency graph: Cannot find module 'sweetalert2' from 'D:\\RDS\\siram\\video conference database\\public\\javascript\\home\\home.js'\n    required by D:\\RDS\\siram\\video conference database\\public\\javascript\\home\\home.js");

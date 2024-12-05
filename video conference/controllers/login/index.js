@@ -53,8 +53,8 @@ class Login {
 
 	static async logout(req, res, next) {
 		try {
-			// await req.session.destroy()
-			// await res.status(200).json({ message: "Successfully log out", status: true })
+			await req.session.destroy()
+			await res.status(200).json({ message: "Successfully log out", status: true })
 		} catch (error) {
 			next(error)
 		}

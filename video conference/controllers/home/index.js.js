@@ -1,8 +1,3 @@
-const { decodeToken } = require("../../helper/jwt")
-const Participants = require("../participants")
-const Room_Participants = require("../room_participant")
-const { findRoom } = require("../room")
-
 class Home {
 	static async index(req, res, next) {
 		try {
