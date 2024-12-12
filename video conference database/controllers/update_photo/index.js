@@ -51,7 +51,7 @@ class Update_Photo {
 					}
 
 					const token = encodeToken({ user })
-					res.status(200).json({ status: true, message: "Photo updated successfully", newToken: token })
+					res.status(200).json({ status: true, message: "Foto berhasil diperbarui", newToken: token })
 
 					// Participant.update({ photo: filePath }, { where: { participant_id: participant_id } })
 					// 	.then(() => {

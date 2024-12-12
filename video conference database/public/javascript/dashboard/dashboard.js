@@ -623,8 +623,6 @@ modalDetailContainer.addEventListener("click", (e) => {
 document.addEventListener("click", (e) => {
 	try {
 		e.stopPropagation()
-		console.log(modalCreate.style.top)
-		console.log(modalDetail.style.top)
 		if (!blocker.classList.contains("d-none")) {
 			blocker.classList.add("d-none")
 		}
@@ -638,3 +636,11 @@ document.addEventListener("click", (e) => {
 		console.log("- Error Closing From Blocker : ", error)
 	}
 })
+$(document).ready(function () {
+    const elements = document.getElementsByClassName("daterangepicker");
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+    }
+});

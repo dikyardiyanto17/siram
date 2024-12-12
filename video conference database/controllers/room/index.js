@@ -112,7 +112,7 @@ class Rooms {
 
 				await transaction.commit()
 
-				await res.status(201).json({ roomCreated, message: "Successfully create room", status: true })
+				await res.status(201).json({ message: "Berhasil membuat ruangan meeting", status: true })
 			} else if (meeting_type == 2) {
 				const roomCreated = await Room.create({
 					no_perkara,
@@ -129,7 +129,7 @@ class Rooms {
 					face_recognition,
 					...createdDate,
 				})
-				await res.status(201).json({ roomCreated, message: "Successfully create room", status: true })
+				await res.status(201).json({ message: "Berhasil membuat ruangan meeting", status: true })
 			} else {
 				throw { name: "Required", message: "Tipe rapat invalid" }
 			}
@@ -295,17 +295,39 @@ class Rooms {
 	static async filterMeeting(req, res, next) {
 		try {
 			const { st, et } = req.query
+
+			if (st || et) {
+				if (!st || !et) {
+					throw { name: "Bad_Request", message: "Tanggal tidak valid" }
+				}
+				if (isNaN(new Date(st).getTime()) || isNaN(new Date(et).getTime())) {
+					throw { name: "Bad_Request", message: "Tanggal tidak valid" }
+				}
+			}
+
 			const startDay = new Date(st)
 			startDay.setHours(0, 0, 0, 0)
 			const endDay = new Date(et)
 			endDay.setHours(23, 59, 59, 999)
 
-			const meetings = await Room.findAll({
-				where: {
-					[Op.and]: [{ start_date: { [Op.between]: [startDay, endDay] } }, { end_date: { [Op.between]: [startDay, endDay] } }],
-				},
+			let meetingOrm = {
 				order: [["room_id", "ASC"]],
-			})
+			}
+
+			if (st && et) {
+				const startDay = new Date(st)
+				startDay.setHours(0, 0, 0, 0)
+				const endDay = new Date(et)
+				endDay.setHours(23, 59, 59, 999)
+				meetingOrm = {
+					where: {
+						[Op.and]: [{ start_date: { [Op.between]: [startDay, endDay] } }, { end_date: { [Op.between]: [startDay, endDay] } }],
+					},
+					order: [["room_id", "ASC"]],
+				}
+			}
+
+			const meetings = await Room.findAll({ ...meetingOrm })
 
 			const meetingsWithParticipants = await Promise.all(
 				meetings.map(async (meeting) => {

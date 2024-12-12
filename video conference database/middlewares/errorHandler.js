@@ -4,6 +4,7 @@ const errorHandler = (err, req, res, next) => {
 		const message = err.errors[0].message
 		res.status(400).json({ statusCode: 400, name: "Bad request", message })
 	} else if (err.name == "Required") res.status(400).json({ statusCode: 400, message: err.message })
+	else if (err.name == "Bad_Request") res.status(400).json({ status: false, statusCode: 400, message: err.message })
 	else if (err.name == "Exist") res.status(409).json({ statusCode: 400, message: err.message })
 	// else if (err.name == "JsonWebTokenError") res.status(400).json({ statusCode: 400, message: "Invalid User" })
 	else if (err.name == "JsonWebTokenError") res.status(404).json({ statusCode: 404, message: "Photo not found" })

@@ -12,7 +12,6 @@ const authenthication_user = async (req, res, next) => {
 		if (!token) {
 			throw { name: "Invalid token", message: "Token not found" }
 		}
-		console.log("- Token : ", token)
 		const { user } = await decodeToken(token)
 
 		if (!user) {

@@ -23,5 +23,6 @@ router.get("/meeting/:room_id", Rooms.detail)
 router.get("/", Dashboard.index)
 router.get("/participant", Participants.index)
 router.use("/api/room", require("./api/room"))
+router.use("/api/participant", require("./api/participant"))
 
 module.exports = router

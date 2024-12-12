@@ -2,16 +2,24 @@ const { createdDate } = require("../../helper")
 const { Participant } = require("../../models")
 
 class Participants {
-	static async index(req, res) {
+	static async index(req, res, next) {
 		try {
 			const { participant_id } = req.user
-			console.log("- req user in here : ", req.user)
 			const participants = await Participant.findAll({
 				order: [["participant_id", "ASC"]],
 			})
 			await res.render("pages/participant/index", { backButton: true, participants, participant_id })
 		} catch (error) {
-			console.log(error)
+			next(error)
+		}
+	}
+
+	static async getAll(req, res, next) {
+		try {
+			const participants = await Participant.findAll()
+			await res.status(200).json({ data: participants })
+		} catch (error) {
+			next(error)
 		}
 	}
 
@@ -20,7 +28,7 @@ class Participants {
 			const participants = await Participant.findAll()
 			return participants
 		} catch (error) {
-			console.log("- Error Find All Participant : ", error)
+			console.log(error)
 		}
 	}
 
