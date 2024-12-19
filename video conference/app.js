@@ -10,9 +10,6 @@ const cors = require("cors")
 const session = require("express-session")
 const router = require("./routes/index.js")
 const app = express()
-// const port = 3001
-// const port = 80
-// const port = 9188
 const port = 9100
 const { options } = require("./certif")
 const http = require("http")
@@ -55,21 +52,21 @@ if (mediasoupVariable.workers.length == 0) {
 	mediasoupVariable.createWorker()
 }
 
-// const httpsServer = https.createServer(options, app)
-// httpsServer.listen(port, async () => {
-// 	console.log("App On : " + port)
-// })
-// const io = new Server(httpsServer, {
-// 	path: "/socket",
-// })
-
-const httpServer = http.createServer(app)
-httpServer.listen(port, async () => {
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(port, async () => {
 	console.log("App On : " + port)
 })
-const io = new Server(httpServer, {
+const io = new Server(httpsServer, {
 	path: "/socket",
 })
+
+// const httpServer = http.createServer(app)
+// httpServer.listen(port, async () => {
+// 	console.log("App On : " + port)
+// })
+// const io = new Server(httpServer, {
+// 	path: "/socket",
+// })
 
 io.use((socket, next) => {
 	sessionMiddleware(socket.request, socket.request.res || {}, next)

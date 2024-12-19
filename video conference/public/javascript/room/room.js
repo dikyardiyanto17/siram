@@ -985,3 +985,31 @@ window.addEventListener("beforeunload", function (event) {
 		// socket.close()
 	} catch (error) {}
 })
+
+// const pauseVideo = document.getElementById("pause-video")
+// let isVideoPaused = false
+// pauseVideo.addEventListener("click", () => {
+// 	try {
+// 		if (isVideoPaused) {
+// 			isVideoPaused = false
+// 			usersVariable.allUsers.forEach((u) => {
+// 				u.consumer.forEach((c) => {
+// 					if (c.id && c.appData.label == "video") {
+// 						socket.emit("consumer-resume", { serverConsumerId: c.id })
+// 					}
+// 				})
+// 			})
+// 		} else {
+// 			isVideoPaused = true
+// 			usersVariable.allUsers.forEach((u) => {
+// 				u.consumer.forEach((c) => {
+// 					if (c.id && c.appData.label == "video") {
+// 						socket.emit("consumer-pause", { serverConsumerId: c.id })
+// 					}
+// 				})
+// 			})
+// 		}
+// 	} catch (error) {
+// 		console.log("- Error Pause Video : ", error)
+// 	}
+// })

@@ -37052,6 +37052,34 @@ window.addEventListener("beforeunload", function (event) {
 	} catch (error) {}
 })
 
+// const pauseVideo = document.getElementById("pause-video")
+// let isVideoPaused = false
+// pauseVideo.addEventListener("click", () => {
+// 	try {
+// 		if (isVideoPaused) {
+// 			isVideoPaused = false
+// 			usersVariable.allUsers.forEach((u) => {
+// 				u.consumer.forEach((c) => {
+// 					if (c.id && c.appData.label == "video") {
+// 						socket.emit("consumer-resume", { serverConsumerId: c.id })
+// 					}
+// 				})
+// 			})
+// 		} else {
+// 			isVideoPaused = true
+// 			usersVariable.allUsers.forEach((u) => {
+// 				u.consumer.forEach((c) => {
+// 					if (c.id && c.appData.label == "video") {
+// 						socket.emit("consumer-pause", { serverConsumerId: c.id })
+// 					}
+// 				})
+// 			})
+// 		}
+// 	} catch (error) {
+// 		console.log("- Error Pause Video : ", error)
+// 	}
+// })
+
 },{"../socket/socket":106,"./eventListener":102,"./mediasoupClient":103,"./user":105,"recordrtc":80,"sweetalert2":100}],105:[function(require,module,exports){
 class StaticEvent {
 	static generateRandomId(length = 12, separator = "-", separatorInterval = 4) {
@@ -37526,6 +37554,75 @@ class Users extends StaticEvent {
 		}
 	}
 
+	async addVideoSecondMethod({ userId, track, username, picture }) {
+		try {
+			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+			console.log(
+				"- Current Layout : ",
+				this.#currentLayout,
+				"- Total Layout : ",
+				this.#totalLayout,
+				" - Total Displayed Video : ",
+				this.#totalDisplayedVideo,
+				" - Elements with ID starting with 'vc-' : ",
+				currentVideoDisplayed
+			)
+
+			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
+				this.#videoContainerFocus.classList.add("d-none")
+			}
+
+			const checkUserElement = document.getElementById(`vc-${userId}`)
+			if (!checkUserElement) {
+				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
+
+				let videoContainerElement = document.createElement("div")
+				videoContainerElement.id = `vc-${userId}`
+				if (currentVideoDisplayed < this.#totalLayout) {
+					videoContainerElement.className = `${this.#currentVideoClass}`
+				} else {
+					videoContainerElement.className = `${this.#currentVideoClass} d-none`
+				}
+
+				let userVideoElement = document.createElement("div")
+				userVideoElement.className = "user-container"
+
+				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				videoContainerElement.appendChild(userVideoElement)
+				this.#videoContainer.appendChild(videoContainerElement)
+
+				let usernameElement = document.createElement("span")
+				usernameElement.id = `vu-${userId}`
+				usernameElement.className = "video-username"
+				usernameElement.innerHTML = username
+				userVideoElement.appendChild(usernameElement)
+
+				let microphoneElement = document.createElement("div")
+				microphoneElement.className = "video-mic-icon"
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				userVideoElement.appendChild(microphoneElement)
+
+				await this.increaseTotalDisplayedVodeo()
+				if (!userId.startsWith("ssv_")) {
+					if (this.#faceRecognition) {
+						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+					}
+				}
+			}
+			if (track) {
+				await this.insertVideo({ track, id: userId })
+			}
+
+			await this.updateVideoCurrentClass()
+			if (this.#currentLayout == 1) {
+				await this.updateAllVideoSecondMethod()
+			}
+			await this.updateVideoPreviousClass()
+		} catch (error) {
+			console.log("- Error Add My Video : ", error)
+		}
+	}
+
 	async addFocusVideo({ userId, track, username }) {
 		try {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
@@ -37562,6 +37659,54 @@ class Users extends StaticEvent {
 						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
+			}
+		} catch (error) {
+			console.log("- Error Add My Video : ", error)
+		}
+	}
+
+	async addFocusVideoSecondMethod({ userId, track, username }) {
+		try {
+			const checkUserElement = document.getElementById(`vc-${userId}`)
+			this.#videoContainerFocus.classList.remove("d-none")
+			if (!checkUserElement) {
+				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
+
+				let videoContainerElement = document.createElement("div")
+				videoContainerElement.id = `vc-${userId}`
+				videoContainerElement.className = `video-user-container-1`
+
+				let userVideoElement = document.createElement("div")
+				userVideoElement.className = "user-container"
+
+				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				videoContainerElement.appendChild(userVideoElement)
+				this.#videoContainerFocus.appendChild(videoContainerElement)
+
+				let usernameElement = document.createElement("span")
+				usernameElement.id = `vu-${userId}`
+				usernameElement.className = "video-username"
+				usernameElement.innerHTML = username
+				userVideoElement.appendChild(usernameElement)
+
+				let microphoneElement = document.createElement("div")
+				microphoneElement.className = "video-mic-icon"
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				userVideoElement.appendChild(microphoneElement)
+
+				await this.insertVideo({ track, id: userId })
+
+				if (!userId.startsWith("ssv_")) {
+					if (this.#faceRecognition) {
+						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+					}
+				}
+				return false
+			} else {
+				checkUserElement.className = `video-user-container-1`
+				checkUserElement.classList.remove("d-none")
+				this.#videoContainerFocus.prepend(checkUserElement)
+				return true
 			}
 		} catch (error) {
 			console.log("- Error Add My Video : ", error)
@@ -37689,8 +37834,29 @@ class Users extends StaticEvent {
 		}
 	}
 
+	async updateAllVideoSecondMethod() {
+		try {
+			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)')
+			currentVideoDisplayed.forEach((e) => {
+				currentVideoDisplayed.forEach((e) => {
+					e.classList.forEach((className) => {
+						if (className.startsWith("video-user-container-")) {
+							e.classList.replace(className, this.#currentVideoClass)
+						}
+					})
+				})
+			})
+		} catch (error) {
+			console.log("- Error Update Video : ", error)
+		}
+	}
+
 	async updateVideoCurrentClass() {
 		try {
+			if (this.#currentLayout == 3) {
+				this.#currentVideoClass = `video-user-container-focus-user`
+				return
+			}
 			if (this.#users < this.#totalLayout) {
 				this.#currentVideoClass = `video-user-container-${this.#users}`
 			} else {
@@ -37735,7 +37901,7 @@ class Users extends StaticEvent {
 				}
 			})
 			await this.statusLayoutCount()
-			await this.updateVideo({ socket })
+			await this.updateVideoSecondMethod({ socket })
 		} catch (error) {
 			console.log("- Error Select Video Layout : ", error)
 		}
@@ -37789,7 +37955,8 @@ class Users extends StaticEvent {
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
-				await this.addVideo({ username, userId, track: null, index, picture: appData.picture })
+				await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture })
+				// await this.addVideo({ username, userId, track: null, index, picture: appData.picture })
 
 				await this.constructor.methodAddUserList({
 					id: userId,
@@ -37840,7 +38007,7 @@ class Users extends StaticEvent {
 								})
 							}
 						})
-						await this.updateVideo({ socket })
+						await this.updateVideoSecondMethod({ socket })
 					} catch (error) {
 						console.log("- Error Option User List Container : ", error)
 					}
@@ -37861,7 +38028,7 @@ class Users extends StaticEvent {
 				await this.createAudioVisualizer({ id: userId, track })
 			}
 			if (kind == "video" && appData.label == "video") {
-				await this.addVideo({ username, userId, track, index, picture: appData.picture })
+				await this.addVideoSecondMethod({ username, userId, track, index, picture: appData.picture })
 			}
 
 			if (appData && appData.label == "screensharing_audio") {
@@ -37872,7 +38039,7 @@ class Users extends StaticEvent {
 
 			if (appData && appData.label == "screensharing_video") {
 				await this.increaseUsers()
-				await this.addVideo({ username, userId: "ssv_" + userId, track, index, picture: null })
+				await this.addVideoSecondMethod({ username, userId: "ssv_" + userId, track, index, picture: null })
 			}
 		} catch (error) {
 			console.log("- Error Add User : ", error)
@@ -37978,7 +38145,7 @@ class Users extends StaticEvent {
 			})
 
 			this.#currentPage = 1
-			await this.updateVideo({ socket })
+			await this.updateVideoSecondMethod({ socket })
 		} catch (error) {
 			console.log("- Error Select Video Layout : ", error)
 		}
@@ -37991,7 +38158,7 @@ class Users extends StaticEvent {
 				return
 			}
 			this.#currentPage = this.#currentPage - 1
-			await this.updateVideo({ socket })
+			await this.updateVideoSecondMethod({ socket })
 		} catch (error) {
 			console.log("- Error Previous Video : ", error)
 		}
@@ -38004,7 +38171,7 @@ class Users extends StaticEvent {
 				return
 			}
 			this.#currentPage = this.#currentPage + 1
-			await this.updateVideo({ socket })
+			await this.updateVideoSecondMethod({ socket })
 		} catch (error) {
 			console.log("- Error Next Video : ", error)
 		}
@@ -38158,6 +38325,179 @@ class Users extends StaticEvent {
 		}
 	}
 
+	async updateVideoSecondMethod({ socket }) {
+		try {
+			let customIndex = 0
+			await this.updateVideoContainerLayout()
+			if (this.#currentLayout == 1) {
+				this.#videoContainer.classList.remove("d-none")
+				if (!this.#videoContainerFocus.classList.contains("d-none")) {
+					this.#videoContainerFocus.classList.add("d-none")
+				}
+				if (this.#videoContainerFocus.children.length > 0) {
+					this.#videoContainer.prepend(this.#videoContainerFocus.children[0])
+				}
+
+				if (this.#totalLayout == 5) {
+					// this.#totalLayout = 6
+					this.#layoutCountContainer.forEach((c) => {
+						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+							this.#totalLayout = c.dataset.option
+						}
+					})
+				}
+				if (this.#videoContainer.classList.contains("d-none")) {
+					this.#videoContainer.classList.remove("d-none")
+				}
+				await this.hideShowPreviousNextButton({ status: true })
+				await this.hideShowUpDownButton({ status: false })
+				await this.updatePageInformation()
+				await this.updateVideoContainer()
+				this.#totalDisplayedVideo = 0
+
+				const promises = this.#allUsers.map(async (u, index) => {
+					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
+					const max = this.#currentPage * this.#totalLayout
+					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
+
+					// let track = u.consumer.find((t) => t.kind == "video")
+					for (const track of tracks) {
+						if (customIndex + 1 >= min && customIndex + 1 <= max) {
+							await this.showHideVideo({ id: u.userId, status: true })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
+						} else {
+							await this.showHideVideo({ id: u.userId, status: false })
+							if (track.id != null) {
+								socket.emit("consumer-pause", { serverConsumerId: track.id })
+							}
+						}
+						customIndex++
+					}
+				})
+
+				await Promise.all(promises)
+
+				if (this.#totalDisplayedVideo == 0) {
+					await this.previousVideo({ socket })
+				}
+			} else if (this.#currentLayout == 2) {
+				await this.hideShowPreviousNextButton({ status: false })
+				await this.hideShowUpDownButton({ status: false })
+				if (!this.#videoContainer.classList.contains("d-none")) {
+					this.#videoContainer.classList.add("d-none")
+				}
+				this.#allUsers.forEach(async (u) => {
+					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
+
+					for (const track of tracks) {
+						if (track.focus) {
+							const isMove = await this.addFocusVideoSecondMethod({
+								userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId,
+								track: track.track,
+								username: u.username,
+							})
+							if (!isMove) {
+								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
+							}
+
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
+						} else {
+							await this.showHideVideo({ id: u.userId, status: false })
+							socket.emit("consumer-pause", { serverConsumerId: track.id })
+						}
+					}
+				})
+			} else if (this.#currentLayout == 3) {
+				await this.hideShowPreviousNextButton({ status: false })
+				await this.hideShowUpDownButton({ status: true })
+				this.#totalDisplayedVideo = 0
+				await this.updatePageInformation()
+				await this.updateVideoContainer()
+				this.#videoContainerFocus.classList.remove("d-none")
+				this.#videoContainer.classList.remove("d-none")
+
+				this.#allUsers.forEach(async (u) => {
+					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
+					const max = this.#currentPage * this.#totalLayout
+					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
+					for (const track of tracks) {
+						if (track.focus) {
+							const isMove = await this.addFocusVideoSecondMethod({
+								track: track.track,
+								userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId,
+								username: u.username,
+							})
+							if (!isMove) {
+								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
+							}
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
+						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
+							customIndex++
+							await this.showHideVideo({ id: u.userId, status: true })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id })
+							}
+						} else {
+							customIndex++
+							await this.showHideVideo({ id: u.userId, status: false })
+							socket.emit("consumer-pause", { serverConsumerId: track.id })
+						}
+					}
+				})
+				if (this.#users == 1) {
+					await document.getElementById("layout-1").click()
+				}
+			}
+		} catch (error) {
+			console.log("- Error Update Video : ", error)
+		}
+	}
+
+	async showHideVideo({ status, id }) {
+		try {
+			const videoElement = document.getElementById(`vc-${id}`)
+			if (status) {
+				videoElement.classList.remove("d-none")
+			} else {
+				if (!videoElement.classList.contains("d-none")) {
+					videoElement.classList.add("d-none")
+				}
+			}
+
+			await this.updateVideoCurrentClass()
+			if (this.#currentLayout == 1) {
+				await this.updateAllVideoSecondMethod()
+			}
+			if (this.#currentLayout == 3) {
+				await this.updateAllVideoSecondMethod()
+				const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)')
+
+				currentVideoDisplayed.forEach((e) => {
+					e.classList.forEach((className) => {
+						if (className.startsWith("video-user-container-") && e.parentElement.id == "video-collection") {
+							e.classList.replace(className, this.#currentVideoClass)
+						} else {
+							e.classList.replace(className, "video-user-container-1")
+						}
+					})
+				})
+			}
+
+			await this.updateVideoPreviousClass()
+		} catch (error) {
+			console.log("- Error Show or Hide Video : ", error)
+		}
+	}
+
 	async addForceCloseList({ socket, userId, username, picture }) {
 		try {
 			let userListElement = document.createElement("div")
@@ -38217,7 +38557,7 @@ class Users extends StaticEvent {
 			} else {
 				this.#userIdScreenSharing = ""
 				this.#screenSharingMode = false
-				await this.updateVideo({ socket })
+				await this.updateVideoSecondMethod({ socket })
 				if (!this.#authority && this.#screenSharingPermission) {
 					this.#screenSharingPermission = false
 				}

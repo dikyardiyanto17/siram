@@ -31,8 +31,8 @@ const sessionMiddleware = session({
 	resave: false,
 	saveUninitialized: false,
 	cookie: {
-		// secure: false,
-		secure: true,
+		secure: false,
+		// secure: true,
 		sameSite: true,
 	},
 })
@@ -41,15 +41,15 @@ app.set("trust proxy", 1)
 
 app.use(sessionMiddleware)
 
-// const httpsServer = https.createServer(options, app)
-// httpsServer.listen(port, async () => {
-// 	console.log("App On : " + port)
-// })
-
-const httpServer = http.createServer(app)
-httpServer.listen(port, async () => {
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(port, async () => {
 	console.log("App On : " + port)
 })
+
+// const httpServer = http.createServer(app)
+// httpServer.listen(port, async () => {
+// 	console.log("App On : " + port)
+// })
 
 app.use(router)
 
