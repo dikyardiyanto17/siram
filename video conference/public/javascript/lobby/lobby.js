@@ -97,7 +97,7 @@ const comparePicture = async ({ picture1, picture2 }) => {
 		loader.className = "loading-hide"
 		document.getElementById("face-recognition-canvas-id").remove()
 		console.log("- Distance : ", distance)
-		if (distance <= 0.3) {
+		if (distance <= 0.4) {
 			result = true
 			proccessIcon.src = `/assets/icons/success.svg`
 			proccessMessage.innerHTML = "Verifikasi berhasil"
@@ -232,7 +232,7 @@ const startFR = async () => {
 				isValidPosition = []
 				progressBar.value = 0
 			}
-		}, 100)
+		}, 300)
 	} catch (error) {
 		console.log("- Error Starting Face Recognition : ", error)
 	}
