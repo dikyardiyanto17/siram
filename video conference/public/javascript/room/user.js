@@ -1971,7 +1971,8 @@ class Users extends StaticEvent {
 			// Remove existing canvas if already present
 			const existingCanvas = document.getElementById(`cfr-${id}`)
 			if (existingCanvas) {
-				existingCanvas.remove()
+				// existingCanvas.remove()
+				return
 			}
 
 			const user = await this.#allUsers.find((u) => u.userId == id)
