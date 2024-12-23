@@ -38744,6 +38744,10 @@ class Users extends StaticEvent {
 								c.focus = true
 							}
 						})
+						const screenSharingVideo = document.getElementById(`vc-ssv_${userId}`)
+						if (screenSharingVideo) {
+							screenSharingVideo.remove()
+						}
 						this.changeScreenSharingMode({ status: false, userId, socket, username: user.username, picture: user.consumer[0].appData.picture })
 					}
 					if (label == "screensharing_audio") {
