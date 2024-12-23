@@ -39,7 +39,8 @@ const connectSocket = async () => {
 						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 						await mediasoupClientVariable.createDevice()
 						await mediasoupClientVariable.setEncoding()
-						await mediasoupClientVariable.getMyStream()
+						await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${serverUrl}/photo/${picture}.png`, userId, username })
+						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${serverUrl}/photo/${picture}.png`, userId, username })
 						await mediasoupClientVariable.getCameraOptions({ userId: userId })
 						await mediasoupClientVariable.getMicOptions({ usersVariable })
 
@@ -111,9 +112,12 @@ const connectSocket = async () => {
 
 if (faceRecognition) {
 	Promise.all([
-		faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
+		// faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
+		// faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
+		// faceapi.nets.faceLandmark68Net.loadFromUri("../../assets/plugins/face-api/models"),
+
+		faceapi.nets.tinyFaceDetector.loadFromUri("../../assets/plugins/face-api/models"),
 		faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
-		faceapi.nets.faceLandmark68Net.loadFromUri("../../assets/plugins/face-api/models"),
 	]).then((_) => {
 		// document.getElementById("loading-id").className = "loading-hide"
 		connectSocket()
@@ -157,10 +161,10 @@ socket.on("user-logout", ({ userId }) => {
 	try {
 		eventListenerCollection.methodAddRaiseHandUser({ id: userId, status: false })
 		eventListenerCollection.deleteUserList({ id: userId })
-		usersVariable.deleteVideo({ userId })
+		usersVariable.deleteVideoSecondMethod({ userId })
 		usersVariable.deleteAudio({ userId })
 		usersVariable.deleteAllUser({ userId })
-		usersVariable.updateVideo({ socket })
+		usersVariable.updateVideoSecondMethod({ socket })
 	} catch (error) {
 		console.log("- Error User Log Out : ", error)
 	}

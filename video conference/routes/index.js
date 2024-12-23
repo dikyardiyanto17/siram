@@ -22,5 +22,6 @@ router.use("/photo", express.static(path.join(__dirname, "../photo")))
 router.get("/updatephoto", Update_Photo.index)
 router.get("/updatetoken", Update_Photo.update_token)
 router.get("/lobby", Lobby.index)
+router.get("/sandbox", Lobby.sandbox)
 
 module.exports = router

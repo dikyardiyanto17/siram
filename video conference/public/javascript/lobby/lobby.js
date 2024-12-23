@@ -218,7 +218,7 @@ const startFR = async () => {
 			) {
 				progressBar.value = isValidPosition.length * 5
 				proccessIcon.src = `/assets/icons/warn.svg`
-				proccessMessage.innerHTML = "Mohon posisi wajah disesuaikan sesuai frame."
+				proccessMessage.innerHTML = "Mohon posisi wajah disesuaikan dengan frame."
 				isValidPosition.push(true)
 			} else if (image_data_url) {
 				if (result) {

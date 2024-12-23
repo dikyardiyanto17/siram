@@ -160,6 +160,7 @@ class Users extends StaticEvent {
 	}
 
 	#faceRecognition
+	#faceRecognitionInterval
 	constructor() {
 		super()
 
@@ -637,6 +638,9 @@ class Users extends StaticEvent {
 			}
 
 			const videoElement = document.getElementById("v-" + id)
+			if (videoElement?.srcObject?.getVideoTracks()[0]) {
+				return
+			}
 
 			if (!videoElement && count < 50) {
 				let counter = 0
@@ -723,12 +727,30 @@ class Users extends StaticEvent {
 		}
 	}
 
+	async deleteVideoSecondMethod({ userId }) {
+		try {
+			const checkUserElement = document.getElementById(`vc-${userId}`)
+
+			if (checkUserElement) {
+				const tracks = await document.getElementById(`v-${userId}`).srcObject.getTracks()
+
+				tracks.forEach((track) => {
+					track.stop()
+				})
+				checkUserElement.remove()
+				await this.updateVideoCurrentClass()
+				await this.updateVideoPreviousClass()
+			}
+		} catch (error) {
+			console.log("- Error Add Video : ", error)
+		}
+	}
+
 	async deleteAudio({ userId }) {
 		try {
 			const checkUserElement = document.getElementById(`a-${userId}`)
 			if (checkUserElement) {
 				const tracks = await checkUserElement.srcObject.getTracks()
-				console.log()
 				tracks.forEach((track) => {
 					track.stop()
 				})
@@ -799,7 +821,7 @@ class Users extends StaticEvent {
 	async selectVideoLayout({ container, socket }) {
 		try {
 			if (container.dataset.option == 1 && this.#screenSharingMode) {
-				this.constructor.warning({ message: "Cannot change to the selected layout" })
+				this.constructor.warning({ message: "Tidak bisa memilih layout pada saat berbagi layar" })
 				return
 			}
 
@@ -910,7 +932,7 @@ class Users extends StaticEvent {
 				optionUserListContainer.addEventListener("click", async () => {
 					try {
 						if (this.#screenSharingMode) {
-							this.constructor.warning({ message: "Cannot pin the selected user in screensharing" })
+							this.constructor.warning({ message: "Tidak bisa memilih tampilan saat berbagi layar" })
 							return
 						}
 						this.#allUsers.forEach((u) => {
@@ -924,6 +946,7 @@ class Users extends StaticEvent {
 								})
 							}
 						})
+						this.#currentLayout = 2
 						await this.updateVideoSecondMethod({ socket })
 					} catch (error) {
 						console.log("- Error Option User List Container : ", error)
@@ -1071,7 +1094,7 @@ class Users extends StaticEvent {
 	async previousVideo({ socket }) {
 		try {
 			await this.updatePageInformation()
-			if (this.#currentPage == 1) {
+			if (this.#currentPage <= 1) {
 				return
 			}
 			this.#currentPage = this.#currentPage - 1
@@ -1084,7 +1107,7 @@ class Users extends StaticEvent {
 	async nextVideo({ socket }) {
 		try {
 			await this.updatePageInformation()
-			if (this.#currentPage == this.#totalPage) {
+			if (this.#currentPage >= this.#totalPage) {
 				return
 			}
 			this.#currentPage = this.#currentPage + 1
@@ -1870,67 +1893,210 @@ class Users extends StaticEvent {
 
 	async getLabeledFaceDescriptions({ picture, name }) {
 		const descriptions = []
+
 		for (let i = 1; i <= 2; i++) {
-			const img = await faceapi.fetchImage(picture, name)
-			const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
-			if (detections) {
-				descriptions.push(detections.descriptor)
+			const img = await faceapi.fetchImage(picture)
+
+			// Detect single face and directly get descriptors using tinyFaceDetector
+			const detection = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+
+			if (detection) {
+				// Extract the descriptor from the detection
+				const descriptor = await faceapi.computeFaceDescriptor(img)
+				if (descriptor) {
+					descriptions.push(descriptor)
+				}
 			}
 		}
+
 		return new faceapi.LabeledFaceDescriptors(name, descriptions)
 	}
 
+	// async startFR({ picture, name, id }) {
+	// 	try {
+	// 		if (document.getElementById(`cfr-${id}`)) {
+	// 			document.getElementById(`cfr-${id}`).remove()
+	// 		}
+	// 		const user = await this.#allUsers.find((u) => u.userId == id)
+	// 		const video = document.getElementById(`v-${id}`)
+	// 		// if (!video) {
+	// 		// 	await this.startFR({ picture, name, id })
+	// 		// }
+	// 		if (video) {
+	// 			video.addEventListener("play", async () => {
+	// 				const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
+	// 				let faceContainer = document.getElementById(`face-recognition-${id}`)
+	// 				// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
+	// 				const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
+	// 				const canvas = faceapi.createCanvasFromMedia(video)
+	// 				canvas.id = `cfr-${id}`
+	// 				faceContainer.appendChild(canvas)
+
+	// 				const displaySize = { width: video.videoWidth, height: video.videoHeight }
+	// 				// faceContainer.style.width = `${video.clientWidth}px`
+	// 				faceapi.matchDimensions(canvas, displaySize)
+	// 				user.frInterval = setInterval(async () => {
+	// 					const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
+	// 					const resizedDetections = faceapi.resizeResults(detections, displaySize)
+	// 					canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
+	// 					const results = resizedDetections.map((d) => {
+	// 						return faceMatcher.findBestMatch(d.descriptor)
+	// 					})
+	// 					results.forEach((result, i) => {
+	// 						const box = resizedDetections[i].detection.box
+	// 						const drawBox = new faceapi.draw.DrawBox(box, {
+	// 							label: result,
+	// 							boxColor: result._distance <= 0.45 ? "blue" : "red",
+	// 							// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
+	// 							// lineWidth: isCurrentUser ? 1 : 0.2,
+	// 							drawLabelOptions: { fontSize: 8 },
+	// 							lineWidth: 0.2,
+	// 						})
+	// 						drawBox.draw(canvas)
+	// 					})
+	// 				}, 100)
+	// 			})
+	// 		}
+	// 	} catch (error) {
+	// 		// if (user?.frInterval) {
+	// 		// 	clearInterval(user.frInterval)
+	// 		// }
+	// 		// document.getElementById(`cfr-${id}`)?.remove()
+	// 		console.log("- Error Starting Face Recognition : ", error)
+	// 	}
+	// }
+
 	async startFR({ picture, name, id }) {
 		try {
-			if (document.getElementById(`cfr-${id}`)) {
-				document.getElementById(`cfr-${id}`).remove()
+			// Remove existing canvas if already present
+			const existingCanvas = document.getElementById(`cfr-${id}`)
+			if (existingCanvas) {
+				existingCanvas.remove()
 			}
+
 			const user = await this.#allUsers.find((u) => u.userId == id)
 			const video = document.getElementById(`v-${id}`)
-			// if (!video) {
-			// 	await this.startFR({ picture, name, id })
-			// }
+
 			if (video) {
 				video.addEventListener("play", async () => {
+					// Load lightweight face detection model
 					const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
-					let faceContainer = document.getElementById(`face-recognition-${id}`)
-					// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
 					const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
+
+					// Create a canvas overlay for face recognition
 					const canvas = faceapi.createCanvasFromMedia(video)
 					canvas.id = `cfr-${id}`
-					faceContainer.appendChild(canvas)
+					document.getElementById(`face-recognition-${id}`).appendChild(canvas)
 
 					const displaySize = { width: video.videoWidth, height: video.videoHeight }
-					// faceContainer.style.width = `${video.clientWidth}px`
 					faceapi.matchDimensions(canvas, displaySize)
+
+					// Throttle face recognition interval
 					user.frInterval = setInterval(async () => {
-						const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
-						const resizedDetections = faceapi.resizeResults(detections, displaySize)
-						canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
-						const results = resizedDetections.map((d) => {
-							return faceMatcher.findBestMatch(d.descriptor)
-						})
-						results.forEach((result, i) => {
-							const box = resizedDetections[i].detection.box
+						// Detect all faces with tinyFaceDetector
+						const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+
+						// Compute face descriptors for each detected face
+						const detectionsWithDescriptors = await Promise.all(
+							detections.map(async (detection) => {
+								const descriptor = await faceapi.computeFaceDescriptor(video, detection)
+								return { detection, descriptor }
+							})
+						)
+
+						// Resize results to match video dimensions
+						const resizedDetections = detectionsWithDescriptors.map(({ detection, descriptor }) => ({
+							detection: faceapi.resizeResults(detection, displaySize),
+							descriptor,
+						}))
+
+						// Clear canvas for the next frame
+						const ctx = canvas.getContext("2d")
+						ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+						// Process detections with descriptors
+						resizedDetections.forEach(({ detection, descriptor }) => {
+							const result = faceMatcher.findBestMatch(descriptor)
+							const box = detection.box
+
 							const drawBox = new faceapi.draw.DrawBox(box, {
-								label: result,
+								label: result.toString(),
 								boxColor: result._distance <= 0.45 ? "blue" : "red",
-								// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
-								// lineWidth: isCurrentUser ? 1 : 0.2,
 								drawLabelOptions: { fontSize: 8 },
 								lineWidth: 0.2,
 							})
+
 							drawBox.draw(canvas)
 						})
-					}, 100)
+					}, 300) // Reduced interval for lighter CPU usage
 				})
 			}
 		} catch (error) {
-			// if (user?.frInterval) {
-			// 	clearInterval(user.frInterval)
-			// }
-			// document.getElementById(`cfr-${id}`)?.remove()
 			console.log("- Error Starting Face Recognition : ", error)
+		}
+	}
+
+	async startFRSecondMethod({ picture, name, id, track }) {
+		try {
+			const video = document.createElement("video")
+			video.id = `temporary-video-fr-${id}`
+			video.srcObject = new MediaStream([track])
+			video.muted = true // Mute to prevent audio feedback
+			video.style.display = "none" // Hide the video element
+			document.body.appendChild(video) // Add to the DOM temporarily
+
+			// Wait for the video to load metadata
+			await new Promise((resolve, reject) => {
+				video.onloadedmetadata = () => resolve()
+				video.onerror = (err) => reject(err)
+			})
+
+			// Prepare face recognition
+			const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
+			const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
+
+			// Create a canvas for face recognition overlays
+			const canvas = faceapi.createCanvasFromMedia(video)
+			const displaySize = { width: video.videoWidth, height: video.videoHeight }
+			faceapi.matchDimensions(canvas, displaySize)
+
+			// Start face recognition interval
+			const frInterval = setInterval(async () => {
+				const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
+				const resizedDetections = faceapi.resizeResults(detections, displaySize)
+
+				// Draw overlays
+				const ctx = canvas.getContext("2d")
+				ctx.clearRect(0, 0, canvas.width, canvas.height)
+				resizedDetections.forEach((detection, i) => {
+					const result = faceMatcher.findBestMatch(detection.descriptor)
+					const box = detection.detection.box
+					const drawBox = new faceapi.draw.DrawBox(box, {
+						label: result.toString(),
+						boxColor: result._distance <= 0.45 ? "blue" : "red",
+						drawLabelOptions: { fontSize: 8 },
+						lineWidth: 0.2,
+					})
+					drawBox.draw(canvas)
+				})
+			}, 100)
+
+			// Capture canvas stream and combine with input track's audio
+			const annotatedStream = canvas.captureStream()
+			const audioTrack = track.kind === "audio" ? track : null // Use the audio track if it's part of the input
+			if (audioTrack) {
+				annotatedStream.addTrack(audioTrack)
+			}
+
+			// Cleanup: Remove the hidden video element and stop the interval
+			video.remove() // Remove video element from DOM
+			clearInterval(frInterval) // Clear the interval
+
+			// Return the combined stream
+			return annotatedStream
+		} catch (error) {
+			console.error("- Error Starting Face Recognition with Track: ", error)
+			throw error
 		}
 	}
 

@@ -194,8 +194,130 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async getMyStream() {
+	async getLabeledFaceDescriptions({ picture, name }) {
+		const descriptions = []
+		for (let i = 1; i <= 2; i++) {
+			const img = await faceapi.fetchImage(picture, name)
+			const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
+			if (detections) {
+				descriptions.push(detections.descriptor)
+			}
+		}
+		return new faceapi.LabeledFaceDescriptors(name, descriptions)
+	}
+
+	async addFRVideo({ userId, username, stream, picture }) {
 		try {
+			const videoCollectionElement = document.getElementById("video-collection")
+
+			const userContainerElement = document.createElement("div")
+			userContainerElement.id = `vc-${userId}`
+			userContainerElement.className = "video-user-container-1"
+
+			videoCollectionElement.appendChild(userContainerElement)
+
+			const userContainerNewElement = document.createElement("div")
+			userContainerNewElement.className = "user-container"
+
+			userContainerElement.appendChild(userContainerNewElement)
+
+			const videoWrapperElement = document.createElement("div")
+			videoWrapperElement.className = "video-wrapper"
+
+			userContainerNewElement.appendChild(videoWrapperElement)
+
+			const usernameElement = document.createElement("span")
+			usernameElement.className = "video-username"
+			usernameElement.id = `vu-${userId}`
+			usernameElement.innerHTML = username
+
+			userContainerNewElement.appendChild(usernameElement)
+
+			const imageContainerElement = document.createElement("div")
+			imageContainerElement.className = "video-mic-icon"
+			imageContainerElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_2.svg"id="video-mic-${userId}" alt="mic_icon">`
+
+			userContainerNewElement.appendChild(imageContainerElement)
+
+			const videoElement = document.createElement("video")
+			videoElement.id = `v-${userId}`
+			videoElement.muted = true
+			videoElement.autoplay = true
+
+			videoElement.srcObject = new MediaStream([stream.getVideoTracks()[0]])
+
+			videoWrapperElement.appendChild(videoElement)
+
+			const frElement = document.createElement("div")
+			frElement.className = "face-recognition"
+			frElement.id = `face-recognition-${userId}`
+
+			videoWrapperElement.appendChild(frElement)
+
+			const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name: username })
+			const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
+			const canvas = faceapi.createCanvasFromMedia(videoElement)
+			frElement.appendChild(canvas)
+			const displaySize = { width: videoElement.videoWidth, height: videoElement.videoHeight }
+			faceapi.matchDimensions(canvas, displaySize)
+			const ctx = canvas.getContext("2d")
+
+			// Start face recognition interval using requestAnimationFrame for smooth rendering
+			const frInterval = setInterval(async () => {
+				// Draw the original video frame to the canvas
+				ctx.clearRect(0, 0, canvas.width, canvas.height) // Clear the canvas before each draw
+				ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height) // Scale the video to fit the canvas
+
+				// Perform face recognition
+				const detections = await faceapi.detectAllFaces(videoElement).withFaceLandmarks().withFaceDescriptors()
+				const resizedDetections = faceapi.resizeResults(detections, displaySize)
+
+				// Draw face recognition overlays
+				resizedDetections.forEach((detection) => {
+					const result = faceMatcher.findBestMatch(detection.descriptor)
+					const box = detection.detection.box
+					const drawBox = new faceapi.draw.DrawBox(box, {
+						label: result.toString(),
+						boxColor: result._distance <= 0.45 ? "blue" : "red",
+						drawLabelOptions: { fontSize: 8 },
+						lineWidth: 0.2,
+					})
+					drawBox.draw(canvas)
+				})
+			}, 50)
+
+			// Capture the canvas as a video stream (this combines both video and face recognition annotations)
+			const combinedStream = canvas.captureStream()
+			const audioTrack = stream.getAudioTracks()[0]
+
+			const finalStream = new MediaStream()
+			finalStream.addTrack(combinedStream.getVideoTracks()[0]) // Use the canvas as the video track
+			if (audioTrack) {
+				finalStream.addTrack(audioTrack) // Add audio track if present
+			}
+
+			return finalStream
+		} catch (error) {
+			console.log("- Error Add My Video : ", error)
+		}
+	}
+
+	async getMyStream({ faceRecognition, picture, userId, username }) {
+		try {
+			// if (faceRecognition) {
+			// 	const stream = await navigator.mediaDevices.getUserMedia({
+			// 		audio: { ...this.#audioSetting },
+			// 		video: true,
+			// 	})
+
+			// 	this.#mystream = await this.addFRVideo({
+			// 		picture,
+			// 		userId,
+			// 		username,
+			// 		stream,
+			// 	})
+			// 	return
+			// }
 			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: { ...this.#audioSetting }, video: true })
 		} catch (error) {
 			console.log("- Error Get My Stream : ", error)
