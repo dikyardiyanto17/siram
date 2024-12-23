@@ -1840,6 +1840,9 @@ class Users extends StaticEvent {
 
 	async createAudioVisualizer({ id, track }) {
 		try {
+			if (!track) {
+				return
+			}
 			const audioVisualizerImage = document.getElementById(`video-mic-${id}`)
 			if (audioVisualizerImage) {
 				// Access the microphone audio stream (replace with your stream source)
@@ -1980,6 +1983,11 @@ class Users extends StaticEvent {
 
 			if (video) {
 				video.addEventListener("play", async () => {
+					const existingCanvasOnPlay = document.getElementById(`cfr-${id}`)
+
+					if (existingCanvasOnPlay) {
+						return
+					}
 					// Load lightweight face detection model
 					const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
 					const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
