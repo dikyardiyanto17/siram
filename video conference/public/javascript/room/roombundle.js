@@ -37589,14 +37589,17 @@ class Users extends StaticEvent {
 
 	async updatePageInformation() {
 		try {
+			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
 			if (this.#currentLayout == 1) {
-				this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
+				this.#totalPage = Math.ceil(currentVideoDisplayed / this.#totalLayout)
+				// this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
 				await this.changeMaxPage()
 			} else if (this.#currentLayout == 2) {
 				console.log("- Do Nothing")
 			} else if (this.#currentLayout == 3) {
 				this.#totalLayout = 5
-				this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
+				this.#totalPage = Math.ceil(currentVideoDisplayed / this.#totalLayout)
+				// this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
 				await this.changeMaxPage()
 			}
 		} catch (error) {
