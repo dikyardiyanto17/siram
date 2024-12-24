@@ -12135,6 +12135,9 @@ const createFaceBox = async ({ width, height }) => {
 
 const startFR = async () => {
 	try {
+		if (document.getElementById("face-recognition-canvas-id")) {
+			return
+		}
 		const video = document.getElementById("local-video")
 		const parentElement = video.parentElement
 
