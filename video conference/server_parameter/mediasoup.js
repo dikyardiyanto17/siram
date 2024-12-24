@@ -12,6 +12,14 @@ class MediaSoup {
 	// #publicIp = "192.168.205.229" // RDS co.id
 	// #publicIp = "203.175.10.29"
 	// #publicIp = "192.168.18.68" // RDS 5g
+
+	#turnServer = [
+		{
+			urls: "turn:203.175.10.29:3478", // Your TURN server URI
+			username: "siram2024", // Your TURN server username
+			credential: "P@sswordSiram12@jakarta",
+		},
+	]
 	#mediaCodecs = [
 		{
 			kind: "audio",
@@ -85,6 +93,14 @@ class MediaSoup {
 				},
 			],
 		}
+	}
+
+	get turnServer() {
+		return this.#turnServer
+	}
+
+	set turnServer(newTurnServer) {
+		this.#turnServer = newTurnServer
 	}
 
 	get workers() {

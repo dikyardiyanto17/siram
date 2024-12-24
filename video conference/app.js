@@ -321,6 +321,7 @@ io.on("connection", async (socket) => {
 					iceParameters: transport.iceParameters,
 					iceCandidates: transport.iceCandidates,
 					dtlsParameters: transport.dtlsParameters,
+					iceServers: [...mediasoupVariable.turnServer],
 				},
 			})
 		} catch (error) {
