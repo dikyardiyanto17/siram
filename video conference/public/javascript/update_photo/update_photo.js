@@ -17,6 +17,22 @@ Promise.all([
 	loader.className = "loading-hide"
 })
 
+const warning = ({ message }) => {
+	try {
+		document.getElementById("warning-container").style.top = "50px"
+		document.getElementById("warning-message").innerHTML = message
+
+		setTimeout(() => {
+			document.getElementById("warning-container").style.top = "-100%"
+			setTimeout(() => {
+				document.getElementById("warning-message").innerHTML = ""
+			}, 500)
+		}, 3000)
+	} catch (error) {
+		console.log("- Error Warning Message : ", error)
+	}
+}
+
 const getCameraReady = async () => {
 	try {
 		const config = {
@@ -26,6 +42,9 @@ const getCameraReady = async () => {
 		localVideo.srcObject = stream
 	} catch (error) {
 		console.log("- Error Getting Camera : ", error)
+		if (error.name === "NotAllowedError") {
+			await warning({ message: "Permintaan izin kamera di tolak!" })
+		}
 	}
 }
 

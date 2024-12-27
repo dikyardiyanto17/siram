@@ -11981,6 +11981,8 @@ let base64Photo = `${serverUrl}/photo/${userPhoto}.png`
 let descriptors = { desc1: null, desc2: null }
 let intervalFR
 let result = false
+const loading = 10
+const loadingStep = 10
 
 Promise.all([
 	faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
@@ -12102,6 +12104,9 @@ const getCameraReady = async () => {
 		localVideo.srcObject = stream
 	} catch (error) {
 		console.log("- Error Getting Camera : ", error)
+		if (error.name === "NotAllowedError") {
+			await warning({ message: "Permintaan izin kamera di tolak!" })
+		}
 	}
 }
 
@@ -12163,7 +12168,7 @@ const startFR = async () => {
 			let yCalculation = boxCoordination.yPosition - resizedDetections[0]?.box?.y
 			let widthCalculation = boxCoordination.boxWidth - resizedDetections[0]?.box?.width
 			let heightCalculation = boxCoordination.boxHeight - resizedDetections[0]?.box?.height
-			if (isValidPosition.length >= 20 && !image_data_url) {
+			if (isValidPosition.length >= loading && !image_data_url) {
 				await capturePicture()
 				progressBar.value = 100
 				// isValidPosition = []
@@ -12175,14 +12180,14 @@ const startFR = async () => {
 
 			if (
 				!image_data_url &&
-				isValidPosition.length < 20 &&
+				isValidPosition.length < loading &&
 				Math.abs(xCalculation) <= 50 &&
 				Math.abs(yCalculation) <= 50 &&
 				Math.abs(widthCalculation) <= 200 &&
 				Math.abs(heightCalculation) <= 200 &&
 				resizedDetections[0].score >= 0.9
 			) {
-				progressBar.value = isValidPosition.length * 5
+				progressBar.value = isValidPosition.length * loadingStep
 				proccessIcon.src = `/assets/icons/warn.svg`
 				proccessMessage.innerHTML = "Mohon posisi wajah disesuaikan dengan frame."
 				isValidPosition.push(true)
