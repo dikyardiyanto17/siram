@@ -39250,10 +39250,9 @@ class Users extends StaticEvent {
 								drawLabelOptions: { fontSize: 8 },
 								lineWidth: 0.2,
 							})
-
 							drawBox.draw(canvas)
 						})
-					}, 300) // Reduced interval for lighter CPU usage
+					}, 500)
 				})
 			}
 		} catch (error) {
