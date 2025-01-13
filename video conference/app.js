@@ -39,6 +39,7 @@ const sessionMiddleware = session({
 		secure: true,
 		// secure: false,
 		sameSite: true,
+		maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
 	},
 })
 

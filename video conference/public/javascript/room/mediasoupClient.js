@@ -320,6 +320,12 @@ class MediaSoupClient extends StaticEvent {
 			// }
 			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: { ...this.#audioSetting }, video: true })
 		} catch (error) {
+			if (error == "NotAllowedError: Permission denied") {
+				this.constructor.warning({ message: "Permintaan izin kamera/microphone di tolak!" })
+				setTimeout(() => {
+					window.location.href = window.location.origin
+				}, 3000)
+			}
 			console.log("- Error Get My Stream : ", error)
 		}
 	}
@@ -479,8 +485,13 @@ class MediaSoupClient extends StaticEvent {
 				console.log("video observer close")
 			})
 
+			// possible bug
 			this.#audioProducer.on("trackended", () => {
 				console.log("audio track ended")
+				this.constructor.warning({ message: "Microphone sedang bermasalah!\nSedang memuat ulang halaman!" })
+				setTimeout(() => {
+					window.location.reload() // Reloads the current page
+				}, 3000)
 			})
 
 			this.#audioProducer.on("transportclose", () => {
@@ -607,6 +618,7 @@ class MediaSoupClient extends StaticEvent {
 							appData,
 						})
 
+						// Possible bug
 						if (params.kind == "audio" && !appData.isActive) {
 							this.reverseConsumerTrack({ userId: userId, isActive: false })
 						}
@@ -620,10 +632,10 @@ class MediaSoupClient extends StaticEvent {
 							usersVariable.changeScreenSharingMode({ status: true, userId, socket, username: params.username, picture: appData.picture })
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
 						}
+
 						if (params.kind == "audio") {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
 						}
-						console.log(" - All User : ", usersVariable.allUsers)
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
 					}

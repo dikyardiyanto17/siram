@@ -380,16 +380,17 @@ class Users extends StaticEvent {
 
 	async updatePageInformation() {
 		try {
-			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+			const allVideo = document.querySelectorAll('[id^="vc-"]').length
+
 			if (this.#currentLayout == 1) {
-				this.#totalPage = Math.ceil(currentVideoDisplayed / this.#totalLayout)
+				this.#totalPage = Math.ceil(allVideo / this.#totalLayout)
 				// this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
 				await this.changeMaxPage()
 			} else if (this.#currentLayout == 2) {
 				console.log("- Do Nothing")
 			} else if (this.#currentLayout == 3) {
 				this.#totalLayout = 5
-				this.#totalPage = Math.ceil(currentVideoDisplayed / this.#totalLayout)
+				this.#totalPage = Math.ceil(allVideo / this.#totalLayout)
 				// this.#totalPage = Math.ceil(this.#users / this.#totalLayout)
 				await this.changeMaxPage()
 			}
@@ -479,14 +480,16 @@ class Users extends StaticEvent {
 		try {
 			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
 			console.log(
+				"------\n",
 				"- Current Layout : ",
 				this.#currentLayout,
-				"- Total Layout : ",
+				"\n- Total Layout : ",
 				this.#totalLayout,
-				" - Total Displayed Video : ",
+				"\n- Total Displayed Video : ",
 				this.#totalDisplayedVideo,
-				" - Elements with ID starting with 'vc-' : ",
-				currentVideoDisplayed
+				"\n- Elements with ID starting with 'vc-' : ",
+				currentVideoDisplayed,
+				"\n------"
 			)
 
 			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
@@ -950,6 +953,15 @@ class Users extends StaticEvent {
 							}
 						})
 						this.#currentLayout = 2
+						document.querySelectorAll(".layout-option-container").forEach((c) => {
+							const radio = c.querySelector(".radio")
+							if (c.dataset.option == 2){
+								radio.src = "/assets/icons/radio_button_active.svg"
+							} else {
+								radio.src = "/assets/icons/radio_button.svg"
+							}
+						})
+						await this.statusLayoutCount()
 						await this.updateVideoSecondMethod({ socket })
 					} catch (error) {
 						console.log("- Error Option User List Container : ", error)
@@ -1272,6 +1284,7 @@ class Users extends StaticEvent {
 		try {
 			let customIndex = 0
 			await this.updateVideoContainerLayout()
+			// console.log("\n- Current Layout : ", this.#currentLayout, "\n- Current Page : ", this.#currentPage, "\n- Total Page : ", this.#totalPage)
 			if (this.#currentLayout == 1) {
 				this.#videoContainer.classList.remove("d-none")
 				if (!this.#videoContainerFocus.classList.contains("d-none")) {
@@ -1306,7 +1319,8 @@ class Users extends StaticEvent {
 
 					// let track = u.consumer.find((t) => t.kind == "video")
 					for (const track of tracks) {
-						if (customIndex + 1 >= min && customIndex + 1 <= max) {
+						customIndex++
+						if (customIndex >= min && customIndex <= max) {
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
@@ -1317,13 +1331,14 @@ class Users extends StaticEvent {
 								socket.emit("consumer-pause", { serverConsumerId: track.id })
 							}
 						}
-						customIndex++
 					}
 				})
 
 				await Promise.all(promises)
 
-				if (this.#totalDisplayedVideo == 0) {
+				const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+
+				if (currentVideoDisplayed == 0) {
 					await this.previousVideo({ socket })
 				}
 			} else if (this.#currentLayout == 2) {
@@ -1371,6 +1386,9 @@ class Users extends StaticEvent {
 					let tracks = u.consumer.filter((t) => t.kind == "video")
 					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
 					for (const track of tracks) {
+						if (!track.focus) {
+							customIndex++
+						}
 						if (track.focus) {
 							const isMove = await this.addFocusVideoSecondMethod({
 								track: track.track,
@@ -1383,19 +1401,32 @@ class Users extends StaticEvent {
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
-						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
-							customIndex++
+						} else if (customIndex >= min && customIndex <= max) {
+							const videoELement = document.getElementById(`vc-${u.userId}`);
+							if (videoELement && videoELement.parentElement && videoELement.parentElement.id == "video-container-focus") {
+								this.#videoContainer.prepend(videoELement)
+							}
+							
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
 						} else {
-							customIndex++
+							const videoELement = document.getElementById(`vc-${u.userId}`);
+							if (videoELement && videoELement.parentElement && videoELement.parentElement.id == "video-container-focus") {
+								this.#videoContainer.prepend(videoELement)
+							}
 							await this.showHideVideo({ id: u.userId, status: false })
 							socket.emit("consumer-pause", { serverConsumerId: track.id })
 						}
 					}
 				})
+
+				const currentVideoDisplayed = document.querySelectorAll('#video-collection [id^="vc-"]:not(.d-none)').length
+
+				if (currentVideoDisplayed == 0) {
+					await this.previousVideo({ socket })
+				}
 				if (this.#users == 1) {
 					await document.getElementById("layout-1").click()
 				}
@@ -1841,6 +1872,9 @@ class Users extends StaticEvent {
 			}
 		} catch (error) {
 			await this.resetTimer()
+			if (error == "NotAllowedError: Permission denied"){
+				this.#record.isRecording = false
+			}
 			console.log("- Error Record Meeting Video : ", error)
 		}
 	}
