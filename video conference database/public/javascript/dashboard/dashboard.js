@@ -14,6 +14,7 @@ const checkBoxInputPassword = document.getElementById("custom-password-checkbox"
 const passwordInput = document.getElementById("password")
 const meetingTypeInput = document.getElementById("meeting_type")
 const faceRecognitionInput = document.getElementById("face_recognition")
+const videoTypeInput = document.getElementById("video_type")
 const participantsOptionContainer = document.getElementById("input-meeting-participants")
 const participantListPublicContainer = document.getElementById("public-declaration")
 const noPerkaraInput = document.getElementById("no_perkara")
@@ -29,6 +30,7 @@ const noteDetail = document.getElementById("detail_note")
 const roomIdDetail = document.getElementById("detail_room_id")
 const passwordDetail = document.getElementById("detail_password")
 const faceRecognitionDetail = document.getElementById("detail_face_recognition")
+const videoTypeDetail = document.getElementById("detail_video_type")
 const participantsListDetail = document.getElementById("detail_participant_list")
 const clipboardDetail = document.getElementById("clipboard-button")
 
@@ -126,6 +128,7 @@ let newMeeting = {
 	password: initialPassword,
 	participants: [],
 	face_recognition: false,
+	video_type: "",
 }
 passwordInput.value = initialPassword
 
@@ -341,7 +344,8 @@ const functionShowDetail = async () => {
 
 					const roomDetail = meetingsInfo.find((m) => m.room_id == parts[0])
 
-					const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, note, participants, face_recognition } = roomDetail
+					const { no_perkara, end_date, start_date, meeting_type, room_id, room_name, password, note, participants, face_recognition, video_type } =
+						roomDetail
 
 					const startDate = await formatDate(new Date(start_date))
 					const endDate = await formatDate(new Date(end_date))
@@ -360,6 +364,7 @@ const functionShowDetail = async () => {
 					roomIdDetail.innerHTML = room_id
 					passwordDetail.innerHTML = password
 					faceRecognitionDetail.innerHTML = face_recognition ? "Ya" : "Tidak"
+					videoTypeDetail.innerHTML = video_type
 
 					clipboardDetail.removeEventListener("click", copyClipboard)
 					clipboardDetail.addEventListener("click", copyClipboard)
@@ -441,10 +446,11 @@ saveNewMeetingButton.addEventListener("click", async () => {
 		newMeeting.no_perkara = noPerkaraInput.value
 		newMeeting.meeting_type = meetingTypeInput.value
 		newMeeting.face_recognition = faceRecognitionInput.value === "true"
+		newMeeting.video_type = videoTypeInput.value
 		if (newMeeting.meeting_type == 2) {
 			newMeeting.no_perkara = ""
 		}
-		const { end_date, note, meeting_type, no_perkara, room_name, start_date, password, participants, face_recognition } = newMeeting
+		const { end_date, note, meeting_type, no_perkara, room_name, start_date, password, participants, face_recognition, video_type } = newMeeting
 
 		if (!room_name && room_name.trim() == "") {
 			throw { name: "Bad Request", message: "Judul rapat wajib di isi" }
@@ -637,10 +643,10 @@ document.addEventListener("click", (e) => {
 	}
 })
 $(document).ready(function () {
-    const elements = document.getElementsByClassName("daterangepicker");
-    for (let i = 0; i < elements.length; i++) {
-        elements[i].addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-    }
-});
+	const elements = document.getElementsByClassName("daterangepicker")
+	for (let i = 0; i < elements.length; i++) {
+		elements[i].addEventListener("click", (e) => {
+			e.stopPropagation()
+		})
+	}
+})

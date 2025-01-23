@@ -70,10 +70,10 @@
                         tampilan ini</span>
                 </div>
                 <div class="layout-modal-content-2-content">
-                    <div class="layout-option" data-option="1">
+                    <!-- <div class="layout-option" data-option="1">
                         <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
                         <span>1</span>
-                    </div>
+                    </div> -->
                     <div class="layout-option" data-option="6">
                         <img class="mini-radio" src="/assets/icons/mini_radio_active.svg" alt="mini_radio" />
                         <span>6</span>
@@ -113,6 +113,10 @@
                         <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
                         <span>High</span>
                     </div>
+                    <div class="upstream-option" data-option="2">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>Auto</span>
+                    </div>
                 </div>
             </div>
             <div class="video-quality-downstream">
@@ -129,6 +133,10 @@
                     <div class="downstream-option" data-option="2">
                         <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
                         <span>High</span>
+                    </div>
+                    <div class="downstream-option" data-option="2">
+                        <img class="mini-radio" src="/assets/icons/mini_radio.svg" alt="mini_radio" />
+                        <span>Auto</span>
                     </div>
                 </div>
             </div>
@@ -276,23 +284,29 @@
                 </section>
                 <section class="middle-button-collection">
                     <button class="button-container" id="user-list-button">
+                        <div class="tooltip-container">Peserta</div>
                         <div id="red-dot-user-list" class="d-none red-dot"></div>
                         <img class="icons" src="/assets/icons/people.svg" alt="user-list-icons">
                     </button>
                     <button class="button-container" id="chat-button">
+                        <div class="tooltip-container">Pesan</div>
                         <div id="red-dot-chat" class="d-none red-dot"></div>
                         <img class="icons" src="/assets/icons/chat.svg" alt="chat-icons">
                     </button>
                     <button class="button-container" id="raise-hand-button">
+                        <div class="tooltip-container">Angkat Tangan</div>
                         <img class="icons" src="/assets/icons/raise_hand.svg" alt="raise-hand-icons">
                     </button>
                     <button class="button-container" id="screen-sharing-button">
+                        <div class="tooltip-container">Berbagi Layar</div>
                         <img class="icons" src="/assets/icons/screen_sharing.svg" alt="screen-sharing-icons">
                     </button>
                     <button class="button-container" id="cc-button">
+                        <div class="tooltip-container">Caption</div>
                         <img class="icons" src="/assets/icons/cc.svg" alt="cc-icons">
                     </button>
                     <button class="button-container" id="option-button">
+                        <div class="tooltip-container">Menu</div>
                         <img class="icons" src="/assets/icons/option.svg" alt="option-icons">
                         <div class="option-container d-none" id="option-container">
                             <div class="option-list" id="record-button">
@@ -333,8 +347,10 @@
         const picture = [/- JSON.stringify(picture) /]
         const password = [/- JSON.stringify(password) /]
         const faceRecognition = [/- JSON.stringify(faceRecognition) /]
+        const videoType = [/- JSON.stringify(video_type) /]
         const token = [/- JSON.stringify(token) /]
         const userToken = [/- JSON.stringify(user_token) /]
+        console.log("- Video Codec : ", videoType)
     </script>
     <script src="/javascript/room/roombundle.js"></script>
 </body>

@@ -35287,16 +35287,19 @@ class MediaSoupClient extends StaticEvent {
 	#videoParams = {
 		track: null,
 		codec: null,
-		encodings: [
-			{ scaleResolutionDownBy: 4, scalabilityMode: "L1T3", maxBitrate: 100000 },
-			{ scaleResolutionDownBy: 2, scalabilityMode: "L1T3", maxBitrate: 300000 },
-			{ scaleResolutionDownBy: 1, scalabilityMode: "L1T3", maxBitrate: 600000 },
-		],
+		encodings: [],
 		codecOptions: {
 			videoGoogleStartBitrate: 1000,
 		},
 		appData: { label: "video", isActive: true, picture: "" },
 	}
+
+	#encodingsvp8 = [
+		{ scaleResolutionDownBy: 4, scalabilityMode: "L1T3", maxBitrate: 100000 },
+		{ scaleResolutionDownBy: 2, scalabilityMode: "L1T3", maxBitrate: 300000 },
+		{ scaleResolutionDownBy: 1, scalabilityMode: "L1T3", maxBitrate: 600000 },
+	]
+	#encodingsvp9 = [{ scalabilityMode: "L3T3", maxBitrate: 1500000 }]
 
 	#screenSharingVideoParams = {
 		track: null,
@@ -35392,9 +35395,19 @@ class MediaSoupClient extends StaticEvent {
 
 	async setEncoding() {
 		try {
-			const firstCodec = this.#device.rtpCapabilities.codecs.find((c) => c.mimeType.toLowerCase() === "video/vp8")
+			let currentVideoType = videoType
+			if (videoType != "vp8" && videoType != "vp9") {
+				currentVideoType = "vp8"
+			}
+			const firstCodec = this.#device.rtpCapabilities.codecs.find((c) => c.mimeType.toLowerCase() === `video/${currentVideoType}`)
+			console.log("- First Codec : ", firstCodec)
 			this.#videoParams.codec = {
 				...firstCodec,
+			}
+			if (currentVideoType == "vp8") {
+				this.#videoParams.encodings = [...this.#encodingsvp8]
+			} else {
+				this.#videoParams.encodings = [...this.#encodingsvp9]
 			}
 		} catch (error) {
 			console.log("- Error Set Encoding : ", error)
@@ -35601,6 +35614,9 @@ class MediaSoupClient extends StaticEvent {
 				this.#producerTransport.on("connectionstatechange", async (e) => {
 					try {
 						console.log("- State Change Producer : ", e)
+						if (e == "connected") {
+							document.getElementById("loading-id").className = "loading-hide"
+						}
 						if (e == "failed") {
 							window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
 						}
@@ -35709,7 +35725,7 @@ class MediaSoupClient extends StaticEvent {
 				console.log("audio observer close")
 			})
 
-			this.#videoProducer.setMaxSpatialLayer(1)
+			this.#videoProducer.setMaxSpatialLayer(2)
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
 		}
@@ -36296,7 +36312,7 @@ const connectSocket = async () => {
 							})
 						}
 						await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
-						document.getElementById("loading-id").className = "loading-hide"
+						// document.getElementById("loading-id").className = "loading-hide"
 					} else {
 						window.location.href = window.location.origin
 					}
@@ -37081,8 +37097,11 @@ downstreamOption.forEach((container) => {
 					if (u.userId != usersVariable.userId) {
 						u.consumer.forEach((c) => {
 							if (c.kind == "video") {
-								console.log("- Number : ", Number(downStream))
-								socket.emit("set-consumer-quality", { consumerId: Number(downStream), SL: downStream, TL: 2 })
+								socket.emit("set-consumer-quality", {
+									consumerId: c.id,
+									SL: videoType == "vp8" ? 1 : Number(downStream),
+									TL: videoType == "vp8" ? Number(downStream) : 2,
+								})
 							}
 						})
 					}
@@ -37590,7 +37609,9 @@ class Users extends StaticEvent {
 
 	async changeCurrentPage() {
 		try {
-			document.getElementById("previous-number").innerHTML = this.#currentPage == 1 ? 1 : this.#currentPage - 1
+			console.log("- Current Page : ", this.#currentPage)
+			// document.getElementById("previous-number").innerHTML = this.#currentPage <= 1 ? 1 : this.#currentPage - 1 == 0 ? 1 : this.#currentPage - 1
+			document.getElementById("previous-number").innerHTML = Math.max(1, this.#currentPage - 1)
 			document.getElementById("next-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
 			document.getElementById("down-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
 			document.getElementById("up-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage - 1
@@ -38176,7 +38197,7 @@ class Users extends StaticEvent {
 						this.#currentLayout = 2
 						document.querySelectorAll(".layout-option-container").forEach((c) => {
 							const radio = c.querySelector(".radio")
-							if (c.dataset.option == 2){
+							if (c.dataset.option == 2) {
 								radio.src = "/assets/icons/radio_button_active.svg"
 							} else {
 								radio.src = "/assets/icons/radio_button.svg"
@@ -38623,17 +38644,17 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
 						} else if (customIndex >= min && customIndex <= max) {
-							const videoELement = document.getElementById(`vc-${u.userId}`);
+							const videoELement = document.getElementById(`vc-${u.userId}`)
 							if (videoELement && videoELement.parentElement && videoELement.parentElement.id == "video-container-focus") {
 								this.#videoContainer.prepend(videoELement)
 							}
-							
+
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
 						} else {
-							const videoELement = document.getElementById(`vc-${u.userId}`);
+							const videoELement = document.getElementById(`vc-${u.userId}`)
 							if (videoELement && videoELement.parentElement && videoELement.parentElement.id == "video-container-focus") {
 								this.#videoContainer.prepend(videoELement)
 							}
@@ -39093,7 +39114,7 @@ class Users extends StaticEvent {
 			}
 		} catch (error) {
 			await this.resetTimer()
-			if (error == "NotAllowedError: Permission denied"){
+			if (error == "NotAllowedError: Permission denied") {
 				this.#record.isRecording = false
 			}
 			console.log("- Error Record Meeting Video : ", error)

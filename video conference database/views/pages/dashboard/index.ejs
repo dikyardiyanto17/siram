@@ -79,6 +79,13 @@
                             </select>
                         </div>
                         <div class="input-meeting">
+                            <span>Tipe Video</span>
+                            <select name="video_type" id="video_type">
+                                <option value="vp8" selected>VP8</option>
+                                <option value="vp9">VP9</option>
+                            </select>
+                        </div>
+                        <div class="input-meeting">
                             <span>Keterangan</span>
                             <textarea name="note" id="note" placeholder="Keterangan"></textarea>
                         </div>
@@ -181,6 +188,12 @@
                                 <span>Face Recognition</span>
                                 <div class="info-wrapper">
                                     <span id="detail_face_recognition"></span>
+                                </div>
+                            </div>
+                            <div class="detail-wrapper">
+                                <span>Video Type</span>
+                                <div class="info-wrapper">
+                                    <span id="detail_video_type"></span>
                                 </div>
                             </div>
                             <div class="detail-wrapper" style="position: relative;">

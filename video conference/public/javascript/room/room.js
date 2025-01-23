@@ -96,7 +96,7 @@ const connectSocket = async () => {
 							})
 						}
 						await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
-						document.getElementById("loading-id").className = "loading-hide"
+						// document.getElementById("loading-id").className = "loading-hide"
 					} else {
 						window.location.href = window.location.origin
 					}
@@ -881,8 +881,11 @@ downstreamOption.forEach((container) => {
 					if (u.userId != usersVariable.userId) {
 						u.consumer.forEach((c) => {
 							if (c.kind == "video") {
-								console.log("- Number : ", Number(downStream))
-								socket.emit("set-consumer-quality", { consumerId: Number(downStream), SL: downStream, TL: 2 })
+								socket.emit("set-consumer-quality", {
+									consumerId: c.id,
+									SL: videoType == "vp8" ? 1 : Number(downStream),
+									TL: videoType == "vp8" ? Number(downStream) : 2,
+								})
 							}
 						})
 					}

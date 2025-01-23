@@ -1143,6 +1143,147 @@ input:focus {
     outline: none;
 }
 
+#user-list-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#user-list-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+#chat-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#chat-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+#raise-hand-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#raise-hand-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+#screen-sharing-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#screen-sharing-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+#cc-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#cc-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+#option-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#option-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+:has(#option-container:not(.d-none)) #option-button:hover .tooltip-container {
+    visibility: hidden;
+    opacity: 0;
+}
+
+.d-none {
+    display: none;
+}
+
 .red-dot {
     width: 4px;
     aspect-ratio: 1;

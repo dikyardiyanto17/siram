@@ -69,11 +69,16 @@ class MediaSoup {
 		},
 	]
 
+	#maxCores = 2
+
 	#workers = []
 	#routers = []
 	#transports = []
 	#producers = []
 	#consumers = []
+
+	#incomingMinBitRate = 1500000
+	#incomingMaxBitRate = 1500000
 
 	#listenInfo
 
@@ -94,6 +99,14 @@ class MediaSoup {
 				},
 			],
 		}
+	}
+
+	get maxCores() {
+		return this.#maxCores
+	}
+
+	set maxCores(newMaxCores) {
+		this.#maxCores = newMaxCores
 	}
 
 	get turnServer() {
@@ -167,11 +180,51 @@ class MediaSoup {
 		}
 	}
 
+	async countWorkerPids() {
+		const pidCounts = []
+
+		// Count occurrences of each workerPid
+		this.#routers.forEach(({ workerPid }) => {
+			const existing = pidCounts.find((item) => item.workerPid === workerPid)
+			if (existing) {
+				existing.count += 1
+			} else {
+				pidCounts.push({ workerPid, count: 1 })
+			}
+		})
+
+		return pidCounts
+	}
+
+	async findLeastUsedWorkerPid(pidCounts) {
+		let leastUsedPid = pidCounts[0].workerPid // Initialize with the first workerPid
+		let leastCount = pidCounts[0].count // Initialize with the first count
+
+		pidCounts.forEach(({ workerPid, count }) => {
+			if (count < leastCount) {
+				leastUsedPid = workerPid
+				leastCount = count
+			}
+		})
+
+		return leastUsedPid
+	}
+
 	async getRouter({ roomId }) {
 		try {
 			const router = this.#routers.find((r) => r.router.appData.roomId == roomId)
 			if (!router) {
-				const worker = this.#workers[0]
+				// Worker.pid => router.pid => transport.id
+				let worker
+				if (this.#workers.length < this.#maxCores) {
+					await this.createWorker()
+					worker = this.#workers[0]
+				} else {
+					const pidCounts = await this.countWorkerPids()
+					const workerPid = await this.findLeastUsedWorkerPid(pidCounts)
+					worker = this.#workers.find((w) => w.worker.pid == workerPid)
+				}
+
 				const newRouter = await worker.worker.createRouter({ mediaCodecs: this.#mediaCodecs, appData: { roomId } })
 				newRouter.on("workerclose", () => {
 					try {
@@ -209,8 +262,12 @@ class MediaSoup {
 						console.log("- Error Router newtransport : ", error)
 					}
 				})
+				console.log("- Worker : ", this.#workers)
+				console.log("- Router : ", this.#routers)
 				return newRouter
 			}
+			console.log("- Worker : ", this.#workers)
+			console.log("- Router : ", this.#routers)
 
 			return router.router
 		} catch (error) {

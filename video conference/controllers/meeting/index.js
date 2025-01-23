@@ -1,7 +1,7 @@
 class Meeting {
 	static async index(req, res, next) {
 		try {
-			const { authority, participantId, roomId, meetingType, photoPath, password, faceRecognition } = req.session.meeting
+			const { authority, participantId, roomId, meetingType, photoPath, password, faceRecognition, videoType } = req.session.meeting
 			const { roomToken } = req.session
 			res.render("pages/meeting/index", {
 				authority,
@@ -12,7 +12,8 @@ class Meeting {
 				password,
 				faceRecognition,
 				token: roomToken,
-				user_token: req.session.token
+				user_token: req.session.token,
+				video_type: videoType,
 			})
 		} catch (error) {
 			next(error)

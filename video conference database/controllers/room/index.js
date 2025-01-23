@@ -33,8 +33,21 @@ class Rooms {
 
 	static async create(req, res, next) {
 		try {
-			const { no_perkara, meeting_type, room_name, reference_room_id, start_date, end_date, participants, note, password, face_recognition } =
-				req.body
+			const {
+				no_perkara,
+				meeting_type,
+				room_name,
+				reference_room_id,
+				start_date,
+				end_date,
+				participants,
+				note,
+				password,
+				face_recognition,
+				video_type,
+			} = req.body
+
+			const validatedVideoType = video_type === "vp8" || video_type === "vp9" ? video_type : "vp8"
 
 			const room_id = await Rooms.createRoomId()
 			const status = 1
@@ -95,6 +108,7 @@ class Rooms {
 						note,
 						password,
 						face_recognition,
+						video_type: validatedVideoType,
 						...createdDate,
 					},
 					{ transaction }
@@ -127,6 +141,7 @@ class Rooms {
 					password,
 					note,
 					face_recognition,
+					video_type: validatedVideoType,
 					...createdDate,
 				})
 				await res.status(201).json({ message: "Berhasil membuat ruangan meeting", status: true })

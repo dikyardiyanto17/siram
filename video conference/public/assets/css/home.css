@@ -15,6 +15,17 @@
     background-position: center;
 }
 
+#language-option {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: grey;
+    color: #000000;
+}
+
 .waiting-modal-container {
     position: absolute;
     background-color: #00000040;
@@ -383,7 +394,7 @@
 
 
 #update-photo-button {
-    margin: 20px 0 20px 22px;
+    margin: 20px 0 0px 0px;
     width: 38%;
     border: none;
     padding: 7px;

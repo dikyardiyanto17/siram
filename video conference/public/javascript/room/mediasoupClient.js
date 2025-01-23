@@ -80,16 +80,19 @@ class MediaSoupClient extends StaticEvent {
 	#videoParams = {
 		track: null,
 		codec: null,
-		encodings: [
-			{ scaleResolutionDownBy: 4, scalabilityMode: "L1T3", maxBitrate: 100000 },
-			{ scaleResolutionDownBy: 2, scalabilityMode: "L1T3", maxBitrate: 300000 },
-			{ scaleResolutionDownBy: 1, scalabilityMode: "L1T3", maxBitrate: 600000 },
-		],
+		encodings: [],
 		codecOptions: {
 			videoGoogleStartBitrate: 1000,
 		},
 		appData: { label: "video", isActive: true, picture: "" },
 	}
+
+	#encodingsvp8 = [
+		{ scaleResolutionDownBy: 4, scalabilityMode: "L1T3", maxBitrate: 100000 },
+		{ scaleResolutionDownBy: 2, scalabilityMode: "L1T3", maxBitrate: 300000 },
+		{ scaleResolutionDownBy: 1, scalabilityMode: "L1T3", maxBitrate: 600000 },
+	]
+	#encodingsvp9 = [{ scalabilityMode: "L3T3", maxBitrate: 1500000 }]
 
 	#screenSharingVideoParams = {
 		track: null,
@@ -185,9 +188,19 @@ class MediaSoupClient extends StaticEvent {
 
 	async setEncoding() {
 		try {
-			const firstCodec = this.#device.rtpCapabilities.codecs.find((c) => c.mimeType.toLowerCase() === "video/vp8")
+			let currentVideoType = videoType
+			if (videoType != "vp8" && videoType != "vp9") {
+				currentVideoType = "vp8"
+			}
+			const firstCodec = this.#device.rtpCapabilities.codecs.find((c) => c.mimeType.toLowerCase() === `video/${currentVideoType}`)
+			console.log("- First Codec : ", firstCodec)
 			this.#videoParams.codec = {
 				...firstCodec,
+			}
+			if (currentVideoType == "vp8") {
+				this.#videoParams.encodings = [...this.#encodingsvp8]
+			} else {
+				this.#videoParams.encodings = [...this.#encodingsvp9]
 			}
 		} catch (error) {
 			console.log("- Error Set Encoding : ", error)
@@ -394,6 +407,9 @@ class MediaSoupClient extends StaticEvent {
 				this.#producerTransport.on("connectionstatechange", async (e) => {
 					try {
 						console.log("- State Change Producer : ", e)
+						if (e == "connected") {
+							document.getElementById("loading-id").className = "loading-hide"
+						}
 						if (e == "failed") {
 							window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
 						}
@@ -502,7 +518,7 @@ class MediaSoupClient extends StaticEvent {
 				console.log("audio observer close")
 			})
 
-			this.#videoProducer.setMaxSpatialLayer(1)
+			this.#videoProducer.setMaxSpatialLayer(2)
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
 		}

@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     room_id: DataTypes.STRING,
     face_recognition: DataTypes.BOOLEAN,
     password: DataTypes.STRING,
+    video_type: DataTypes.STRING,
     room_name: DataTypes.STRING,
     reference_room_id: DataTypes.STRING,
     max_participants: DataTypes.INTEGER,

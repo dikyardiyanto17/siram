@@ -369,7 +369,9 @@ class Users extends StaticEvent {
 
 	async changeCurrentPage() {
 		try {
-			document.getElementById("previous-number").innerHTML = this.#currentPage == 1 ? 1 : this.#currentPage - 1
+			console.log("- Current Page : ", this.#currentPage)
+			// document.getElementById("previous-number").innerHTML = this.#currentPage <= 1 ? 1 : this.#currentPage - 1 == 0 ? 1 : this.#currentPage - 1
+			document.getElementById("previous-number").innerHTML = Math.max(1, this.#currentPage - 1)
 			document.getElementById("next-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
 			document.getElementById("down-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
 			document.getElementById("up-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage - 1
@@ -955,7 +957,7 @@ class Users extends StaticEvent {
 						this.#currentLayout = 2
 						document.querySelectorAll(".layout-option-container").forEach((c) => {
 							const radio = c.querySelector(".radio")
-							if (c.dataset.option == 2){
+							if (c.dataset.option == 2) {
 								radio.src = "/assets/icons/radio_button_active.svg"
 							} else {
 								radio.src = "/assets/icons/radio_button.svg"
@@ -1402,17 +1404,17 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
 						} else if (customIndex >= min && customIndex <= max) {
-							const videoELement = document.getElementById(`vc-${u.userId}`);
+							const videoELement = document.getElementById(`vc-${u.userId}`)
 							if (videoELement && videoELement.parentElement && videoELement.parentElement.id == "video-container-focus") {
 								this.#videoContainer.prepend(videoELement)
 							}
-							
+
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id })
 							}
 						} else {
-							const videoELement = document.getElementById(`vc-${u.userId}`);
+							const videoELement = document.getElementById(`vc-${u.userId}`)
 							if (videoELement && videoELement.parentElement && videoELement.parentElement.id == "video-container-focus") {
 								this.#videoContainer.prepend(videoELement)
 							}
@@ -1872,7 +1874,7 @@ class Users extends StaticEvent {
 			}
 		} catch (error) {
 			await this.resetTimer()
-			if (error == "NotAllowedError: Permission denied"){
+			if (error == "NotAllowedError: Permission denied") {
 				this.#record.isRecording = false
 			}
 			console.log("- Error Record Meeting Video : ", error)

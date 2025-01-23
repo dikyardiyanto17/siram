@@ -49,9 +49,9 @@ app.use(sessionMiddleware)
 
 let mediasoupVariable = new MediaSoup()
 let liveMeeting = new LiveMeeting()
-if (mediasoupVariable.workers.length == 0) {
-	mediasoupVariable.createWorker()
-}
+// if (mediasoupVariable.workers.length == 0) {
+// 	mediasoupVariable.createWorker()
+// }
 
 // const httpsServer = https.createServer(options, app)
 // httpsServer.listen(port, async () => {
@@ -118,6 +118,7 @@ io.on("connection", async (socket) => {
 				created_by,
 				created_at,
 				updated_at,
+				video_type,
 			} = decodedRoom
 
 			if (position == "room" && !userSession.roomToken) {
@@ -142,16 +143,17 @@ io.on("connection", async (socket) => {
 					nik: nik,
 					nrp: role,
 					roomName: room_name,
+					videoType: video_type,
 					startDate: start_date,
 				}
 				userSession.roomToken = token
 				await saveSession(userSession)
 			}
 
-			// Create worker if its doesnot exist
-			if (mediasoupVariable.workers.length == 0) {
-				await mediasoupVariable.createWorker()
-			}
+			// // Create worker if its doesnot exist
+			// if (mediasoupVariable.workers.length == 0) {
+			// 	await mediasoupVariable.createWorker()
+			// }
 
 			// Add User data to node.js server for the 1st time enter the room
 			if (position == "home" || position == "lobby") {
@@ -535,8 +537,9 @@ io.on("connection", async (socket) => {
 	socket.on("set-consumer-quality", async ({ consumerId, SL, TL }) => {
 		try {
 			mediasoupVariable.consumers.forEach((consumer) => {
+				const { spatialLayer, temporalLayer } = consumer.consumer.currentLayers
+				console.log("- SL : ", spatialLayer, " - TL : ", temporalLayer, ` Change To : ${SL} ${TL}`)
 				if (consumer.consumer.id == consumerId) {
-					const { spatialLayer, temporalLayer } = consumer.consumer.currentLayers
 					consumer.consumer.setPreferredLayers({ spatialLayer: SL, temporalLayer: TL })
 				}
 			})
