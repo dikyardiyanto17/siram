@@ -1286,14 +1286,14 @@ class Users extends StaticEvent {
 		try {
 			let customIndex = 0
 			await this.updateVideoContainerLayout()
+			if (this.#videoContainerFocus.children.length > 0) {
+				this.#videoContainer.prepend(this.#videoContainerFocus.children[0])
+			}
 			// console.log("\n- Current Layout : ", this.#currentLayout, "\n- Current Page : ", this.#currentPage, "\n- Total Page : ", this.#totalPage)
 			if (this.#currentLayout == 1) {
 				this.#videoContainer.classList.remove("d-none")
 				if (!this.#videoContainerFocus.classList.contains("d-none")) {
 					this.#videoContainerFocus.classList.add("d-none")
-				}
-				if (this.#videoContainerFocus.children.length > 0) {
-					this.#videoContainer.prepend(this.#videoContainerFocus.children[0])
 				}
 
 				if (this.#totalLayout == 5) {
