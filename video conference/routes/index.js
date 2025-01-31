@@ -19,9 +19,9 @@ router.get("/logout", Login.logout)
 
 router.get("/room/:room", Meeting.index)
 router.use("/photo", express.static(path.join(__dirname, "../photo")))
-router.get("/updatephoto", Update_Photo.index)
+// router.get("/updatephoto", Update_Photo.index)
 router.get("/updatetoken", Update_Photo.update_token)
-router.get("/lobby", Lobby.index)
-router.get("/sandbox", Lobby.sandbox)
+// router.get("/lobby", Lobby.index)
+// router.get("/sandbox", Lobby.sandbox)
 
 module.exports = router
