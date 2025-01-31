@@ -732,7 +732,7 @@ class EventListener {
 			userWaitingListElement.id = `wait-${id}`
 			userWaitingListElement.innerHTML = `
 									<div class="user-list-profile">
-										<img  src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
+										<img  src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
 											class="user-list-picture" />
 										<span class="user-list-username">${username}</span>
 									</div>
@@ -833,7 +833,7 @@ class EventListener {
 					raiseHandElement.id = `raise-${id}`
 					raiseHandElement.innerHTML = `
 											<div class="user-list-profile">
-												<img src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
+												<img src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
 													class="user-list-picture" />
 												<span class="user-list-username">${username}</span>
 											</div>
@@ -916,7 +916,7 @@ class EventListener {
 			const newUserContainer = document.createElement("section")
 			newUserContainer.className = "new-user-join"
 			newUserContainer.innerHTML = `<img src="${
-				picture ? `${serverUrl}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
+				picture ? `${window.location.origin}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
 			}" alt="new-user-join" class="new-user-profile-picture"><span class="notification-text">${username} join the room</span>`
 			newUserNotificationContainer.appendChild(newUserContainer)
 			setTimeout(() => {
@@ -997,7 +997,7 @@ class EventListener {
 							</div>
 						</div>
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${serverUrl}/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${window.location.origin}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 					`
@@ -1016,7 +1016,7 @@ class EventListener {
 						</div>
 					</div>
 					<div class="message-profile">
-						<img class="message-profile-photo" src="${serverUrl}/photo/${picture}.png"
+						<img class="message-profile-photo" src="${window.location.origin}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 				`
@@ -1027,7 +1027,7 @@ class EventListener {
 					if (usernameLastMessage == username && messageDate == dateLastMessage) {
 						return `
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${serverUrl}/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${window.location.origin}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 						<div class="message-content">
@@ -1046,7 +1046,7 @@ class EventListener {
 				}
 				return `
 					<div class="message-profile">
-						<img class="message-profile-photo" src="${serverUrl}/photo/${picture}.png"
+						<img class="message-profile-photo" src="${window.location.origin}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 					<div class="message-content">

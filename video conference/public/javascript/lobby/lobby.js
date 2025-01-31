@@ -14,7 +14,7 @@ const waitingModal = document.getElementById("waiting-modal-container")
 const modalTitle = document.getElementById("modal-title")
 let image_data_url
 const baseUrl = window.location.origin
-let base64Photo = `${serverUrl}/photo/${userPhoto}.png`
+let base64Photo = `${window.location.origin}/photo/${userPhoto}.png`
 let descriptors = { desc1: null, desc2: null }
 let intervalFR
 let result = false

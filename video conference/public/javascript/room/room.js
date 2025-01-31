@@ -21,7 +21,6 @@ const connectSocket = async () => {
 			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
 				console.log(socket.id)
 				try {
-					console.log("- Room Id : ", roomId)
 					if (status) {
 						let filteredRtpCapabilities = { ...rtpCapabilities }
 						filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
@@ -39,8 +38,8 @@ const connectSocket = async () => {
 						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 						await mediasoupClientVariable.createDevice()
 						await mediasoupClientVariable.setEncoding()
-						await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${serverUrl}/photo/${picture}.png`, userId, username })
-						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${serverUrl}/photo/${picture}.png`, userId, username })
+						await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
+						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
 						await mediasoupClientVariable.getCameraOptions({ userId: userId })
 						await mediasoupClientVariable.getMicOptions({ usersVariable })
 
@@ -102,6 +101,7 @@ const connectSocket = async () => {
 					}
 				} catch (error) {
 					console.log("- Error Join Room : ", error)
+					this.constructor.warning({ message: `Internal Server Error!\n${error}`, back: true })
 				}
 			}
 		)
@@ -313,7 +313,7 @@ socket.on("transcribe", async ({ randomId, message, username, picture }) => {
 		ccContainer.id = `cc_${randomId}`
 		const imageCC = document.createElement("img")
 		imageCC.className = "cc-profile-picture"
-		imageCC.src = `${serverUrl}/photo/${picture}.png`
+		imageCC.src = `${window.location.origin}/photo/${picture}.png`
 		ccContainer.append(imageCC)
 		const ccMessage = document.createElement("div")
 		ccMessage.className = "cc-message"
@@ -728,7 +728,7 @@ messageInput.addEventListener("keyup", async (event) => {
 			let chatContent = document.getElementById("chat-content")
 			chatContent.scrollTop = chatContent.scrollHeight
 			messageInput.value = ""
-			const response = await fetch(`${serverUrl}/api/video_conference/message`, {
+			const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -783,7 +783,7 @@ sendMessageButton.addEventListener("click", async (event) => {
 		let chatContent = document.getElementById("chat-content")
 		chatContent.scrollTop = chatContent.scrollHeight
 		messageInput.value = ""
-		const response = await fetch(`${serverUrl}/api/video_conference/message`, {
+		const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

@@ -34854,7 +34854,7 @@ class EventListener {
 			userWaitingListElement.id = `wait-${id}`
 			userWaitingListElement.innerHTML = `
 									<div class="user-list-profile">
-										<img  src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
+										<img  src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
 											class="user-list-picture" />
 										<span class="user-list-username">${username}</span>
 									</div>
@@ -34955,7 +34955,7 @@ class EventListener {
 					raiseHandElement.id = `raise-${id}`
 					raiseHandElement.innerHTML = `
 											<div class="user-list-profile">
-												<img src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
+												<img src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
 													class="user-list-picture" />
 												<span class="user-list-username">${username}</span>
 											</div>
@@ -35038,7 +35038,7 @@ class EventListener {
 			const newUserContainer = document.createElement("section")
 			newUserContainer.className = "new-user-join"
 			newUserContainer.innerHTML = `<img src="${
-				picture ? `${serverUrl}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
+				picture ? `${window.location.origin}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
 			}" alt="new-user-join" class="new-user-profile-picture"><span class="notification-text">${username} join the room</span>`
 			newUserNotificationContainer.appendChild(newUserContainer)
 			setTimeout(() => {
@@ -35119,7 +35119,7 @@ class EventListener {
 							</div>
 						</div>
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${serverUrl}/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${window.location.origin}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 					`
@@ -35138,7 +35138,7 @@ class EventListener {
 						</div>
 					</div>
 					<div class="message-profile">
-						<img class="message-profile-photo" src="${serverUrl}/photo/${picture}.png"
+						<img class="message-profile-photo" src="${window.location.origin}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 				`
@@ -35149,7 +35149,7 @@ class EventListener {
 					if (usernameLastMessage == username && messageDate == dateLastMessage) {
 						return `
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${serverUrl}/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${window.location.origin}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 						<div class="message-content">
@@ -35168,7 +35168,7 @@ class EventListener {
 				}
 				return `
 					<div class="message-profile">
-						<img class="message-profile-photo" src="${serverUrl}/photo/${picture}.png"
+						<img class="message-profile-photo" src="${window.location.origin}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 					<div class="message-content">
@@ -35250,14 +35250,17 @@ class StaticEvent {
 		}
 	}
 
-	static warning({ message }) {
+	static warning({ message, back = false, time = 3000 }) {
 		try {
 			document.getElementById("warning-container").style.top = "50px"
 			document.getElementById("warning-message").innerHTML = message
 			setTimeout(() => {
 				document.getElementById("warning-container").style.top = "-100%"
 				document.getElementById("warning-message").innerHTML = ""
-			}, 3000)
+				if (back) {
+					window.location.href = window.location.origin
+				}
+			}, time)
 		} catch (error) {
 			console.log("- Error Warning Message : ", error)
 		}
@@ -35390,6 +35393,7 @@ class MediaSoupClient extends StaticEvent {
 
 			console.log("Device created successfully")
 		} catch (error) {
+			this.constructor.warning({ message: "Gagal memuat device!", back: true })
 			console.log("- Error Create Device:", error)
 		}
 	}
@@ -35411,6 +35415,7 @@ class MediaSoupClient extends StaticEvent {
 				this.#videoParams.encodings = [...this.#encodingsvp9]
 			}
 		} catch (error) {
+			this.constructor.warning({ message: "Gagal memuat encoding!", back: true })
 			console.log("- Error Set Encoding : ", error)
 		}
 	}
@@ -35525,27 +35530,14 @@ class MediaSoupClient extends StaticEvent {
 
 	async getMyStream({ faceRecognition, picture, userId, username }) {
 		try {
-			// if (faceRecognition) {
-			// 	const stream = await navigator.mediaDevices.getUserMedia({
-			// 		audio: { ...this.#audioSetting },
-			// 		video: true,
-			// 	})
-
-			// 	this.#mystream = await this.addFRVideo({
-			// 		picture,
-			// 		userId,
-			// 		username,
-			// 		stream,
-			// 	})
-			// 	return
-			// }
 			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: { ...this.#audioSetting }, video: true })
 		} catch (error) {
-			if (error == "NotAllowedError: Permission denied") {
-				this.constructor.warning({ message: "Permintaan izin kamera/microphone di tolak!" })
-				setTimeout(() => {
-					window.location.href = window.location.origin
-				}, 3000)
+			if (
+				error == "NotAllowedError: Permission denied" ||
+				(typeof error === "string" && error.includes("DOMException")) ||
+				error instanceof DOMException
+			) {
+				this.constructor.warning({ message: "Permintaan izin kamera/microphone di tolak!", back: true })
 			}
 			console.log("- Error Get My Stream : ", error)
 		}
@@ -35567,6 +35559,7 @@ class MediaSoupClient extends StaticEvent {
 				})
 			})
 		} catch (error) {
+			this.constructor.warning({ message: "Gagal menyambungkan ke server!", back: true })
 			console.log("- Error Get Producer : ", error)
 		}
 	}
@@ -35712,10 +35705,7 @@ class MediaSoupClient extends StaticEvent {
 			// possible bug
 			this.#audioProducer.on("trackended", () => {
 				console.log("audio track ended")
-				this.constructor.warning({ message: "Microphone sedang bermasalah!\nSedang memuat ulang halaman!" })
-				setTimeout(() => {
-					window.location.reload() // Reloads the current page
-				}, 3000)
+				this.constructor.warning({ message: "Microphone sedang bermasalah!\nSedang memuat ulang halaman!", back: true })
 			})
 
 			this.#audioProducer.on("transportclose", () => {
@@ -36097,6 +36087,7 @@ class MediaSoupClient extends StaticEvent {
 			})
 		} catch (error) {
 			console.log("- Error Get Camera Options : ", error)
+			this.constructor.warning({ message: "Gagal mendapatkan pilihan kamera yang tersedia!", back: true })
 		}
 	}
 
@@ -36171,6 +36162,7 @@ class MediaSoupClient extends StaticEvent {
 			// })
 		} catch (error) {
 			console.log("- Error Getting Mic Options : ", error)
+			this.constructor.warning({ message: "Gagal mendapatkan pilihan microphone yang tersedia!", back: true })
 		}
 	}
 
@@ -36238,7 +36230,6 @@ const connectSocket = async () => {
 			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
 				console.log(socket.id)
 				try {
-					console.log("- Room Id : ", roomId)
 					if (status) {
 						let filteredRtpCapabilities = { ...rtpCapabilities }
 						filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
@@ -36256,8 +36247,8 @@ const connectSocket = async () => {
 						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 						await mediasoupClientVariable.createDevice()
 						await mediasoupClientVariable.setEncoding()
-						await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${serverUrl}/photo/${picture}.png`, userId, username })
-						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${serverUrl}/photo/${picture}.png`, userId, username })
+						await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
+						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
 						await mediasoupClientVariable.getCameraOptions({ userId: userId })
 						await mediasoupClientVariable.getMicOptions({ usersVariable })
 
@@ -36319,6 +36310,7 @@ const connectSocket = async () => {
 					}
 				} catch (error) {
 					console.log("- Error Join Room : ", error)
+					this.constructor.warning({ message: `Internal Server Error!\n${error}`, back: true })
 				}
 			}
 		)
@@ -36530,7 +36522,7 @@ socket.on("transcribe", async ({ randomId, message, username, picture }) => {
 		ccContainer.id = `cc_${randomId}`
 		const imageCC = document.createElement("img")
 		imageCC.className = "cc-profile-picture"
-		imageCC.src = `${serverUrl}/photo/${picture}.png`
+		imageCC.src = `${window.location.origin}/photo/${picture}.png`
 		ccContainer.append(imageCC)
 		const ccMessage = document.createElement("div")
 		ccMessage.className = "cc-message"
@@ -36945,7 +36937,7 @@ messageInput.addEventListener("keyup", async (event) => {
 			let chatContent = document.getElementById("chat-content")
 			chatContent.scrollTop = chatContent.scrollHeight
 			messageInput.value = ""
-			const response = await fetch(`${serverUrl}/api/video_conference/message`, {
+			const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -37000,7 +36992,7 @@ sendMessageButton.addEventListener("click", async (event) => {
 		let chatContent = document.getElementById("chat-content")
 		chatContent.scrollTop = chatContent.scrollHeight
 		messageInput.value = ""
-		const response = await fetch(`${serverUrl}/api/video_conference/message`, {
+		const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -37269,7 +37261,7 @@ class StaticEvent {
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
+                                    <img src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -37699,7 +37691,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				// await this.adjustFR()
@@ -37772,7 +37764,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -37823,7 +37815,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -37865,7 +37857,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				return false
@@ -38726,7 +38718,7 @@ class Users extends StaticEvent {
 			userListElement.id = `ul-ss-${userId}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="${serverUrl}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
+                                    <img src="${window.location.origin}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -39452,7 +39444,7 @@ class Users extends StaticEvent {
 				ccContainer.id = `cc_${randomId}`
 				const imageCC = document.createElement("img")
 				imageCC.className = "cc-profile-picture"
-				imageCC.src = `${serverUrl}/photo/${this.#picture}.png`
+				imageCC.src = `${window.location.origin}/photo/${this.#picture}.png`
 				ccContainer.append(imageCC)
 				const ccMessage = document.createElement("div")
 				ccMessage.className = "cc-message"

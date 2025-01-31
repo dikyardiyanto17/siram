@@ -11,7 +11,7 @@ Promise.all([
 		})
 	})
 	.then((stream) => {
-		startFRSecondMethod({ picture: `${serverUrl}/photo/${userPhoto}.png`, id: "DIKY", name: "Diky", track: stream })
+		startFRSecondMethod({ picture: `${window.location.origin}/photo/${userPhoto}.png`, id: "DIKY", name: "Diky", track: stream })
 	})
 
 const getLabeledFaceDescriptions = async ({ picture, name }) => {

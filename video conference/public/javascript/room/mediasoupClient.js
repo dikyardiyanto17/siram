@@ -42,14 +42,17 @@ class StaticEvent {
 		}
 	}
 
-	static warning({ message }) {
+	static warning({ message, back = false, time = 3000 }) {
 		try {
 			document.getElementById("warning-container").style.top = "50px"
 			document.getElementById("warning-message").innerHTML = message
 			setTimeout(() => {
 				document.getElementById("warning-container").style.top = "-100%"
 				document.getElementById("warning-message").innerHTML = ""
-			}, 3000)
+				if (back) {
+					window.location.href = window.location.origin
+				}
+			}, time)
 		} catch (error) {
 			console.log("- Error Warning Message : ", error)
 		}
@@ -182,6 +185,7 @@ class MediaSoupClient extends StaticEvent {
 
 			console.log("Device created successfully")
 		} catch (error) {
+			this.constructor.warning({ message: "Gagal memuat device!", back: true })
 			console.log("- Error Create Device:", error)
 		}
 	}
@@ -203,6 +207,7 @@ class MediaSoupClient extends StaticEvent {
 				this.#videoParams.encodings = [...this.#encodingsvp9]
 			}
 		} catch (error) {
+			this.constructor.warning({ message: "Gagal memuat encoding!", back: true })
 			console.log("- Error Set Encoding : ", error)
 		}
 	}
@@ -317,27 +322,14 @@ class MediaSoupClient extends StaticEvent {
 
 	async getMyStream({ faceRecognition, picture, userId, username }) {
 		try {
-			// if (faceRecognition) {
-			// 	const stream = await navigator.mediaDevices.getUserMedia({
-			// 		audio: { ...this.#audioSetting },
-			// 		video: true,
-			// 	})
-
-			// 	this.#mystream = await this.addFRVideo({
-			// 		picture,
-			// 		userId,
-			// 		username,
-			// 		stream,
-			// 	})
-			// 	return
-			// }
 			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: { ...this.#audioSetting }, video: true })
 		} catch (error) {
-			if (error == "NotAllowedError: Permission denied") {
-				this.constructor.warning({ message: "Permintaan izin kamera/microphone di tolak!" })
-				setTimeout(() => {
-					window.location.href = window.location.origin
-				}, 3000)
+			if (
+				error == "NotAllowedError: Permission denied" ||
+				(typeof error === "string" && error.includes("DOMException")) ||
+				error instanceof DOMException
+			) {
+				this.constructor.warning({ message: "Permintaan izin kamera/microphone di tolak!", back: true })
 			}
 			console.log("- Error Get My Stream : ", error)
 		}
@@ -359,6 +351,7 @@ class MediaSoupClient extends StaticEvent {
 				})
 			})
 		} catch (error) {
+			this.constructor.warning({ message: "Gagal menyambungkan ke server!", back: true })
 			console.log("- Error Get Producer : ", error)
 		}
 	}
@@ -504,10 +497,7 @@ class MediaSoupClient extends StaticEvent {
 			// possible bug
 			this.#audioProducer.on("trackended", () => {
 				console.log("audio track ended")
-				this.constructor.warning({ message: "Microphone sedang bermasalah!\nSedang memuat ulang halaman!" })
-				setTimeout(() => {
-					window.location.reload() // Reloads the current page
-				}, 3000)
+				this.constructor.warning({ message: "Microphone sedang bermasalah!\nSedang memuat ulang halaman!", back: true })
 			})
 
 			this.#audioProducer.on("transportclose", () => {
@@ -889,6 +879,7 @@ class MediaSoupClient extends StaticEvent {
 			})
 		} catch (error) {
 			console.log("- Error Get Camera Options : ", error)
+			this.constructor.warning({ message: "Gagal mendapatkan pilihan kamera yang tersedia!", back: true })
 		}
 	}
 
@@ -963,6 +954,7 @@ class MediaSoupClient extends StaticEvent {
 			// })
 		} catch (error) {
 			console.log("- Error Getting Mic Options : ", error)
+			this.constructor.warning({ message: "Gagal mendapatkan pilihan microphone yang tersedia!", back: true })
 		}
 	}
 

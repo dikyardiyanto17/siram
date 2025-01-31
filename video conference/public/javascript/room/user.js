@@ -28,7 +28,7 @@ class StaticEvent {
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="${serverUrl}/photo/${picture}.png" alt="user-list-picture"
+                                    <img src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -458,7 +458,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				// await this.adjustFR()
@@ -531,7 +531,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -582,7 +582,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -624,7 +624,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${serverUrl}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				return false
@@ -1485,7 +1485,7 @@ class Users extends StaticEvent {
 			userListElement.id = `ul-ss-${userId}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="${serverUrl}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
+                                    <img src="${window.location.origin}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -2211,7 +2211,7 @@ class Users extends StaticEvent {
 				ccContainer.id = `cc_${randomId}`
 				const imageCC = document.createElement("img")
 				imageCC.className = "cc-profile-picture"
-				imageCC.src = `${serverUrl}/photo/${this.#picture}.png`
+				imageCC.src = `${window.location.origin}/photo/${this.#picture}.png`
 				ccContainer.append(imageCC)
 				const ccMessage = document.createElement("div")
 				ccMessage.className = "cc-message"

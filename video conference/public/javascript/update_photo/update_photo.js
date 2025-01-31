@@ -149,7 +149,7 @@ const capturePicture = async () => {
 		document.getElementById("face-matcher-box").classList.add("d-none")
 		document.getElementById("face-recognition-id").classList.add("d-none")
 
-		const response = await fetch(`${serverUrl}/api/video_conference/photo`, {
+		const response = await fetch(`${window.location.origin}/api/video_conference/photo`, {
 			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",

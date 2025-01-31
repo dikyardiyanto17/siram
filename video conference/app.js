@@ -53,21 +53,21 @@ let liveMeeting = new LiveMeeting()
 // 	mediasoupVariable.createWorker()
 // }
 
-const httpsServer = https.createServer(options, app)
-httpsServer.listen(port, async () => {
-	console.log("App On : " + port)
-})
-const io = new Server(httpsServer, {
-	path: "/socket",
-})
-
-// const httpServer = http.createServer(app)
-// httpServer.listen(port, async () => {
+// const httpsServer = https.createServer(options, app)
+// httpsServer.listen(port, async () => {
 // 	console.log("App On : " + port)
 // })
-// const io = new Server(httpServer, {
+// const io = new Server(httpsServer, {
 // 	path: "/socket",
 // })
+
+const httpServer = http.createServer(app)
+httpServer.listen(port, async () => {
+	console.log("App On : " + port)
+})
+const io = new Server(httpServer, {
+	path: "/socket",
+})
 
 io.use((socket, next) => {
 	sessionMiddleware(socket.request, socket.request.res || {}, next)
