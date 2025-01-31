@@ -10,12 +10,12 @@ const path = require("path")
 
 router.get("/login", Login.index)
 router.use("/api/login", require("./api/login/index.js"))
+router.use("/custom_api", require("./custom_api"))
 
 router.use(authenthication)
 
 router.get("/", Home.index)
 router.get("/logout", Login.logout)
-
 
 router.get("/room/:room", Meeting.index)
 router.use("/photo", express.static(path.join(__dirname, "../photo")))

@@ -44,14 +44,16 @@ loginFormElement.addEventListener("submit", async (event) => {
 			throw { message: "Id Peserta Wajib Di isi" }
 		}
 
-		const response = await fetch(`${serverUrl}/api/login`, {
+		localStorage.setItem("full_name", full_name)
+		localStorage.setItem("participant_id", full_name)
+
+		const response = await fetch(`${baseUrl}/custom_api/login`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(loginForm),
 		})
-
 		if (response.ok) {
 			const { status, message, token } = await response.json()
 			if (status) {

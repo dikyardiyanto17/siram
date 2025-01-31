@@ -812,14 +812,14 @@ const closeSideBarContainer = document.getElementById("close-side-bar")
 const closeSideBarContainer2 = document.getElementById("close-side-bar-chat")
 closeSideBarContainer2.addEventListener("click", () => {
 	try {
-		eventListenerCollection.closeSideBarContainer()
+		eventListenerCollection.changeChatButton()
 	} catch (error) {
 		console.log("- Error Close Side Bar Container 2 : ", error)
 	}
 })
 closeSideBarContainer.addEventListener("click", () => {
 	try {
-		eventListenerCollection.closeSideBarContainer()
+		eventListenerCollection.changeUserListButton()
 	} catch (error) {
 		console.log("- Error Side Bar Container : ", error)
 	}

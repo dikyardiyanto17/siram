@@ -386,13 +386,14 @@ class EventListener {
 
 	async closeSideBarContainer() {
 		try {
-			this.#videoContainer.className = this.#videoContainerNormalView
-			this.#sideBarContainer.classList.add(this.#sideBarHide)
-			this.#chatStatus = false
-			this.#userListStatus = false
-			this.#chatButton.classList.remove("active")
-			this.#userListButton.classList.remove("active")
-			this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+			// this.#videoContainer.className = this.#videoContainerNormalView
+			// this.#sideBarContainer.classList.add(this.#sideBarHide)
+			// this.#chatStatus = false
+			// this.#userListStatus = false
+			// this.#chatButton.classList.remove("active")
+			// this.#userListButton.classList.remove("active")
+			// this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+			await this.changeChatButton()
 		} catch (error) {
 			console.log("- Error Close Side Bar : ", error)
 		}

@@ -11964,6 +11964,7 @@ if (typeof this !== 'undefined' && this.Sweetalert2){this.swal = this.sweetAlert
 const { default: Swal } = require("sweetalert2")
 const { socket } = require("../socket/socket")
 const url = window.location
+const baseUrl = window.location.origin
 
 const urlParam = new URL(window.location.href)
 const params = new URLSearchParams(urlParam.search)
@@ -11978,6 +11979,34 @@ const joinSubmit = document.getElementById("submit-join")
 const modalTitle = document.getElementById("modal-title")
 const waitingModal = document.getElementById("waiting-modal-container")
 const roomId = document.getElementById("room_id")
+const instantRoomButton = document.getElementById("instant-room")
+
+const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) => {
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	let randomId = ""
+
+	for (let i = 0; i < length; i++) {
+		if (i > 0 && i % separatorInterval === 0) {
+			randomId += separator
+		}
+
+		const randomIndex = Math.floor(Math.random() * characters.length)
+		randomId += characters.charAt(randomIndex)
+	}
+
+	return randomId
+}
+
+instantRoomButton.addEventListener("click", async () => {
+	try {
+		const randomId = await generateRandomId()
+		const randomPassword = await generateRandomId()
+		document.getElementById("room_id").value = randomId
+		document.getElementById("password").value = randomPassword
+	} catch (error) {
+		console.log("- Error Instant Room Button : ", error)
+	}
+})
 
 joinSubmit.addEventListener("click", async (e) => {
 	try {
@@ -11987,7 +12016,7 @@ joinSubmit.addEventListener("click", async (e) => {
 		const password = document.getElementById("password").value
 		if (!roomId || roomId.trim() == "") {
 			await Swal.fire({
-				title: "Bad Request",
+				title: "Form tidak lengkap!",
 				text: "ID Room wajib di isi",
 				icon: "error",
 			})
@@ -11996,14 +12025,14 @@ joinSubmit.addEventListener("click", async (e) => {
 
 		if (!password || password.trim() == "") {
 			await Swal.fire({
-				title: "Bad Request",
+				title: "Form tidak lengkap!",
 				text: "Password room wajib di isi",
 				icon: "error",
 			})
 			return
 		}
 
-		const responseDatabaseRoom = await fetch(`${serverUrl}/api/video_conference/room?rid=${roomId}&pw=${password}`, {
+		const responseDatabaseRoom = await fetch(`${baseUrl}/custom_api/room?rid=${roomId}&pw=${password}`, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",

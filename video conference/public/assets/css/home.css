@@ -386,14 +386,15 @@
     font-size: 12px;
 }
 
-#update-photo-button>button {
+#instant-room>button {
     text-decoration: none;
     background-color: transparent;
     border: none;
+    outline: none;
 }
 
 
-#update-photo-button {
+#instant-room {
     margin: 20px 0 0px 0px;
     width: 38%;
     border: none;
@@ -408,16 +409,17 @@
     background-color: transparent;
 }
 
-#update-photo-button:hover {
+#instant-room:hover {
     background-color: #73EC8B;
     color: #ffffff;
+    cursor: pointer;
 }
 
-#update-photo-button:hover span {
+#instant-room:hover span {
     color: #ffffff;
 }
 
-#update-photo-button span {
+#instant-room span {
     color: #73EC8B;
     font-size: 12px;
 }
