@@ -14,6 +14,24 @@ const params = new URLSearchParams(urlParam.search)
 const rid = params.get("rid")
 const pw = params.get("pw")
 
+const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) => {
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	let randomId = ""
+
+	for (let i = 0; i < length; i++) {
+		if (i > 0 && i % separatorInterval === 0) {
+			randomId += separator
+		}
+
+		const randomIndex = Math.floor(Math.random() * characters.length)
+		randomId += characters.charAt(randomIndex)
+	}
+
+	return randomId
+}
+
+document.getElementById("participant_id").value = generateRandomId()
+
 const warning = ({ message }) => {
 	try {
 		document.getElementById("warning-container").style.top = "50px"
