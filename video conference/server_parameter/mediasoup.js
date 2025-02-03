@@ -229,6 +229,15 @@ class MediaSoup {
 				newRouter.on("workerclose", () => {
 					try {
 						console.log("ROUTER (workerclose): Worker is closed")
+						this.#transports = this.#transports.filter((t) => {
+							if (t.routerId == newRouter.id) {
+								t.transport.close()
+								return null
+							} else {
+								return t
+							}
+						})
+						this.#routers = this.#routers.filter((r) => r.router.id != newRouter.id)
 					} catch (error) {
 						console.log("- Error Router workerclose : ", error)
 					}

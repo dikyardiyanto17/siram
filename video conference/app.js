@@ -624,6 +624,61 @@ app.get("/mediasoup/consumers", async (req, res, next) => {
 	}
 })
 
+app.get("/mediasoup/restart", async (req, res, next) => {
+	try {
+		// console.log("- Users : ", liveMeeting.users)
+		// console.log("- Mediasoup Worker : ", mediasoupVariable.workers)
+		// console.log("- Mediasoup Router : ", mediasoupVariable.routers)
+		// console.log("- Mediasoup Transports : ", mediasoupVariable.transports)
+		// console.log("- Mediasoup Producer : ", mediasoupVariable.transports)
+		// console.log("- Mediasoup Consumer : ", mediasoupVariable.consumers)
+
+		await Promise.all(
+			mediasoupVariable.consumers.map((c) => {
+				c.consumer.close()
+			})
+		)
+		mediasoupVariable.consumers = []
+
+		await Promise.all(
+			mediasoupVariable.producers.map((p) => {
+				p.producer.close()
+			})
+		)
+
+		mediasoupVariable.producers = []
+
+		await Promise.all(
+			mediasoupVariable.transports.map((t) => {
+				t.transport.close()
+			})
+		)
+		mediasoupVariable.transports = []
+
+		await Promise.all(
+			mediasoupVariable.routers.map((r) => {
+				r.router.close()
+			})
+		)
+		mediasoupVariable.routers = []
+
+		await Promise.all(
+			mediasoupVariable.workers.map((w) => {
+				w.webrtcServer.close()
+				w.worker.close()
+			})
+		)
+		mediasoupVariable.workers = []
+
+		liveMeeting.users = []
+
+		res.send({ message: "Successfully reset the worker" })
+	} catch (error) {
+		console.log("- Error : ", error)
+		res.send({ message: "Error reset the worker " })
+	}
+})
+
 app.use(router)
 
 app.use(errorHandler)
