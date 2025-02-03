@@ -121,20 +121,40 @@ class MediaSoup {
 		return this.#workers
 	}
 
+	set workers(newWorker) {
+		this.#workers = newWorker
+	}
+
 	get routers() {
 		return this.#routers
+	}
+
+	set routers(newRouter) {
+		this.#routers = newRouter
 	}
 
 	get transports() {
 		return this.#transports
 	}
 
+	set transports(newtransport) {
+		this.#transports = newtransport
+	}
+
 	get producers() {
 		return this.#producers
 	}
 
+	set producers(newProducer) {
+		this.#producers = newProducer
+	}
+
 	get consumers() {
 		return this.#consumers
+	}
+
+	set consumers(newConsumer) {
+		this.#consumers = newConsumer
 	}
 
 	async createWorker() {
