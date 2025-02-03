@@ -7,6 +7,10 @@ class LiveMeeting {
 		return this.#users
 	}
 
+	set users(newUser) {
+		this.#users = newUser
+	}
+
 	async addUser({ participantId, roomId, socketId, authority, verified = false, joined = false, waiting = true, username, picture }) {
 		try {
 			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
