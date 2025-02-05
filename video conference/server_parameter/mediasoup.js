@@ -77,8 +77,8 @@ class MediaSoup {
 	#producers = []
 	#consumers = []
 
-	#incomingMinBitRate = 1500000
 	#incomingMaxBitRate = 1500000
+	#outcomingMaxBitRate = 1500000
 
 	#listenInfo
 
@@ -284,8 +284,8 @@ class MediaSoup {
 				newRouter.observer.on("newtransport", (transport) => {
 					try {
 						console.log("ROUTER (newtransport) => ", transport.id)
-						transport.setMaxIncomingBitrate(1500000)
-						transport.setMaxOutgoingBitrate(1500000)
+						transport.setMaxIncomingBitrate(this.#incomingMaxBitRate)
+						transport.setMaxOutgoingBitrate(this.#outcomingMaxBitRate)
 						this.#transports.push({ transport, routerId: newRouter.id })
 					} catch (error) {
 						console.log("- Error Router newtransport : ", error)
