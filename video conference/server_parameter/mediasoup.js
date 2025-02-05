@@ -6,8 +6,8 @@ class MediaSoup {
 	// #publicIp = "192.167.71.20" // RDS Lantai 1
 	// #publicIp = "192.167.61.8" // RDS Harmoni Lantai 1
 	// #publicIp = "192.168.99.3" // Hotspot Marta
-	// #publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
-	#publicIp = "203.175.10.29" // VPS
+	#publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
+	// #publicIp = "203.175.10.29" // VPS
 	// #publicIp = "203.194.113.166" // VPS	2 Core Pak Indra
 	// #publicIp = "192.168.20.177" // KOS
 	// #publicIp = "192.168.205.229" // RDS co.id

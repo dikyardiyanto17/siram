@@ -507,6 +507,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("pause", () => {
 				console.log("video observer pause")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
+				document.getElementById("camera-icon").src = "/assets/icons/camera_off.svg"
+				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
 				if (videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.remove("d-none")
 				}
@@ -515,6 +517,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("resume", () => {
 				console.log("video observer resume")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
+				document.getElementById("camera-icon").src = "/assets/icons/camera.svg"
+				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
 				if (!videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.add("d-none")
 				}
@@ -620,6 +624,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (pauser) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
+									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
 									if (videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.remove("d-none")
 									}
@@ -633,6 +638,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (resumer) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
+									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
 									if (!videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.add("d-none")
 									}

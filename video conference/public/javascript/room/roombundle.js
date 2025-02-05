@@ -35715,6 +35715,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("pause", () => {
 				console.log("video observer pause")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
+				document.getElementById("camera-icon").src = "/assets/icons/camera_off.svg"
+				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
 				if (videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.remove("d-none")
 				}
@@ -35723,6 +35725,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("resume", () => {
 				console.log("video observer resume")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
+				document.getElementById("camera-icon").src = "/assets/icons/camera.svg"
+				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
 				if (!videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.add("d-none")
 				}
@@ -35828,6 +35832,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (pauser) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
+									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
 									if (videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.remove("d-none")
 									}
@@ -35841,6 +35846,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (resumer) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
+									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
 									if (!videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.add("d-none")
 									}
@@ -37336,6 +37342,18 @@ window.addEventListener("beforeunload", function (event) {
 
 },{"../socket/socket":106,"./eventListener":102,"./mediasoupClient":103,"./user":105,"recordrtc":80,"sweetalert2":100}],105:[function(require,module,exports){
 class StaticEvent {
+	static getInitialsAndColor(name) {
+		// Extract initials
+		const initials = name
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase())
+			.join("")
+
+		// Generate a random color in hex format
+		const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`
+
+		return { initials, color: randomColor }
+	}
 	static generateRandomId(length = 12, separator = "-", separatorInterval = 4) {
 		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 		let randomId = ""
@@ -37354,6 +37372,7 @@ class StaticEvent {
 
 	static methodAddUserList({ id, username, authority, picture, userId, userAuthority }) {
 		try {
+			const alphabetUsername = this.getInitialsAndColor(username)
 			let userListElement = document.createElement("div")
 			let authorityElement = ``
 			if (authority == 1) {
@@ -37365,15 +37384,14 @@ class StaticEvent {
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
-                                        class="user-list-picture" />
+									<span id="color-${id}" style="color: ${alphabetUsername.color};" class="user-list-picture">${alphabetUsername.initials}</span>
                                     <span class="user-list-username">${username}</span>
                                 </div>
                                 <div class="user-list-icons">
 									${authorityElement}
                                     <img id="mic-ul-${id}" src="/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
-                                    <img src="/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
+                                    <img id="camera-ul-${id}" src="/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
                                     <img style="cursor: pointer;" id="ul-o-${id}" src="/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
@@ -37824,7 +37842,7 @@ class Users extends StaticEvent {
 
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			if (!checkUserElement) {
-				const alphabetName = await this.getInitialsAndColor(username)
+				const alphabetName = await this.constructor.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
 
 				let videoContainerElement = document.createElement("div")
@@ -37838,7 +37856,10 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><span class="turn-off-alphabet" style="color: ${alphabetName.color};">${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}">
+				<span class="turn-off-alphabet" style="color: ${document.getElementById(`color-${userId}`).style.color};">
+				${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video">
+				</video>${faceRecognition}</div>`
 				// userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><img src="${window.location.origin}/photo/P_0000000.png" class="turn-off-picture"/></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainer.appendChild(videoContainerElement)
@@ -37875,25 +37896,12 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async getInitialsAndColor(name) {
-		// Extract initials
-		const initials = name
-			.split(" ")
-			.map((word) => word.charAt(0).toUpperCase())
-			.join("")
-
-		// Generate a random color in hex format
-		const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`
-
-		return { initials, color: randomColor }
-	}
-
 	async addFocusVideo({ userId, track, username }) {
 		try {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			this.#videoContainerFocus.classList.remove("d-none")
 			if (!checkUserElement) {
-				const alphabetName = await this.getInitialsAndColor(username)
+				const alphabetName = await this.constructor.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
 
 				let videoContainerElement = document.createElement("div")
@@ -37904,7 +37912,10 @@ class Users extends StaticEvent {
 				userVideoElement.className = "user-container"
 
 				// userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><img src="${window.location.origin}/photo/P_0000000.png" class="turn-off-picture"/></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
-				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><span class="turn-off-alphabet" style="color: ${alphabetName.color};">${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}">
+				<span class="turn-off-alphabet" style="color: ${document.getElementById(`color-${userId}`).style.color};">
+				${alphabetName.initials}</span>
+				</div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainerFocus.appendChild(videoContainerElement)
 

@@ -207,16 +207,23 @@ input:focus {
     padding: 20px;
 }
 
+
+
 .turn-off-alphabet {
-    border: 1px solid #ffffff;
+    border: 2px solid #ffffff;
     border-radius: 50%;
-    font-size: 500%;
     height: 50%;
     aspect-ratio: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 100px;
 }
+
+#video-container-focus:has(.d-none)~#video-collection .turn-off-alphabet {
+    font-size: 15px !important;
+}
+
 
 .video-username {
     position: absolute;
@@ -857,6 +864,11 @@ input:focus {
     aspect-ratio: 1;
     border-radius: 50%;
     margin-right: 6px;
+    font-size: 8px;
+    border: 1px solid #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .user-list-username {
