@@ -53,21 +53,21 @@ let liveMeeting = new LiveMeeting()
 // 	mediasoupVariable.createWorker()
 // }
 
-// const httpsServer = https.createServer(options, app)
-// httpsServer.listen(port, async () => {
-// 	console.log("App On : " + port)
-// })
-// const io = new Server(httpsServer, {
-// 	path: "/socket",
-// })
-
-const httpServer = http.createServer(app)
-httpServer.listen(port, async () => {
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(port, async () => {
 	console.log("App On : " + port)
 })
-const io = new Server(httpServer, {
+const io = new Server(httpsServer, {
 	path: "/socket",
 })
+
+// const httpServer = http.createServer(app)
+// httpServer.listen(port, async () => {
+// 	console.log("App On : " + port)
+// })
+// const io = new Server(httpServer, {
+// 	path: "/socket",
+// })
 
 io.use((socket, next) => {
 	sessionMiddleware(socket.request, socket.request.res || {}, next)
@@ -364,7 +364,7 @@ io.on("connection", async (socket) => {
 		}
 	})
 
-	socket.on("consume", async ({ rtpCapabilities, remoteProducerId, serverConsumerTransportId, roomId, userId }, callback) => {
+	socket.on("consume", async ({ rtpCapabilities, remoteProducerId, serverConsumerTransportId, roomId, userId, producerPaused }, callback) => {
 		try {
 			// Be Careful of creating new router
 			const router = await mediasoupVariable.getRouter({ roomId })
@@ -399,6 +399,7 @@ io.on("connection", async (socket) => {
 					username: user.username,
 					userId: userId,
 					authority: user.authority,
+					producerPaused,
 				}
 
 				callback({ params })
@@ -408,19 +409,55 @@ io.on("connection", async (socket) => {
 		}
 	})
 
-	socket.on("consumer-resume", async ({ serverConsumerId }) => {
+	socket.on("producer-pause", async ({ socketId, producerId }, callback) => {
 		try {
-			await mediasoupVariable.resumeConsumer({ consumerId: serverConsumerId })
+			const userProducer = mediasoupVariable.producers.find((p) => p.producer.id === producerId)
+
+			console.log("------------>", userProducer.producer)
+
+			if (!userProducer) {
+				return callback({ status: false, message: "Producer not found" })
+			}
+
+			await userProducer.producer.pause()
+			callback({ status: true, message: "Successfully paused producer" })
 		} catch (error) {
-			console.log("- Error Resuming Consumer : ", error)
+			callback({ status: false, message: error.message })
 		}
 	})
 
-	socket.on("consumer-pause", async ({ serverConsumerId }) => {
+	socket.on("producer-resume", async ({ socketId, producerId }, callback) => {
 		try {
-			await mediasoupVariable.pauseConsumer({ consumerId: serverConsumerId })
+			const userProducer = mediasoupVariable.producers.find((p) => p.producer.id === producerId)
+
+			if (!userProducer) {
+				return callback({ status: false, message: "Producer not found" })
+			}
+
+			await userProducer.producer.resume()
+			callback({ status: true, message: "Successfully resumed producer" })
+		} catch (error) {
+			callback({ status: false, message: error.message })
+		}
+	})
+
+	socket.on("consumer-resume", async ({ serverConsumerId }, callback) => {
+		try {
+			await mediasoupVariable.resumeConsumer({ consumerId: serverConsumerId })
+			callback({ status: true, message: "Successfully resumed consumer" })
 		} catch (error) {
 			console.log("- Error Resuming Consumer : ", error)
+			callback({ status: false, message: error.message })
+		}
+	})
+
+	socket.on("consumer-pause", async ({ serverConsumerId }, callback) => {
+		try {
+			await mediasoupVariable.pauseConsumer({ consumerId: serverConsumerId })
+			callback({ status: true, message: "Successfully paused consumer" })
+		} catch (error) {
+			console.log("- Error Resuming Consumer : ", error)
+			callback({ status: false, message: error.message })
 		}
 	})
 
@@ -437,6 +474,7 @@ io.on("connection", async (socket) => {
 						socketId: p.producer.appData.socketId,
 						kind: "video",
 						indexing: customIndex,
+						producerPaused: p.producer.paused,
 					}
 				} else {
 					return {
@@ -445,6 +483,7 @@ io.on("connection", async (socket) => {
 						socketId: p.producer.appData.socketId,
 						kind: "audio",
 						indexing: false,
+						producerPaused: p.producer.paused,
 					}
 				}
 			})

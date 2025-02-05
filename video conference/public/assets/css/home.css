@@ -22,8 +22,21 @@
     border: 1px solid #000000;
     border-radius: 10px;
     padding: 10px;
-    background-color: grey;
     color: #000000;
+    z-index: 10;
+}
+
+#language-option>select {
+    appearance: none;
+    /* Remove default browser styling */
+    border: none;
+    /* Remove border */
+    outline: none;
+    /* Remove focus outline */
+    background: transparent;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
 }
 
 .waiting-modal-container {

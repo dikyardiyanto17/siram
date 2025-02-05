@@ -38,7 +38,12 @@ const connectSocket = async () => {
 						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 						await mediasoupClientVariable.createDevice()
 						await mediasoupClientVariable.setEncoding()
-						await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
+						await mediasoupClientVariable.getMyStream({
+							faceRecognition,
+							picture: `${window.location.origin}/photo/${picture}.png`,
+							userId,
+							username,
+						})
 						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
 						await mediasoupClientVariable.getCameraOptions({ userId: userId })
 						await mediasoupClientVariable.getMicOptions({ usersVariable })
@@ -231,6 +236,19 @@ socket.on("close-consumer", async ({ consumerId, appData }) => {
 	}
 })
 
+socket.on("producer-pause", async ({ pause, producerId }) => {
+	try {
+		const userConsumer = mediasoupClientVariable.consumers.find((c) => c.consumer.producerId == producerId)
+		if (pause) {
+			userConsumer.consumer.pause()
+		} else {
+			userConsumer.consumer.resume()
+		}
+	} catch (error) {
+		console.log("- Error Producer Paused : ", error)
+	}
+})
+
 socket.on("stop-screensharing", async ({ producerId, label }) => {
 	try {
 		if (label) {
@@ -397,8 +415,18 @@ let cameraButton = document.getElementById("camera-icon")
 cameraButton.addEventListener("click", () => {
 	try {
 		// eventListenerCollection.changeCameraButton()
-		Users.warning({ message: "Kamera tidak boleh dimatikan!" })
-		console.log("- Do Nothing")
+		// Users.warning({ message: "Kamera tidak boleh dimatikan!" })
+		const videoProducerStatus = mediasoupClientVariable.videoProducer.paused
+
+		if (videoProducerStatus) {
+			socket.emit("producer-resume", { socketId: socket.id, producerId: mediasoupClientVariable.videoProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.videoProducer.resume()
+			})
+		} else {
+			socket.emit("producer-pause", { socketId: socket.id, producerId: mediasoupClientVariable.videoProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.videoProducer.pause()
+			})
+		}
 	} catch (error) {
 		console.log("- Error Camera Button : ", error)
 	}

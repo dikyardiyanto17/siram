@@ -481,25 +481,13 @@ class Users extends StaticEvent {
 	async addVideoSecondMethod({ userId, track, username, picture }) {
 		try {
 			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
-			console.log(
-				"------\n",
-				"- Current Layout : ",
-				this.#currentLayout,
-				"\n- Total Layout : ",
-				this.#totalLayout,
-				"\n- Total Displayed Video : ",
-				this.#totalDisplayedVideo,
-				"\n- Elements with ID starting with 'vc-' : ",
-				currentVideoDisplayed,
-				"\n------"
-			)
-
 			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
 				this.#videoContainerFocus.classList.add("d-none")
 			}
 
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			if (!checkUserElement) {
+				const alphabetName = await this.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
 
 				let videoContainerElement = document.createElement("div")
@@ -513,7 +501,8 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><span class="turn-off-alphabet" style="color: ${alphabetName.color};">${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				// userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><img src="${window.location.origin}/photo/P_0000000.png" class="turn-off-picture"/></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainer.appendChild(videoContainerElement)
 
@@ -549,11 +538,25 @@ class Users extends StaticEvent {
 		}
 	}
 
+	async getInitialsAndColor(name) {
+		// Extract initials
+		const initials = name
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase())
+			.join("")
+
+		// Generate a random color in hex format
+		const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`
+
+		return { initials, color: randomColor }
+	}
+
 	async addFocusVideo({ userId, track, username }) {
 		try {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			this.#videoContainerFocus.classList.remove("d-none")
 			if (!checkUserElement) {
+				const alphabetName = await this.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
 
 				let videoContainerElement = document.createElement("div")
@@ -563,7 +566,8 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				// userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><img src="${window.location.origin}/photo/P_0000000.png" class="turn-off-picture"/></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><span class="turn-off-alphabet" style="color: ${alphabetName.color};">${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainerFocus.appendChild(videoContainerElement)
 
@@ -1198,11 +1202,27 @@ class Users extends StaticEvent {
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							if (track.id != null) {
-								socket.emit("consumer-pause", { serverConsumerId: track.id })
+								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.pause()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						}
 						customIndex++
@@ -1230,10 +1250,26 @@ class Users extends StaticEvent {
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})
@@ -1258,18 +1294,42 @@ class Users extends StaticEvent {
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							customIndex++
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							customIndex++
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})
@@ -1328,12 +1388,28 @@ class Users extends StaticEvent {
 						if (customIndex >= min && customIndex <= max) {
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							await this.showHideVideo({ id: u.userId, status: false })
 							if (track.id != null) {
-								socket.emit("consumer-pause", { serverConsumerId: track.id })
+								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.pause()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						}
 					}
@@ -1368,11 +1444,27 @@ class Users extends StaticEvent {
 							}
 
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							await this.showHideVideo({ id: u.userId, status: false })
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})
@@ -1404,7 +1496,15 @@ class Users extends StaticEvent {
 								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							}
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else if (customIndex >= min && customIndex <= max) {
 							const videoELement = document.getElementById(`vc-${u.userId}`)
@@ -1414,7 +1514,15 @@ class Users extends StaticEvent {
 
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							const videoELement = document.getElementById(`vc-${u.userId}`)
@@ -1422,7 +1530,15 @@ class Users extends StaticEvent {
 								this.#videoContainer.prepend(videoELement)
 							}
 							await this.showHideVideo({ id: u.userId, status: false })
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})

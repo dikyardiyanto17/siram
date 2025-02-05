@@ -35555,6 +35555,7 @@ class MediaSoupClient extends StaticEvent {
 						usersVariable,
 						socketId: p.socketId,
 						index: p.indexing,
+						producerPaused: p.producerPaused,
 					})
 				})
 			})
@@ -35647,7 +35648,7 @@ class MediaSoupClient extends StaticEvent {
 					}
 				})
 				await this.createConsumerTransport({ socket, roomId, userId })
-				await this.connectSendTransport({ socket, picture: usersVariable.picture })
+				await this.connectSendTransport({ socket, picture: usersVariable.picture, userId })
 			})
 		} catch (error) {
 			console.log("- Error Create Send Transport : ", error)
@@ -35680,7 +35681,7 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async connectSendTransport({ socket, picture }) {
+	async connectSendTransport({ socket, picture, userId }) {
 		try {
 			this.#audioParams.track = this.#mystream.getAudioTracks()[0]
 			this.#videoParams.track = this.#mystream.getVideoTracks()[0]
@@ -35700,6 +35701,31 @@ class MediaSoupClient extends StaticEvent {
 
 			this.#videoProducer.observer.on("close", () => {
 				console.log("video observer close")
+			})
+
+			this.#videoProducer.on("transportclose", () => {
+				window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+				console.log("video transport ended")
+			})
+
+			this.#videoProducer.observer.on("close", () => {
+				console.log("video observer close")
+			})
+
+			this.#videoProducer.observer.on("pause", () => {
+				console.log("video observer pause")
+				const videoPicture = document.getElementById(`turn-off-${userId}`)
+				if (videoPicture.classList.contains("d-none")) {
+					videoPicture.classList.remove("d-none")
+				}
+			})
+
+			this.#videoProducer.observer.on("resume", () => {
+				console.log("video observer resume")
+				const videoPicture = document.getElementById(`turn-off-${userId}`)
+				if (!videoPicture.classList.contains("d-none")) {
+					videoPicture.classList.add("d-none")
+				}
 			})
 
 			// possible bug
@@ -35722,7 +35748,7 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId, index = null }) {
+	async signalNewConsumerTransport({ remoteProducerId, socket, userId, roomId, usersVariable, socketId, index = null, producerPaused }) {
 		try {
 			if (this.#consumingTransport.includes(remoteProducerId)) return
 			this.#consumingTransport.push(remoteProducerId)
@@ -35744,6 +35770,7 @@ class MediaSoupClient extends StaticEvent {
 						usersVariable,
 						socketId,
 						index,
+						producerPaused,
 					})
 				}
 			}
@@ -35754,7 +35781,7 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async connectRecvTransport({ socket, remoteProducerId, roomId, userId, usersVariable, socketId, index }) {
+	async connectRecvTransport({ socket, remoteProducerId, roomId, userId, usersVariable, socketId, index, producerPaused }) {
 		try {
 			await socket.emit(
 				"consume",
@@ -35764,6 +35791,7 @@ class MediaSoupClient extends StaticEvent {
 					serverConsumerTransportId: this.#consumerTransport.id,
 					roomId,
 					userId,
+					producerPaused,
 				},
 				async ({ params }) => {
 					try {
@@ -35798,6 +35826,12 @@ class MediaSoupClient extends StaticEvent {
 						consumer.observer.on("pause", () => {
 							try {
 								console.log("Consumer Observer (pauser) => ", consumer.id)
+								if (params.kind == "video" && appData.label == "video") {
+									const videoPicture = document.getElementById(`turn-off-${userId}`)
+									if (videoPicture.classList.contains("d-none")) {
+										videoPicture.classList.remove("d-none")
+									}
+								}
 							} catch (error) {
 								console.log("- Error Consumer Observer (pause) : ", error)
 							}
@@ -35805,6 +35839,12 @@ class MediaSoupClient extends StaticEvent {
 						consumer.observer.on("resume", () => {
 							try {
 								console.log("Consumer Observer (resumer) => ", consumer.id)
+								if (params.kind == "video" && appData.label == "video") {
+									const videoPicture = document.getElementById(`turn-off-${userId}`)
+									if (!videoPicture.classList.contains("d-none")) {
+										videoPicture.classList.add("d-none")
+									}
+								}
 							} catch (error) {
 								console.log("- Error Consumer Observer (resume) : ", error)
 							}
@@ -35839,16 +35879,52 @@ class MediaSoupClient extends StaticEvent {
 
 						let checkVideo = await usersVariable.checkVideo({ userId })
 						if (checkVideo && params.kind == "video") {
-							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
+								try {
+									if (status) {
+										consumer.resume()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 
 						if (appData.label == "screensharing_video") {
 							usersVariable.changeScreenSharingMode({ status: true, userId, socket, username: params.username, picture: appData.picture })
-							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
+								try {
+									if (status) {
+										consumer.resume()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 
 						if (params.kind == "audio") {
-							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId })
+							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
+								try {
+									if (status) {
+										consumer.resume()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
+						}
+
+						if (params.kind == "video" && params.producerPaused) {
+							socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										consumer.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
@@ -36247,7 +36323,12 @@ const connectSocket = async () => {
 						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 						await mediasoupClientVariable.createDevice()
 						await mediasoupClientVariable.setEncoding()
-						await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
+						await mediasoupClientVariable.getMyStream({
+							faceRecognition,
+							picture: `${window.location.origin}/photo/${picture}.png`,
+							userId,
+							username,
+						})
 						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
 						await mediasoupClientVariable.getCameraOptions({ userId: userId })
 						await mediasoupClientVariable.getMicOptions({ usersVariable })
@@ -36440,6 +36521,19 @@ socket.on("close-consumer", async ({ consumerId, appData }) => {
 	}
 })
 
+socket.on("producer-pause", async ({ pause, producerId }) => {
+	try {
+		const userConsumer = mediasoupClientVariable.consumers.find((c) => c.consumer.producerId == producerId)
+		if (pause) {
+			userConsumer.consumer.pause()
+		} else {
+			userConsumer.consumer.resume()
+		}
+	} catch (error) {
+		console.log("- Error Producer Paused : ", error)
+	}
+})
+
 socket.on("stop-screensharing", async ({ producerId, label }) => {
 	try {
 		if (label) {
@@ -36606,8 +36700,18 @@ let cameraButton = document.getElementById("camera-icon")
 cameraButton.addEventListener("click", () => {
 	try {
 		// eventListenerCollection.changeCameraButton()
-		Users.warning({ message: "Kamera tidak boleh dimatikan!" })
-		console.log("- Do Nothing")
+		// Users.warning({ message: "Kamera tidak boleh dimatikan!" })
+		const videoProducerStatus = mediasoupClientVariable.videoProducer.paused
+
+		if (videoProducerStatus) {
+			socket.emit("producer-resume", { socketId: socket.id, producerId: mediasoupClientVariable.videoProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.videoProducer.resume()
+			})
+		} else {
+			socket.emit("producer-pause", { socketId: socket.id, producerId: mediasoupClientVariable.videoProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.videoProducer.pause()
+			})
+		}
 	} catch (error) {
 		console.log("- Error Camera Button : ", error)
 	}
@@ -37714,25 +37818,13 @@ class Users extends StaticEvent {
 	async addVideoSecondMethod({ userId, track, username, picture }) {
 		try {
 			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
-			console.log(
-				"------\n",
-				"- Current Layout : ",
-				this.#currentLayout,
-				"\n- Total Layout : ",
-				this.#totalLayout,
-				"\n- Total Displayed Video : ",
-				this.#totalDisplayedVideo,
-				"\n- Elements with ID starting with 'vc-' : ",
-				currentVideoDisplayed,
-				"\n------"
-			)
-
 			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
 				this.#videoContainerFocus.classList.add("d-none")
 			}
 
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			if (!checkUserElement) {
+				const alphabetName = await this.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
 
 				let videoContainerElement = document.createElement("div")
@@ -37746,7 +37838,8 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><span class="turn-off-alphabet" style="color: ${alphabetName.color};">${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				// userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><img src="${window.location.origin}/photo/P_0000000.png" class="turn-off-picture"/></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainer.appendChild(videoContainerElement)
 
@@ -37782,11 +37875,25 @@ class Users extends StaticEvent {
 		}
 	}
 
+	async getInitialsAndColor(name) {
+		// Extract initials
+		const initials = name
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase())
+			.join("")
+
+		// Generate a random color in hex format
+		const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`
+
+		return { initials, color: randomColor }
+	}
+
 	async addFocusVideo({ userId, track, username }) {
 		try {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			this.#videoContainerFocus.classList.remove("d-none")
 			if (!checkUserElement) {
+				const alphabetName = await this.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
 
 				let videoContainerElement = document.createElement("div")
@@ -37796,7 +37903,8 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				// userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><img src="${window.location.origin}/photo/P_0000000.png" class="turn-off-picture"/></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><span class="turn-off-alphabet" style="color: ${alphabetName.color};">${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainerFocus.appendChild(videoContainerElement)
 
@@ -38431,11 +38539,27 @@ class Users extends StaticEvent {
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							if (track.id != null) {
-								socket.emit("consumer-pause", { serverConsumerId: track.id })
+								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.pause()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						}
 						customIndex++
@@ -38463,10 +38587,26 @@ class Users extends StaticEvent {
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})
@@ -38491,18 +38631,42 @@ class Users extends StaticEvent {
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else if (customIndex + 1 >= min && customIndex + 1 <= max) {
 							customIndex++
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							customIndex++
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})
@@ -38561,12 +38725,28 @@ class Users extends StaticEvent {
 						if (customIndex >= min && customIndex <= max) {
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							await this.showHideVideo({ id: u.userId, status: false })
 							if (track.id != null) {
-								socket.emit("consumer-pause", { serverConsumerId: track.id })
+								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.pause()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						}
 					}
@@ -38601,11 +38781,27 @@ class Users extends StaticEvent {
 							}
 
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							await this.showHideVideo({ id: u.userId, status: false })
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})
@@ -38637,7 +38833,15 @@ class Users extends StaticEvent {
 								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							}
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else if (customIndex >= min && customIndex <= max) {
 							const videoELement = document.getElementById(`vc-${u.userId}`)
@@ -38647,7 +38851,15 @@ class Users extends StaticEvent {
 
 							await this.showHideVideo({ id: u.userId, status: true })
 							if (track.id != null) {
-								socket.emit("consumer-resume", { serverConsumerId: track.id })
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
 							}
 						} else {
 							const videoELement = document.getElementById(`vc-${u.userId}`)
@@ -38655,7 +38867,15 @@ class Users extends StaticEvent {
 								this.#videoContainer.prepend(videoELement)
 							}
 							await this.showHideVideo({ id: u.userId, status: false })
-							socket.emit("consumer-pause", { serverConsumerId: track.id })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
 						}
 					}
 				})
