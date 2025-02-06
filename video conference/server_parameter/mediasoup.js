@@ -291,12 +291,8 @@ class MediaSoup {
 						console.log("- Error Router newtransport : ", error)
 					}
 				})
-				console.log("- Worker : ", this.#workers)
-				console.log("- Router : ", this.#routers)
 				return newRouter
 			}
-			console.log("- Worker : ", this.#workers)
-			console.log("- Router : ", this.#routers)
 
 			return router.router
 		} catch (error) {

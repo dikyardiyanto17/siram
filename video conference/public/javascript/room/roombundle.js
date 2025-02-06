@@ -35284,6 +35284,7 @@ class MediaSoupClient extends StaticEvent {
 		},
 		zeroRtpOnPause: true,
 		appData: { label: "audio", isActive: true, picture: "" },
+		disableTrackOnPause: true,
 	}
 
 	#rtpCapabilities = null
@@ -35296,6 +35297,8 @@ class MediaSoupClient extends StaticEvent {
 			videoGoogleStartBitrate: 1000,
 		},
 		appData: { label: "video", isActive: true, picture: "" },
+		zeroRtpOnPause: true,
+		disableTrackOnPause: true,
 	}
 
 	#encodingsvp8 = [
@@ -35746,6 +35749,16 @@ class MediaSoupClient extends StaticEvent {
 				console.log("audio observer close")
 			})
 
+			this.#audioProducer.observer.on("pause", () => {
+				console.log("- Audio Producer is paused")
+				this.constructor.changeMicButton({ id: userId, isActive: false })
+			})
+
+			this.#audioProducer.observer.on("resume", () => {
+				console.log("- Audio Producer is resumed")
+				this.constructor.changeMicButton({ id: userId, isActive: true })
+			})
+
 			this.#videoProducer.setMaxSpatialLayer(2)
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
@@ -35837,6 +35850,9 @@ class MediaSoupClient extends StaticEvent {
 										videoPicture.classList.remove("d-none")
 									}
 								}
+								if (params.kind == "audio" && appData.label == "audio") {
+									this.constructor.changeUserList({ type: "mic", isActive: false, id: userId })
+								}
 							} catch (error) {
 								console.log("- Error Consumer Observer (pause) : ", error)
 							}
@@ -35850,6 +35866,9 @@ class MediaSoupClient extends StaticEvent {
 									if (!videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.add("d-none")
 									}
+								}
+								if (params.kind == "audio" && appData.label == "audio") {
+									this.constructor.changeUserList({ type: "mic", isActive: true, id: userId })
 								}
 							} catch (error) {
 								console.log("- Error Consumer Observer (resume) : ", error)
@@ -35879,9 +35898,9 @@ class MediaSoupClient extends StaticEvent {
 						})
 
 						// Possible bug
-						if (params.kind == "audio" && !appData.isActive) {
-							this.reverseConsumerTrack({ userId: userId, isActive: false })
-						}
+						// if (params.kind == "audio" && !appData.isActive) {
+						// 	this.reverseConsumerTrack({ userId: userId, isActive: false })
+						// }
 
 						let checkVideo = await usersVariable.checkVideo({ userId })
 						if (checkVideo && params.kind == "video") {
@@ -35909,7 +35928,7 @@ class MediaSoupClient extends StaticEvent {
 							})
 						}
 
-						if (params.kind == "audio") {
+						if (params.kind == "audio" && !params.producerPaused) {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
 									if (status) {
@@ -35922,6 +35941,18 @@ class MediaSoupClient extends StaticEvent {
 						}
 
 						if (params.kind == "video" && params.producerPaused) {
+							socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										consumer.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
+						}
+
+						if (params.kind == "audio" && params.producerPaused) {
 							socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
 								try {
 									if (status) {
@@ -36653,8 +36684,8 @@ socket.on("transcribe", async ({ randomId, message, username, picture }) => {
 
 socket.on("mute-all", async ({ status }) => {
 	try {
-		const microphoneStatus = await mediasoupClientVariable.checkMic()
-		if (status && microphoneStatus) {
+		const microphoneStatus = mediasoupClientVariable.audioProducer.paused
+		if (status && !microphoneStatus) {
 			await document.getElementById("mic-icon").click()
 		}
 		usersVariable.muteAllStatus = status
@@ -36685,17 +36716,26 @@ microphoneButton.addEventListener("click", async () => {
 			Users.warning({ message: "Microphone dikunci oleh Admin" })
 			return
 		}
-		const userId = usersVariable.userId
-		const isActive = await mediasoupClientVariable.reverseMicrophone({ userId })
-		await usersVariable.startSpeechToText({ socket, status: isActive })
-		const producerId = mediasoupClientVariable.audioProducer.id
-		socket.emit("producer-app-data", { isActive, producerId })
-		document.getElementById(`video-mic-${userId}`).src = isActive ? "/assets/icons/mic_level_0.svg" : "/assets/icons/mic_muted.svg"
-		usersVariable.allUsers.forEach((user) => {
-			if (user.userId != userId) {
-				socket.emit("user-list", { type: "mic", userId: userId, to: user.socketId, isActive })
-			}
-		})
+		// const userId = usersVariable.userId
+		// const isActive = await mediasoupClientVariable.reverseMicrophone({ userId })
+		// await usersVariable.startSpeechToText({ socket, status: isActive })
+		// const producerId = mediasoupClientVariable.audioProducer.id
+		// socket.emit("producer-app-data", { isActive, producerId })
+		// document.getElementById(`video-mic-${userId}`).src = isActive ? "/assets/icons/mic_level_0.svg" : "/assets/icons/mic_muted.svg"
+		// usersVariable.allUsers.forEach((user) => {
+		// 	if (user.userId != userId) {
+		// 		socket.emit("user-list", { type: "mic", userId: userId, to: user.socketId, isActive })
+		// 	}
+		// })
+		if (mediasoupClientVariable.audioProducer.paused) {
+			socket.emit("producer-resume", { socketId: socket.id, producerId: mediasoupClientVariable.audioProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.audioProducer.resume()
+			})
+		} else {
+			socket.emit("producer-pause", { socketId: socket.id, producerId: mediasoupClientVariable.audioProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.audioProducer.pause()
+			})
+		}
 	} catch (error) {
 		console.log("- Error Microphone Button : ", error)
 	}

@@ -412,13 +412,9 @@ io.on("connection", async (socket) => {
 	socket.on("producer-pause", async ({ socketId, producerId }, callback) => {
 		try {
 			const userProducer = mediasoupVariable.producers.find((p) => p.producer.id === producerId)
-
-			console.log("------------>", userProducer.producer)
-
 			if (!userProducer) {
 				return callback({ status: false, message: "Producer not found" })
 			}
-
 			await userProducer.producer.pause()
 			callback({ status: true, message: "Successfully paused producer" })
 		} catch (error) {
@@ -429,11 +425,9 @@ io.on("connection", async (socket) => {
 	socket.on("producer-resume", async ({ socketId, producerId }, callback) => {
 		try {
 			const userProducer = mediasoupVariable.producers.find((p) => p.producer.id === producerId)
-
 			if (!userProducer) {
 				return callback({ status: false, message: "Producer not found" })
 			}
-
 			await userProducer.producer.resume()
 			callback({ status: true, message: "Successfully resumed producer" })
 		} catch (error) {

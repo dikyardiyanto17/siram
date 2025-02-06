@@ -362,8 +362,8 @@ socket.on("transcribe", async ({ randomId, message, username, picture }) => {
 
 socket.on("mute-all", async ({ status }) => {
 	try {
-		const microphoneStatus = await mediasoupClientVariable.checkMic()
-		if (status && microphoneStatus) {
+		const microphoneStatus = mediasoupClientVariable.audioProducer.paused
+		if (status && !microphoneStatus) {
 			await document.getElementById("mic-icon").click()
 		}
 		usersVariable.muteAllStatus = status
@@ -394,17 +394,26 @@ microphoneButton.addEventListener("click", async () => {
 			Users.warning({ message: "Microphone dikunci oleh Admin" })
 			return
 		}
-		const userId = usersVariable.userId
-		const isActive = await mediasoupClientVariable.reverseMicrophone({ userId })
-		await usersVariable.startSpeechToText({ socket, status: isActive })
-		const producerId = mediasoupClientVariable.audioProducer.id
-		socket.emit("producer-app-data", { isActive, producerId })
-		document.getElementById(`video-mic-${userId}`).src = isActive ? "/assets/icons/mic_level_0.svg" : "/assets/icons/mic_muted.svg"
-		usersVariable.allUsers.forEach((user) => {
-			if (user.userId != userId) {
-				socket.emit("user-list", { type: "mic", userId: userId, to: user.socketId, isActive })
-			}
-		})
+		// const userId = usersVariable.userId
+		// const isActive = await mediasoupClientVariable.reverseMicrophone({ userId })
+		// await usersVariable.startSpeechToText({ socket, status: isActive })
+		// const producerId = mediasoupClientVariable.audioProducer.id
+		// socket.emit("producer-app-data", { isActive, producerId })
+		// document.getElementById(`video-mic-${userId}`).src = isActive ? "/assets/icons/mic_level_0.svg" : "/assets/icons/mic_muted.svg"
+		// usersVariable.allUsers.forEach((user) => {
+		// 	if (user.userId != userId) {
+		// 		socket.emit("user-list", { type: "mic", userId: userId, to: user.socketId, isActive })
+		// 	}
+		// })
+		if (mediasoupClientVariable.audioProducer.paused) {
+			socket.emit("producer-resume", { socketId: socket.id, producerId: mediasoupClientVariable.audioProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.audioProducer.resume()
+			})
+		} else {
+			socket.emit("producer-pause", { socketId: socket.id, producerId: mediasoupClientVariable.audioProducer.id }, async ({ status, message }) => {
+				mediasoupClientVariable.audioProducer.pause()
+			})
+		}
 	} catch (error) {
 		console.log("- Error Microphone Button : ", error)
 	}
