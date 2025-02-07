@@ -35903,7 +35903,7 @@ class MediaSoupClient extends StaticEvent {
 						// }
 
 						let checkVideo = await usersVariable.checkVideo({ userId })
-						if (checkVideo && params.kind == "video") {
+						if (checkVideo && params.kind == "video" && !params.producerPaused) {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
 									if (status && message != "producer-paused") {
@@ -35913,6 +35913,14 @@ class MediaSoupClient extends StaticEvent {
 									console.log("- Error Resuming Consumer : ", error)
 								}
 							})
+						}
+
+						if (checkVideo && params.kind == "video" && params.producerPaused) {
+							const videoPicture = document.getElementById(`turn-off-${userId}`)
+							document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
+							if (!videoPicture.classList.contains("d-none")) {
+								videoPicture.classList.add("d-none")
+							}
 						}
 
 						if (appData.label == "screensharing_video") {
@@ -35951,18 +35959,6 @@ class MediaSoupClient extends StaticEvent {
 								}
 							})
 						}
-
-						// if (params.kind == "video" && params.producerPaused) {
-						// 	socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
-						// 		try {
-						// 			if (status) {
-						// 				consumer.pause()
-						// 			}
-						// 		} catch (error) {
-						// 			console.log("- Error Resuming Consumer : ", error)
-						// 		}
-						// 	})
-						// }
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
 					}
