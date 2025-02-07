@@ -500,6 +500,7 @@ class Users extends StaticEvent {
 			}
 
 			const checkUserElement = document.getElementById(`vc-${userId}`)
+			console.log("- Check User Element : ", checkUserElement)
 			if (!checkUserElement) {
 				const alphabetName = await this.constructor.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
@@ -1402,6 +1403,7 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
+											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
@@ -1458,6 +1460,7 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
+											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
@@ -1510,6 +1513,7 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
+											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
@@ -1528,6 +1532,7 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
+											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
