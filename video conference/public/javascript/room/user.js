@@ -500,7 +500,7 @@ class Users extends StaticEvent {
 			}
 
 			const checkUserElement = document.getElementById(`vc-${userId}`)
-			console.log("- Check User Element : ", checkUserElement)
+			console.log(` Check Element : `, checkUserElement, " - User Id : ", userId)
 			if (!checkUserElement) {
 				const alphabetName = await this.constructor.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
