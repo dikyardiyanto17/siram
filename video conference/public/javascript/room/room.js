@@ -236,13 +236,16 @@ socket.on("close-consumer", async ({ consumerId, appData }) => {
 	}
 })
 
-socket.on("producer-pause", async ({ pause, producerId }) => {
+socket.on("producer-pause", async ({ pause, producerId, userId }) => {
 	try {
 		const userConsumer = mediasoupClientVariable.consumers.find((c) => c.consumer.producerId == producerId)
+		const videoContainer = document.getElementById(`vc-${userId}`)
+		if (!pause && !videoContainer.classList.contains("d-none")){
+			userConsumer.consumer.resume()
+		}
+
 		if (pause) {
 			userConsumer.consumer.pause()
-		} else {
-			userConsumer.consumer.resume()
 		}
 	} catch (error) {
 		console.log("- Error Producer Paused : ", error)

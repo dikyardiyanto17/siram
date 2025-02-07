@@ -598,7 +598,7 @@ class MediaSoup {
 				try {
 					console.log(`Consumer (producerpause) ${consumerTransport.id} => ${consumer.id}`)
 					consumer.pause()
-					socket.emit("producer-pause", { pause: true, producerId })
+					socket.emit("producer-pause", { pause: true, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerpause) => ", error)
 				}
@@ -608,7 +608,7 @@ class MediaSoup {
 				try {
 					console.log(`Consumer (producerresume) ${consumerTransport.id} => ${consumer.id}`)
 					consumer.resume()
-					socket.emit("producer-pause", { pause: false, producerId })
+					socket.emit("producer-pause", { pause: false, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerresume) => ", error)
 				}
