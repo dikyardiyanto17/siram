@@ -698,7 +698,7 @@ class MediaSoupClient extends StaticEvent {
 						if (checkVideo && params.kind == "video") {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
-									if (status) {
+									if (status && message != "producer-paused") {
 										consumer.resume()
 									}
 								} catch (error) {
@@ -711,7 +711,7 @@ class MediaSoupClient extends StaticEvent {
 							usersVariable.changeScreenSharingMode({ status: true, userId, socket, username: params.username, picture: appData.picture })
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
-									if (status) {
+									if (status && message != "producer-paused") {
 										consumer.resume()
 									}
 								} catch (error) {
@@ -723,7 +723,7 @@ class MediaSoupClient extends StaticEvent {
 						if (params.kind == "audio" && !params.producerPaused) {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
-									if (status) {
+									if (status && message != "producer-paused") {
 										consumer.resume()
 									}
 								} catch (error) {

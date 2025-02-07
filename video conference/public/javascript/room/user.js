@@ -1401,7 +1401,7 @@ class Users extends StaticEvent {
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
-										if (status) {
+										if (status && message != "producer-paused") {
 											track.resume()
 										}
 									} catch (error) {
@@ -1457,7 +1457,7 @@ class Users extends StaticEvent {
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
-										if (status) {
+										if (status && message != "producer-paused") {
 											track.resume()
 										}
 									} catch (error) {
@@ -1509,7 +1509,7 @@ class Users extends StaticEvent {
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
-										if (status) {
+										if (status && message != "producer-paused") {
 											track.resume()
 										}
 									} catch (error) {
@@ -1527,7 +1527,7 @@ class Users extends StaticEvent {
 							if (track.id != null) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
-										if (status) {
+										if (status && message != "producer-paused") {
 											track.resume()
 										}
 									} catch (error) {

@@ -665,7 +665,11 @@ class MediaSoup {
 	async resumeConsumer({ consumerId }) {
 		try {
 			const consumer = this.#consumers.find((c) => c.consumer.id == consumerId)
+			if (consumer.producerPaused) {
+				return false
+			}
 			await consumer.consumer.resume()
+			return true
 		} catch (error) {
 			console.log("- Error Get Consumer : ", error)
 		}
@@ -674,7 +678,9 @@ class MediaSoup {
 	async pauseConsumer({ consumerId }) {
 		try {
 			const consumer = this.#consumers.find((c) => c.consumer.id == consumerId)
-			await consumer.consumer.pause()
+			if (!consumer.producerPaused) {
+				await consumer.consumer.pause()
+			}
 		} catch (error) {
 			console.log("- Error Get Consumer : ", error)
 		}

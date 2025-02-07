@@ -437,8 +437,13 @@ io.on("connection", async (socket) => {
 
 	socket.on("consumer-resume", async ({ serverConsumerId }, callback) => {
 		try {
-			await mediasoupVariable.resumeConsumer({ consumerId: serverConsumerId })
-			callback({ status: true, message: "Successfully resumed consumer" })
+			const isResumed = await mediasoupVariable.resumeConsumer({ consumerId: serverConsumerId })
+
+			if (isResumed) {
+				callback({ status: true, message: "Successfully resumed consumer" })
+			} else {
+				callback({ status: true, message: "producer-paused" })
+			}
 		} catch (error) {
 			console.log("- Error Resuming Consumer : ", error)
 			callback({ status: false, message: error.message })
