@@ -732,18 +732,6 @@ class MediaSoupClient extends StaticEvent {
 							})
 						}
 
-						if (params.kind == "video" && params.producerPaused) {
-							socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
-								try {
-									if (status) {
-										consumer.pause()
-									}
-								} catch (error) {
-									console.log("- Error Resuming Consumer : ", error)
-								}
-							})
-						}
-
 						if (params.kind == "audio" && params.producerPaused) {
 							socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
 								try {
@@ -755,6 +743,18 @@ class MediaSoupClient extends StaticEvent {
 								}
 							})
 						}
+
+						// if (params.kind == "video" && params.producerPaused) {
+						// 	socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
+						// 		try {
+						// 			if (status) {
+						// 				consumer.pause()
+						// 			}
+						// 		} catch (error) {
+						// 			console.log("- Error Resuming Consumer : ", error)
+						// 		}
+						// 	})
+						// }
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
 					}
