@@ -1,13 +1,15 @@
 class StaticEvent {
 	static getInitialsAndColor(name) {
-		// Extract initials
+		// Extract initials and limit to 2 characters
 		const initials = name
 			.split(" ")
 			.map((word) => word.charAt(0).toUpperCase())
 			.join("")
+			.slice(0, 2) // Ensure only 2 characters
 
-		// Generate a random color in hex format
-		const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`
+		const randomColor = `#${Math.floor(Math.random() * 16777215)
+			.toString(16)
+			.padStart(6, "0")}`
 
 		return { initials, color: randomColor }
 	}
@@ -514,7 +516,7 @@ class Users extends StaticEvent {
 				userVideoElement.className = "user-container"
 
 				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}">
-				<span class="turn-off-alphabet" style="color: ${document.getElementById(`color-${userId}`).style.color};">
+				<span class="turn-off-alphabet" style="color: ${document.getElementById(`color-${userId}`)?.style?.color || alphabetName.color};">
 				${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video">
 				</video>${faceRecognition}</div>`
 				// userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}"><img src="${window.location.origin}/photo/P_0000000.png" class="turn-off-picture"/></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
@@ -605,6 +607,7 @@ class Users extends StaticEvent {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 			this.#videoContainerFocus.classList.remove("d-none")
 			if (!checkUserElement) {
+				const alphabetName = await this.constructor.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
 
 				let videoContainerElement = document.createElement("div")
@@ -614,7 +617,10 @@ class Users extends StaticEvent {
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
 
-				userVideoElement.innerHTML = `<div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video"></video>${faceRecognition}</div>`
+				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}">
+				<span class="turn-off-alphabet" style="color: ${document.getElementById(`color-${userId}`)?.style?.color || alphabetName.color};">
+				${alphabetName.initials}</span></div><div class="video-wrapper"><video id="v-${userId}" muted autoplay class="user-video">
+				</video>${faceRecognition}</div>`
 				videoContainerElement.appendChild(userVideoElement)
 				this.#videoContainerFocus.appendChild(videoContainerElement)
 
