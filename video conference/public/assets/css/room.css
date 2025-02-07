@@ -217,7 +217,7 @@ input:focus {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 100px;
+    font-size: 70px;
 }
 
 #video-container-focus:has(.d-none)~#video-collection .turn-off-alphabet {
