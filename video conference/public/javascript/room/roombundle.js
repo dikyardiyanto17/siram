@@ -38300,7 +38300,9 @@ class Users extends StaticEvent {
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
-				await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture })
+				if (kind == "video") {
+					await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture })
+				}
 				// await this.addVideo({ username, userId, track: null, index, picture: appData.picture })
 
 				await this.constructor.methodAddUserList({
