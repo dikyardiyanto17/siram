@@ -16,7 +16,7 @@ class Participants {
 
 	static async getAll(req, res, next) {
 		try {
-			const participants = await Participant.findAll()
+			const participants = await Participant.findAll({ raw: true })
 			await res.status(200).json({ data: participants })
 		} catch (error) {
 			next(error)
