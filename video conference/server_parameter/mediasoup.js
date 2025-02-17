@@ -7,12 +7,15 @@ class MediaSoup {
 	// #publicIp = "192.167.61.8" // RDS Harmoni Lantai 1
 	// #publicIp = "192.168.99.3" // Hotspot Marta
 	// #publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
-	#publicIp = "203.175.10.29" // VPS
+	// #publicIp = "203.175.10.29" // VPS
+	#publicIp = "93.127.198.123" // VPS TERBARU PAK Indra
 	// #publicIp = "203.194.113.166" // VPS	2 Core Pak Indra
 	// #publicIp = "192.168.20.177" // KOS
 	// #publicIp = "192.168.205.229" // RDS co.id
 	// #publicIp = "203.175.10.29"
 	// #publicIp = "192.168.18.68" // RDS 5g
+
+	#portToOpen = 1040
 
 	#turnServer = [
 		{
@@ -77,8 +80,8 @@ class MediaSoup {
 	#producers = []
 	#consumers = []
 
+	#incomingMinBitRate = 1500000
 	#incomingMaxBitRate = 1500000
-	#outcomingMaxBitRate = 1500000
 
 	#listenInfo
 
@@ -89,13 +92,13 @@ class MediaSoup {
 					protocol: "udp",
 					ip: this.#privateIp,
 					announcedIp: this.#publicIp,
-					port: 1040,
+					port: this.#portToOpen,
 				},
 				{
 					protocol: "tcp",
 					ip: this.#privateIp,
 					announcedIp: this.#publicIp,
-					port: 1040,
+					port: this.#portToOpen,
 				},
 			],
 		}
@@ -121,40 +124,20 @@ class MediaSoup {
 		return this.#workers
 	}
 
-	set workers(newWorker) {
-		this.#workers = newWorker
-	}
-
 	get routers() {
 		return this.#routers
-	}
-
-	set routers(newRouter) {
-		this.#routers = newRouter
 	}
 
 	get transports() {
 		return this.#transports
 	}
 
-	set transports(newtransport) {
-		this.#transports = newtransport
-	}
-
 	get producers() {
 		return this.#producers
 	}
 
-	set producers(newProducer) {
-		this.#producers = newProducer
-	}
-
 	get consumers() {
 		return this.#consumers
-	}
-
-	set consumers(newConsumer) {
-		this.#consumers = newConsumer
 	}
 
 	async createWorker() {
@@ -249,15 +232,6 @@ class MediaSoup {
 				newRouter.on("workerclose", () => {
 					try {
 						console.log("ROUTER (workerclose): Worker is closed")
-						this.#transports = this.#transports.filter((t) => {
-							if (t.routerId == newRouter.id) {
-								t.transport.close()
-								return null
-							} else {
-								return t
-							}
-						})
-						this.#routers = this.#routers.filter((r) => r.router.id != newRouter.id)
 					} catch (error) {
 						console.log("- Error Router workerclose : ", error)
 					}
@@ -284,15 +258,19 @@ class MediaSoup {
 				newRouter.observer.on("newtransport", (transport) => {
 					try {
 						console.log("ROUTER (newtransport) => ", transport.id)
-						transport.setMaxIncomingBitrate(this.#incomingMaxBitRate)
-						transport.setMaxOutgoingBitrate(this.#outcomingMaxBitRate)
+						transport.setMaxIncomingBitrate(1500000)
+						transport.setMaxOutgoingBitrate(1500000)
 						this.#transports.push({ transport, routerId: newRouter.id })
 					} catch (error) {
 						console.log("- Error Router newtransport : ", error)
 					}
 				})
+				console.log("- Worker : ", this.#workers)
+				console.log("- Router : ", this.#routers)
 				return newRouter
 			}
+			console.log("- Worker : ", this.#workers)
+			console.log("- Router : ", this.#routers)
 
 			return router.router
 		} catch (error) {
@@ -597,8 +575,6 @@ class MediaSoup {
 			consumer.on("producerpause", () => {
 				try {
 					console.log(`Consumer (producerpause) ${consumerTransport.id} => ${consumer.id}`)
-					consumer.pause()
-					socket.emit("producer-pause", { pause: true, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerpause) => ", error)
 				}
@@ -607,8 +583,6 @@ class MediaSoup {
 			consumer.on("producerresume", () => {
 				try {
 					console.log(`Consumer (producerresume) ${consumerTransport.id} => ${consumer.id}`)
-					consumer.resume()
-					socket.emit("producer-pause", { pause: false, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerresume) => ", error)
 				}
@@ -665,11 +639,7 @@ class MediaSoup {
 	async resumeConsumer({ consumerId }) {
 		try {
 			const consumer = this.#consumers.find((c) => c.consumer.id == consumerId)
-			if (consumer.producerPaused) {
-				return false
-			}
 			await consumer.consumer.resume()
-			return true
 		} catch (error) {
 			console.log("- Error Get Consumer : ", error)
 		}
@@ -678,9 +648,7 @@ class MediaSoup {
 	async pauseConsumer({ consumerId }) {
 		try {
 			const consumer = this.#consumers.find((c) => c.consumer.id == consumerId)
-			if (!consumer.producerPaused) {
-				await consumer.consumer.pause()
-			}
+			await consumer.consumer.pause()
 		} catch (error) {
 			console.log("- Error Get Consumer : ", error)
 		}

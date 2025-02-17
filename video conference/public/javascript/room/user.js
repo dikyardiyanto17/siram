@@ -2024,6 +2024,12 @@ class Users extends StaticEvent {
 				return
 			}
 			const audioVisualizerImage = document.getElementById(`video-mic-${id}`)
+			if (!audioVisualizerImage) {
+				setTimeout(() => {
+					this.createAudioVisualizer({ id, track })
+				}, 3000)
+				return
+			}
 			if (audioVisualizerImage) {
 				// Access the microphone audio stream (replace with your stream source)
 				const audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -2040,6 +2046,7 @@ class Users extends StaticEvent {
 				function drawBar() {
 					analyser.getByteFrequencyData(dataArray)
 					const barHeight = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
+					console.log(barHeight)
 					if (!track.enabled) {
 						audioVisualizerImage.src = "/assets/icons/mic_muted.svg"
 					} else if (barHeight <= 3) {
