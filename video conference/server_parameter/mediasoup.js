@@ -7,8 +7,8 @@ class MediaSoup {
 	// #publicIp = "192.167.61.8" // RDS Harmoni Lantai 1
 	// #publicIp = "192.168.99.3" // Hotspot Marta
 	// #publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
-	// #publicIp = "203.175.10.29" // VPS
-	#publicIp = "93.127.198.123" // VPS TERBARU PAK Indra
+	#publicIp = "203.175.10.29" // VPS
+	// #publicIp = "93.127.198.123" // VPS TERBARU PAK Indra
 	// #publicIp = "203.194.113.166" // VPS	2 Core Pak Indra
 	// #publicIp = "192.168.20.177" // KOS
 	// #publicIp = "192.168.205.229" // RDS co.id
@@ -575,6 +575,7 @@ class MediaSoup {
 			consumer.on("producerpause", () => {
 				try {
 					console.log(`Consumer (producerpause) ${consumerTransport.id} => ${consumer.id}`)
+					socket.emit("producer-pause", { pause: true, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerpause) => ", error)
 				}
@@ -583,6 +584,7 @@ class MediaSoup {
 			consumer.on("producerresume", () => {
 				try {
 					console.log(`Consumer (producerresume) ${consumerTransport.id} => ${consumer.id}`)
+					socket.emit("producer-pause", { pause: false, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerresume) => ", error)
 				}

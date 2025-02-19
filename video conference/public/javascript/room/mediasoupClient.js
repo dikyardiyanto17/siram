@@ -643,6 +643,7 @@ class MediaSoupClient extends StaticEvent {
 									}
 								}
 								if (params.kind == "audio" && appData.label == "audio") {
+									track.enabled = false
 									this.constructor.changeUserList({ type: "mic", isActive: false, id: userId })
 								}
 							} catch (error) {
@@ -660,6 +661,7 @@ class MediaSoupClient extends StaticEvent {
 									}
 								}
 								if (params.kind == "audio" && appData.label == "audio") {
+									track.enabled = true
 									this.constructor.changeUserList({ type: "mic", isActive: true, id: userId })
 								}
 							} catch (error) {

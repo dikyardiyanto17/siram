@@ -2046,7 +2046,6 @@ class Users extends StaticEvent {
 				function drawBar() {
 					analyser.getByteFrequencyData(dataArray)
 					const barHeight = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
-					console.log(barHeight)
 					if (!track.enabled) {
 						audioVisualizerImage.src = "/assets/icons/mic_muted.svg"
 					} else if (barHeight <= 3) {

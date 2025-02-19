@@ -35851,6 +35851,7 @@ class MediaSoupClient extends StaticEvent {
 									}
 								}
 								if (params.kind == "audio" && appData.label == "audio") {
+									track.enabled = false
 									this.constructor.changeUserList({ type: "mic", isActive: false, id: userId })
 								}
 							} catch (error) {
@@ -35868,6 +35869,7 @@ class MediaSoupClient extends StaticEvent {
 									}
 								}
 								if (params.kind == "audio" && appData.label == "audio") {
+									track.enabled = true
 									this.constructor.changeUserList({ type: "mic", isActive: true, id: userId })
 								}
 							} catch (error) {
@@ -36561,8 +36563,7 @@ socket.on("close-consumer", async ({ consumerId, appData }) => {
 socket.on("producer-pause", async ({ pause, producerId, userId }) => {
 	try {
 		const userConsumer = mediasoupClientVariable.consumers.find((c) => c.consumer.producerId == producerId)
-		const videoContainer = document.getElementById(`vc-${userId}`)
-		if (!pause && !videoContainer.classList.contains("d-none")){
+		if (!pause) {
 			userConsumer.consumer.resume()
 		}
 
@@ -39432,7 +39433,6 @@ class Users extends StaticEvent {
 				function drawBar() {
 					analyser.getByteFrequencyData(dataArray)
 					const barHeight = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
-					console.log(barHeight)
 					if (!track.enabled) {
 						audioVisualizerImage.src = "/assets/icons/mic_muted.svg"
 					} else if (barHeight <= 3) {
