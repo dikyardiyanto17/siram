@@ -8,11 +8,11 @@ const Participants = require("../controllers/participants/index.js")
 const Rooms = require("../controllers/room/index.js")
 const authenthication_user = require("../middlewares/authenthication_user.js")
 const authenthication_photo = require("../middlewares/authentication_photo.js")
-const Ollama = require("../controllers/llama/index.js")
+const OllamaService = require("../controllers/llama/index.js")
 
 router.get("/login", Login.index)
 router.use("/api/login", require("./api/login"))
-router.post("/ollama", Ollama.post)
+router.post("/ollama", OllamaService.post)
 
 router.use("/api/video_conference", authenthication_user, require("./api/video_conference"))
 // router.use("/photo", authenthication_photo, express.static(path.join(__dirname, "../photo")))
