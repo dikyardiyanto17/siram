@@ -30,7 +30,7 @@
         </div>
         <div class="layout-modal" id="layout-modal">
             <div class="layout-modal-header">
-                <span class="layout-modal-title">Ubah Susunan</span>
+                <span class="layout-modal-title" id="change-layout">Layout</span>
                 <img src="/assets/icons/close_button_layout.svg" alt="close_button" id="close-button-layout"
                     style="cursor: pointer;">
             </div>
@@ -38,7 +38,7 @@
                 <div id="layout-1" class="layout-option-container" data-option="1">
                     <section class="layout-option-title">
                         <img class="radio" src="/assets/icons/radio_button_active.svg" alt="radio_button_icon">
-                        <span>Petak</span>
+                        <span id="tiled">Tiled</span>
                     </section>
                     <section class="layout-option-icon">
                         <img src="/assets/icons/layout_1.svg" alt="layout_1">
@@ -47,7 +47,7 @@
                 <div class="layout-option-container" data-option="2">
                     <section class="layout-option-title">
                         <img class="radio" src="/assets/icons/radio_button.svg" alt="radio_button_icon">
-                        <span>Pembicara</span>
+                        <span id="spotlight">Spotlight</span>
                     </section>
                     <section class="layout-option-icon">
                         <img src="/assets/icons/layout_2.svg" alt="layout_1">
@@ -56,7 +56,7 @@
                 <div id="layout-3" class="layout-option-container" data-option="3">
                     <section class="layout-option-title">
                         <img class="radio" src="/assets/icons/radio_button.svg" alt="radio_button_icon">
-                        <span>Petak Samping</span>
+                        <span id="sidebar-layout">Sidebar</span>
                     </section>
                     <section class="layout-option-icon">
                         <img src="/assets/icons/layout_3.svg" alt="layout_1">
@@ -65,9 +65,8 @@
             </div>
             <div class="layout-modal-content-2">
                 <div class="layout-modal-content-2-title">
-                    <p>Jumlah Petak</p>
-                    <span id="alert-video-layout" class="hide-alert">Tidak bisa mengubah jumlah tampilan petak di
-                        tampilan ini</span>
+                    <p id="tiles">Tiles</p>
+                    <span id="alert-video-layout" class="hide-alert">Cannot change tiles in this layout</span>
                 </div>
                 <div class="layout-modal-content-2-content">
                     <!-- <div class="layout-option" data-option="1">
@@ -96,7 +95,7 @@
         </div>
         <div class="video-quality-container" id="video-quality-container" style="top: -50%;">
             <div class="video-quality-header">
-                <span>Kualitas Video</span>
+                <span id="video-quality-title">Kualitas Video</span>
             </div>
             <div class="video-quality-upstream">
                 <span>Upload Stream</span>
@@ -181,7 +180,7 @@
                 <section class="user-list-container d-none" id="user-list-container">
                     <div class="user-list-header">
                         <div class="user-list-header-title">
-                            <span>Anggota (<span id="user-list-total">1</span>)</span>
+                            <span id="participants-title">Participants (<span id="user-list-total">1</span>)</span>
                             <i id="close-side-bar"><img src="/assets/icons/close_button.svg" alt="close"></i>
                         </div>
                         <div class="user-list-header-search">
@@ -195,7 +194,7 @@
                     <div class="users-list-content">
                         <div class="raise-hand-list-container d-none" id="raise-hand-list-container">
                             <div class="raise-hand-list-header">
-                                <span>Angkat Tangan</span>
+                                <span id="raise-hand-box">Raise Hand</span>
                             </div>
                             <div class="liner-top">
                                 <hr />
@@ -216,7 +215,7 @@
                         </div>
                         <div class="waiting-list-container d-none" id="waiting-list-container">
                             <div class="raise-hand-list-header">
-                                <span>Ruang Tunggu</span>
+                                <span id="waiting-list-box">Waiting List</span>
                             </div>
                             <div class="liner-top">
                                 <hr />
@@ -229,15 +228,15 @@
                     </div>
                     <div class="user-list-footer">
                         <button id="share-link-button" class="share-link-button">
-                            <div id="clipboard-success"><span>Copied</span></div>
-                            Share
+                            <div id="clipboard-success"><span id="copied">Copied</span></div>
+                            <span id="share-link-title">Share Link</span>
                         </button>
                         <button class="mute-all-button" id="mute-all-button">Mute All</button>
                     </div>
                 </section>
                 <section class="chat-container d-none" id="chat-container">
                     <div class="chat-header">
-                        <span>Chat</span>
+                        <span id="chat-title">Chat</span>
                         <i id="close-side-bar-chat"><img src="/assets/icons/close_button.svg" alt="close"></i>
                     </div>
                     <div class="chat-content" id="chat-content">
@@ -256,11 +255,12 @@
             <div class="bottom-content">
                 <section class="left-button-collection">
                     <button class="button-container" id="mic-button">
+                        <div class="tooltip-container" id="microphone-tooltip">Microphone</div>
                         <img id="mic-icon" class="icons" src="/assets/icons/mic.svg" alt="mic-icons">
                         <img src="/assets/icons/arrow_up.svg" alt="arrow-up" id="microphone-devices-option">
                         <ul id="mic-options" class="d-none">
                             <li id="audio-input"><span class="mic-options-icons"><i
-                                        class="fa-solid fa-microphone-lines"></i></span><span>Microphone</span></li>
+                                        class="fa-solid fa-microphone-lines"></i></span><span id="microphone-option-title">Microphone</span></li>
                             <!-- <li id="audio-output"><span class="mic-options-icons"><i
                                         class="fa-solid fa-volume-high"></i></span><span>Speaker</span></li> -->
                         </ul>
@@ -268,13 +268,14 @@
                     <button class="button-container" id="camera-button">
                         <img id="camera-icon" class="icons" src="/assets/icons/camera.svg" alt="camera-icons">
                         <img src="/assets/icons/arrow_up.svg" alt="arrow-up" id="camera-devices-option">
+                        <div class="tooltip-container" id="camera-tooltip">Camera</div>
                         <ul id="video-options" class="d-none">
                             <li id="video-input"><span class="input-options-icons"><i
-                                        class="fa-solid fa-video"></i></span><span>Camera</span></li>
+                                        class="fa-solid fa-video"></i></span><span id="camera-option-title">Camera</span></li>
                         </ul>
                     </button>
                     <div class="record-container d-none" id="record-container">
-                        <span id="timer-title">Merekam :</span>&nbsp;<span
+                        <span id="timer-title">Recording :</span>&nbsp;<span
                             id="timer-span">00:00:00</span>&nbsp;&nbsp;&nbsp;<img id="pause-record"
                             class="record-icons d-none" src="/assets/icons/pause_record.svg" alt="pause_button" /><img
                             id="resume-record" class="record-icons d-none" src="/assets/icons/resume_record.svg"
@@ -284,21 +285,21 @@
                 </section>
                 <section class="middle-button-collection">
                     <button class="button-container" id="user-list-button">
-                        <div class="tooltip-container">Peserta</div>
+                        <div class="tooltip-container" id="participants-tooltip-title">Participants</div>
                         <div id="red-dot-user-list" class="d-none red-dot"></div>
                         <img class="icons" src="/assets/icons/people.svg" alt="user-list-icons">
                     </button>
                     <button class="button-container" id="chat-button">
-                        <div class="tooltip-container">Pesan</div>
+                        <div class="tooltip-container" id="chat-tooltip-title">Chat</div>
                         <div id="red-dot-chat" class="d-none red-dot"></div>
                         <img class="icons" src="/assets/icons/chat.svg" alt="chat-icons">
                     </button>
                     <button class="button-container" id="raise-hand-button">
-                        <div class="tooltip-container">Angkat Tangan</div>
+                        <div class="tooltip-container" id="raise-hand-tooltip-title">Raise Hand</div>
                         <img class="icons" src="/assets/icons/raise_hand.svg" alt="raise-hand-icons">
                     </button>
                     <button class="button-container" id="screen-sharing-button">
-                        <div class="tooltip-container">Berbagi Layar</div>
+                        <div class="tooltip-container" id="screen-sharing-tooltip-title">Screen Share</div>
                         <img class="icons" src="/assets/icons/screen_sharing.svg" alt="screen-sharing-icons">
                     </button>
                     <button class="button-container" id="cc-button">
@@ -311,20 +312,20 @@
                         <div class="option-container d-none" id="option-container">
                             <div class="option-list" id="record-button">
                                 <img src="/assets/icons/record.svg" alt="record-icon">
-                                <span>Mulai Merekam</span>
+                                <span id="start-record">Start Record</span>
                             </div>
                             <div class="option-list" id="video-quality-button">
                                 <img src="/assets/icons/video_quality.svg" alt="record-icon">
-                                <span>Kualitas Video</span>
+                                <span id="video-quality-menu">Video Quality</span>
                             </div>
                             <div class="option-list" style="position: relative;" id="video-layout-button">
                                 <img src="/assets/icons/video_layout.svg" alt="record-icon">
-                                <span>Ubah Susunan</span>
+                                <span id="layout-menu">Layout</span>
                                 <hr />
                             </div>
                             <div class="option-list">
                                 <img src="/assets/icons/setting.svg" alt="record-icon">
-                                <span>Pengaturan</span>
+                                <span id="setting-menu">Setting</span>
                             </div>
                         </div>
                     </button>
@@ -352,6 +353,7 @@
         const userToken = [/- JSON.stringify(user_token) /]
         console.log("- Video Codec : ", videoType)
     </script>
+    <script src="/javascript/room/language.js"></script>
     <script src="/javascript/room/roombundle.js"></script>
 </body>
 

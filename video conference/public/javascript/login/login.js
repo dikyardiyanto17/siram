@@ -8,6 +8,43 @@ document.addEventListener("DOMContentLoaded", (e) => {
 	document.getElementById("loading-id").className = "loading-hide"
 })
 
+
+if (!localStorage.getItem("language")) {
+	localStorage.setItem("language", "en")
+} else {
+	const language = localStorage.getItem("language")
+	if (language !== "en" && language !== "id") {
+		localStorage.setItem("language", "en")
+	}
+}
+
+const changeLanguage = ({ language }) => {
+	try {
+
+		const loginTitle = document.getElementById("login-title")
+		const nameInput = document.getElementById("full_name")
+		const submitButton = document.getElementById("submit-button")
+
+		
+		if (language == "en") {
+			loginTitle.innerHTML = "Please Enter Your Name"
+			nameInput.placeholder = "Name..."
+			submitButton.innerHTML = "Continue"
+		} else if (language == "id") {
+			loginTitle.innerHTML = "Silahkan Masukan Nama Anda"
+			nameInput.placeholder = "Nama..."
+			submitButton.innerHTML = "Lanjutkan"
+		} else {
+			throw { name: "error", message: "language id is not valid" }
+		}
+	} catch (error) {
+		console.log("- Error Change Languange")
+	}
+}
+
+changeLanguage({ language: localStorage.getItem("language") })
+
+
 const urlParam = new URL(window.location.href)
 const params = new URLSearchParams(urlParam.search)
 

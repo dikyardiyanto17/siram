@@ -37426,6 +37426,7 @@ class StaticEvent {
 			} else if (authority == 2) {
 				authorityElement = '<span class="user-list-tag">Co-Host</span>'
 			}
+			const kickTitle = localStorage.getItem("language")
 			userListElement.className = "user-list-content"
 			userListElement.id = `ul-${id}`
 			userListElement.innerHTML = `
@@ -37442,7 +37443,7 @@ class StaticEvent {
                                     <img style="cursor: pointer;" id="ul-o-${id}" src="/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
 									<div class="user-list-icons-option d-none" id="ul-oc-${id}"><span id="ul-o-f-${id}">Pin</span>
-									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">Keluarkan</span>` : ""}
+									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">${kickTitle == "id" ? "Keluarkan" : "Remove"}}</span>` : ""}
 									</div>
                                 </div>
                             `
@@ -38232,12 +38233,22 @@ class Users extends StaticEvent {
 	async selectVideoLayout({ container, socket }) {
 		try {
 			if (container.dataset.option == 1 && this.#screenSharingMode) {
-				this.constructor.warning({ message: "Tidak bisa memilih layout pada saat berbagi layar" })
+				this.constructor.warning({
+					message:
+						localStorage.getItem("language") == "id"
+							? "Tidak bisa memilih layout pada saat berbagi layar"
+							: "Cannot change the selected layout in screen sharing mode",
+				})
 				return
 			}
 
 			if (container.dataset.option == 3 && this.#users == 1) {
-				this.constructor.warning({ message: "Tidak bisa memilih layout karena hanya ada 1 user" })
+				this.constructor.warning({
+					message:
+						localStorage.getItem("language") == "id"
+							? "Tidak bisa memilih layout karena hanya ada 1 user"
+							: "Cannot select a layout because there is only one user",
+				})
 				return
 			}
 
@@ -38345,7 +38356,12 @@ class Users extends StaticEvent {
 				optionUserListContainer.addEventListener("click", async () => {
 					try {
 						if (this.#screenSharingMode) {
-							this.constructor.warning({ message: "Tidak bisa memilih tampilan saat berbagi layar" })
+							this.constructor.warning({
+								message:
+									localStorage.getItem("language") == "id"
+										? "Tidak bisa memilih layout pada saat berbagi layar"
+										: "Cannot change the selected layout in screen sharing mode",
+							})
 							return
 						}
 						this.#allUsers.forEach((u) => {
@@ -39224,18 +39240,18 @@ class Users extends StaticEvent {
 			if (from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
 				recordButton.firstElementChild.src = "/assets/icons/record.svg"
-				recordButton.lastElementChild.innerHTML = "Mulai Merekam"
+				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 				this.#record.isRecording = false
 			} else if (this.#record.isRecording && !from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
 				recordButton.firstElementChild.src = "/assets/icons/record.svg"
-				recordButton.lastElementChild.innerHTML = "Mulai Merekam"
+				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 				// recordButton.removeAttribute("pointer-events")
 				this.#record.isRecording = !this.#record.isRecording
 			} else {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: true })
 				recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
-				recordButton.lastElementChild.innerHTML = "Berhenti Merekam"
+				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Berhenti Merekam" : "Stop Record"
 				// recordButton.setAttribute("pointer-events", "none")
 				this.#record.isRecording = !this.#record.isRecording
 			}
@@ -39250,7 +39266,7 @@ class Users extends StaticEvent {
 		try {
 			const recordButton = document.getElementById("record-button")
 			recordButton.firstElementChild.src = "/assets/icons/record.svg"
-			recordButton.lastElementChild.innerHTML = "Mulai Merekam"
+			recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 			recordButton.removeAttribute("pointer-events")
 			await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
 		} catch (error) {

@@ -18,6 +18,53 @@ const waitingModal = document.getElementById("waiting-modal-container")
 const roomId = document.getElementById("room_id")
 const instantRoomButton = document.getElementById("instant-room")
 
+if (!localStorage.getItem("language")) {
+	localStorage.setItem("language", "en")
+} else {
+	const language = localStorage.getItem("language")
+	if (language !== "en" && language !== "id") {
+		localStorage.setItem("language", "en")
+	}
+}
+
+const changeLanguage = ({ language }) => {
+	try {
+		const languageTitleElement = document.getElementById("language-title")
+		const roomIdInput = document.getElementById("room_id")
+		const passwordInput = document.getElementById("password")
+		const buttonJoin = document.getElementById("submit-join")
+		const instantMeeting = document.getElementById("instant-meeting")
+
+		languageTitleElement.classList.remove("skeleton")
+
+		if (language == "en") {
+			languageTitleElement.innerHTML = `Welcome to Video Conference <span>RDS!</span>`
+			roomIdInput.placeholder = "Enter Room ID"
+			passwordInput.placeholder = "Enter Room Password"
+			buttonJoin.innerHTML = "Join"
+			instantMeeting.innerHTML = "Instant Meeting"
+		} else if (language == "id") {
+			languageTitleElement.innerHTML = `Selamat Datang di Video Conference <span>RDS!</span>`
+			roomIdInput.placeholder = "Masukkan Room Id"
+			passwordInput.placeholder = "Masukkan Password"
+			buttonJoin.innerHTML = "Masuk"
+			instantMeeting.innerHTML = "Meeting Instan"
+		} else {
+			throw { name: "error", message: "language id is not valid" }
+		}
+	} catch (error) {
+		console.log("- Error Change Languange")
+	}
+}
+
+changeLanguage({ language: localStorage.getItem("language") })
+
+const languageSelect = document.getElementById("language-select")
+
+languageSelect.addEventListener("change", (event) => {
+	changeLanguage({ language: event.target.value })
+})
+
 const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) => {
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	let randomId = ""

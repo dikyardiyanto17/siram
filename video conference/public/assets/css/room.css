@@ -1188,6 +1188,50 @@ input:focus {
     outline: none;
 }
 
+#mic-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#mic-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+#camera-button .tooltip-container {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: hidden;
+    opacity: 0;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10;
+}
+
+#camera-button:hover .tooltip-container {
+    visibility: visible;
+    opacity: 1;
+}
+
 #user-list-button .tooltip-container {
     position: absolute;
     top: -40px;
