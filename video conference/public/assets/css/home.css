@@ -1,7 +1,6 @@
 * {
     padding: 0;
     margin: 0;
-    overflow: hidden;
 }
 
 .full-container {
@@ -15,6 +14,7 @@
     background-repeat: no-repeat;
     background-position: center; */
     background-color: #F5F9FE;
+    overflow: hidden;
 }
 
 .waiting-modal-container {

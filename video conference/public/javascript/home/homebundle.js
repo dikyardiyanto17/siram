@@ -11986,12 +11986,18 @@ const btn = document.querySelector(".dropdown-btn")
 const selectedFlag = document.getElementById("selected-flag")
 const selectedLanguage = document.getElementById("selected-language")
 
-dropdown.addEventListener("click", () => {
-	dropdown.classList.toggle("open")
+dropdown.addEventListener("click", (e) => {
+	e.stopPropagation()
+	if (dropdown.classList.contains("open")) {
+		dropdown.classList.remove("open")
+	} else {
+		dropdown.classList.add("open")
+	}
 })
 
 document.querySelectorAll(".dropdown-item").forEach((item) => {
-	item.addEventListener("click", () => {
+	item.addEventListener("click", (e) => {
+		e.stopPropagation()
 		selectedFlag.src = item.querySelector("img").src
 		if (item.dataset.lang == "Indonesian") {
 			localStorage.setItem("language", "id")
@@ -12046,6 +12052,9 @@ const changeLanguage = ({ language }) => {
 		} else {
 			throw { name: "error", message: "language id is not valid" }
 		}
+		if (dropdown.classList.contains("open")) {
+			dropdown.classList.remove("open")
+		}
 	} catch (error) {
 		console.log("- Error Change Languange : ", error)
 	}
@@ -12053,8 +12062,10 @@ const changeLanguage = ({ language }) => {
 
 if (localStorage.getItem("language") == "id") {
 	document.getElementById("indonesian-language").click()
+	dropdown.classList.remove("open")
 } else {
 	document.getElementById("english-language").click()
+	dropdown.classList.remove("open")
 }
 changeLanguage({ language: localStorage.getItem("language") })
 
