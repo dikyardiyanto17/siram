@@ -18,79 +18,51 @@
 
 <body>
     <div class="full-container">
-        <div id="language-option">
-            <select id="language-select">
-                <option value="id">ID - Indonesian</option>
-                <option value="en" selected>EN - English</option>
-            </select>
-        </div>
-        <div class="waiting-modal-container d-none" id="waiting-modal-container">
-            <div class="waiting-modal">
-                <div class="waiting-modal-header">
-                    <div class="modal-title-container">
-                        <p>Ruang Sidang <span id="modal-title"></span></p>
-                    </div>
-                    <div class="modal-event">
-                        <img src="/assets/icons/date.svg" alt="date_icon" />
-                        <span>Hari Ini</span>
-                        &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <img src="/assets/icons/clock.svg" alt="clock_icon" />
-                        <span id="start_date_modal"></span>
-                    </div>
-                </div>
-                <div class="waiting-modal-content">
-                    <div class="waiting-modal-content-left">
-                        <img src="/assets/pictures/waitingPic.png" alt="waiting">
-                    </div>
-                    <div class="waiting-modal-content-right">
-                        <div class="left-line"></div>
-                        <div class="waiting-modal-description">
-                            <p>Selamat Datang di Ruang Tunggu Persidangan!</p>
-                            <span>Mohon sabar, Host akan mempersilahkan Anda masuk.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="loading-id" class="loading-show">
-            <img src="/assets/pictures/loading.svg" alt="loading-bar" />
-        </div>
-        <section class="left-bar">
-            <div style="width: 90%;">
-                <p id="language-title" class="skeleton text-title"><span>RDS!</span></p>
-                <div class="join-container">
-                    <div class="join-form-section">
-                        <div id="join-form" class="join-form-container" style="position: relative; z-index: -1;">
-                            <input class="join-form" type="text" name="room_id" id="room_id"
-                                placeholder="Masukkan Room Id">
-                        </div>
-                        <div id="password-form" class="join-form-container" style="position: relative; z-index: -1;">
-                            <input class="join-form" type="text" name="password" id="password"
-                                placeholder="Masukkan Password">
-                        </div>
-                    </div>
-                    <div class="join-button-section">
-                        <button type="button" id="submit-join" style="display: none;">Join</button>
-                    </div>
-                </div>
-
-                <div class="button-container">
-                    <a id="instant-room">
-                        <button type="button">
-                            <span id="instant-meeting">Instan Meeting</span>
+        <div class="navbar-container">
+            <div class="navbar">
+                <img src="/assets/pictures/RDS_Logo.png" alt="rdslogo" srcset="">
+                <div class="option-container">
+                    <div id="language-option" class="dropdown">
+                        <button class="dropdown-btn">
+                            <img id="selected-flag" src="/assets/icons/us_flag.svg" alt="us_flag">
+                            <span id="selected-language">EN</span>
                         </button>
-                    </a>
+                        <div class="dropdown-content">
+                            <div class="dropdown-item" data-value="id" data-lang="Indonesian" id="indonesian-language">
+                                <img src="/assets/icons/indonesia_flag.svg" alt="Indonesia Flag"> Indonesian
+                            </div>
+                            <div class="dropdown-item" data-value="en" data-lang="English" id="english-language">
+                                <img src="/assets/icons/us_flag.svg" alt="US Flag"> English
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="log-out-container" id="log-out-button">
+                        <span>Log Out</span><img src="/assets/icons/log_out_door.svg" alt="door" srcset="">
+                    </div>
                 </div>
-
-
             </div>
-            <button class="ml-0" type="button" id="log-out-button">
-                <span>Log Out</span>
-            </button>
-        </section>
-        <section class="right-bar" id="right-bar-id">
-            <img class="join-image" src="/assets/pictures/homePic.png" />
-        </section>
+        </div>
+        <div class="main-content">
+            <div class="left-box">
+                <div class="login-container">
+                    <div class="text-container">
+                        <p class="text-title" id="language-title"><span>RDS!</span>
+                        </p>
+                    </div>
+                    <input class="input-field" type="text" name="room_id" id="room_id" placeholder="Enter Room Id...">
+                    <input class="input-field" type="text" name="password" id="password"
+                        placeholder="Enter Room Password...">
+                    <button id="auto-generate" class="generate-btn">Auto Generate</button>
+                    <button id="submit-join" class="masuk-btn">Join</button>
+                </div>
+            </div>
+            <div class="right-box">
+                <div class="picture-container">
+                    <img src="/assets/pictures/home_picture.png" alt="rdspeople" srcset="">
+                </div>
+            </div>
+        </div>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <script src="/javascript/url/url.js"></script>

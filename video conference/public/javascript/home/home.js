@@ -16,7 +16,38 @@ const joinSubmit = document.getElementById("submit-join")
 const modalTitle = document.getElementById("modal-title")
 const waitingModal = document.getElementById("waiting-modal-container")
 const roomId = document.getElementById("room_id")
-const instantRoomButton = document.getElementById("instant-room")
+const autoGenerateButton = document.getElementById("auto-generate")
+
+const dropdown = document.querySelector(".dropdown")
+const btn = document.querySelector(".dropdown-btn")
+const selectedFlag = document.getElementById("selected-flag")
+const selectedLanguage = document.getElementById("selected-language")
+
+dropdown.addEventListener("click", () => {
+	dropdown.classList.toggle("open")
+})
+
+document.querySelectorAll(".dropdown-item").forEach((item) => {
+	item.addEventListener("click", () => {
+		selectedFlag.src = item.querySelector("img").src
+		if (item.dataset.lang == "Indonesian") {
+			localStorage.setItem("language", "id")
+			selectedLanguage.textContent = "ID"
+		} else if (item.dataset.lang == "English") {
+			selectedLanguage.textContent = "EN"
+			localStorage.setItem("language", "en")
+		}
+		dropdown.classList.remove("open")
+		changeLanguage({ language: localStorage.getItem("language") })
+	})
+})
+
+// Close dropdown when clicking outside
+document.addEventListener("click", (e) => {
+	if (!dropdown.contains(e.target)) {
+		dropdown.classList.remove("open")
+	}
+})
 
 if (!localStorage.getItem("language")) {
 	localStorage.setItem("language", "en")
@@ -33,37 +64,36 @@ const changeLanguage = ({ language }) => {
 		const roomIdInput = document.getElementById("room_id")
 		const passwordInput = document.getElementById("password")
 		const buttonJoin = document.getElementById("submit-join")
-		const instantMeeting = document.getElementById("instant-meeting")
+		const autoGenerate = document.getElementById("auto-generate")
 
 		languageTitleElement.classList.remove("skeleton")
 
 		if (language == "en") {
-			languageTitleElement.innerHTML = `Welcome to Video Conference <span>RDS!</span>`
+			languageTitleElement.innerHTML = `Welcome to <span>RDS Meet!</span>`
 			roomIdInput.placeholder = "Enter Room ID"
 			passwordInput.placeholder = "Enter Room Password"
 			buttonJoin.innerHTML = "Join"
-			instantMeeting.innerHTML = "Instant Meeting"
+			autoGenerate.innerHTML = "Auto Generate"
 		} else if (language == "id") {
-			languageTitleElement.innerHTML = `Selamat Datang di Video Conference <span>RDS!</span>`
+			languageTitleElement.innerHTML = `Selamat Datang di <span>RDS Meet!</span>`
 			roomIdInput.placeholder = "Masukkan Room Id"
 			passwordInput.placeholder = "Masukkan Password"
 			buttonJoin.innerHTML = "Masuk"
-			instantMeeting.innerHTML = "Meeting Instan"
+			autoGenerate.innerHTML = "Generate Otomatis"
 		} else {
 			throw { name: "error", message: "language id is not valid" }
 		}
 	} catch (error) {
-		console.log("- Error Change Languange")
+		console.log("- Error Change Languange : ", error)
 	}
 }
 
+if (localStorage.getItem("language") == "id") {
+	document.getElementById("indonesian-language").click()
+} else {
+	document.getElementById("english-language").click()
+}
 changeLanguage({ language: localStorage.getItem("language") })
-
-const languageSelect = document.getElementById("language-select")
-
-languageSelect.addEventListener("change", (event) => {
-	changeLanguage({ language: event.target.value })
-})
 
 const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) => {
 	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -81,12 +111,20 @@ const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) =
 	return randomId
 }
 
-instantRoomButton.addEventListener("click", async () => {
+autoGenerateButton.addEventListener("click", async () => {
 	try {
+		console.log("WHAT")
 		const randomId = await generateRandomId()
 		const randomPassword = await generateRandomId()
 		document.getElementById("room_id").value = randomId
 		document.getElementById("password").value = randomPassword
+		if (passwordInput.value && roomId.value) {
+			joinSubmit.style.color = "#ffffff"
+			joinSubmit.style.backgroundColor = "#2369D1"
+		} else {
+			joinSubmit.style.color = "#888"
+			joinSubmit.style.backgroundColor = " #ddd"
+		}
 	} catch (error) {
 		console.log("- Error Instant Room Button : ", error)
 	}
@@ -209,19 +247,37 @@ const joiningRoom = async ({ roomId, password, token }) => {
 	}
 }
 
-roomId.addEventListener("change", (e) => {
+roomId.addEventListener("input", (e) => {
 	localStorage.setItem("room_id", e.target.value)
+	if (passwordInput.value && roomId.value) {
+		joinSubmit.style.color = "#ffffff"
+		joinSubmit.style.backgroundColor = "#2369D1"
+	} else {
+		joinSubmit.style.color = "#888"
+		joinSubmit.style.backgroundColor = " #ddd"
+	}
 })
 
-document.addEventListener("DOMContentLoaded", (e) => {
-	document.getElementById("loading-id").className = "loading-hide"
-	if (rid && rid.trim() != "" && pw && pw.trim() != "") {
-		passwordInput.value = pw
-		roomId.value = rid
-		joinSubmit.click()
+passwordInput.addEventListener("input", (e) => {
+	localStorage.setItem("room_id", e.target.value)
+	if (passwordInput.value && roomId.value) {
+		joinSubmit.style.color = "#ffffff"
+		joinSubmit.style.backgroundColor = "#2369D1"
+	} else {
+		joinSubmit.style.color = "#888"
+		joinSubmit.style.backgroundColor = " #ddd"
 	}
-	setFormStyle({ status: true })
 })
+
+// document.addEventListener("DOMContentLoaded", (e) => {
+// 	document.getElementById("loading-id").className = "loading-hide"
+// 	if (rid && rid.trim() != "" && pw && pw.trim() != "") {
+// 		passwordInput.value = pw
+// 		roomId.value = rid
+// 		joinSubmit.click()
+// 	}
+// 	setFormStyle({ status: true })
+// })
 
 const setFormStyle = async ({ status }) => {
 	try {
