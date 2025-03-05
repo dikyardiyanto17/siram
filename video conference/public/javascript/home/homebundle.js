@@ -12027,6 +12027,20 @@ if (!localStorage.getItem("language")) {
 	}
 }
 
+roomId.addEventListener("change", (e) => {
+	localStorage.setItem("room_id", e.target.value)
+})
+
+document.addEventListener("DOMContentLoaded", (e) => {
+	// document.getElementById("loading-id").className = "loading-hide"
+	if (rid && rid.trim() != "" && pw && pw.trim() != "") {
+		passwordInput.value = pw
+		roomId.value = rid
+		joinSubmit.click()
+	}
+	setFormStyle({ status: true })
+})
+
 const changeLanguage = ({ language }) => {
 	try {
 		const languageTitleElement = document.getElementById("language-title")
@@ -12139,6 +12153,7 @@ joinSubmit.addEventListener("click", async (e) => {
 		if (responseDatabaseRoom.ok) {
 			const dataResponseDatabaseRoom = await responseDatabaseRoom.json()
 			if (dataResponseDatabaseRoom.status) {
+				localStorage.setItem("room_id", e.target.value)
 				await joiningRoom({
 					roomId: dataResponseDatabaseRoom.room_id,
 					password: dataResponseDatabaseRoom.password,
