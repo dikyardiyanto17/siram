@@ -325,7 +325,14 @@ class MediaSoupClient extends StaticEvent {
 
 	async getMyStream({ faceRecognition, picture, userId, username }) {
 		try {
-			this.#mystream = await navigator.mediaDevices.getUserMedia({ audio: { ...this.#audioSetting }, video: true })
+			this.#mystream = await navigator.mediaDevices.getUserMedia({
+				audio: { ...this.#audioSetting },
+				video: {
+					width: { ideal: 1280 }, // Request 1280px width
+					height: { ideal: 720 }, // Request 720px height
+					frameRate: { ideal: 30, max: 60 }, // Higher FPS for smooth video
+				},
+			})
 		} catch (error) {
 			if (
 				error == "NotAllowedError: Permission denied" ||
@@ -615,6 +622,12 @@ class MediaSoupClient extends StaticEvent {
 						})
 
 						const { track } = consumer
+						if (params.kind === "video") {
+							setInterval(async () => {
+								const stats = await consumer.getStats()
+								console.log([...stats.values()]) // Convert map to an array and log
+							}, 1000)
+						}
 
 						consumer.on("transportclose", () => {
 							try {
