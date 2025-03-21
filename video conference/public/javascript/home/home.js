@@ -9,8 +9,8 @@ const params = new URLSearchParams(urlParam.search)
 const rid = params.get("rid")
 const pw = params.get("pw")
 
-const joinForm = document.getElementById("join-form")
-const passwordForm = document.getElementById("password-form")
+// const joinForm = document.getElementById("join-form")
+// const passwordForm = document.getElementById("password-form")
 const passwordInput = document.getElementById("password")
 const joinSubmit = document.getElementById("submit-join")
 const modalTitle = document.getElementById("modal-title")
@@ -308,14 +308,14 @@ passwordInput.addEventListener("input", (e) => {
 const setFormStyle = async ({ status }) => {
 	try {
 		if (status) {
-			joinForm.removeAttribute("style")
-			passwordForm.removeAttribute("style")
+			// joinForm.removeAttribute("style")
+			// passwordForm.removeAttribute("style")
 			joinSubmit.removeAttribute("style")
 		} else {
-			joinForm.style.position = "relative"
-			joinForm.style.zIndex = "-1"
-			passwordForm.style.position = "relative"
-			passwordForm.style.zIndex = "-1"
+			// joinForm.style.position = "relative"
+			// joinForm.style.zIndex = "-1"
+			// passwordForm.style.position = "relative"
+			// passwordForm.style.zIndex = "-1"
 			joinSubmit.style.display = "none"
 		}
 	} catch (error) {

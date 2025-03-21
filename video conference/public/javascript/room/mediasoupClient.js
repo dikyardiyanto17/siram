@@ -68,6 +68,7 @@ class MediaSoupClient extends StaticEvent {
 		noiseSuppression: true,
 		echoCancellation: true,
 	}
+	#os = ""
 
 	#audioParams = {
 		track: null,
@@ -130,6 +131,14 @@ class MediaSoupClient extends StaticEvent {
 		this.#screenSharingMode = false
 		this.#screenSharingStatus = false
 		this.#screenSharingButton = document.getElementById("screen-sharing-button")
+	}
+
+	get os() {
+		return this.#os
+	}
+
+	set os(newOs) {
+		this.#os = newOs
 	}
 
 	get rtpCapabilities() {
@@ -622,12 +631,12 @@ class MediaSoupClient extends StaticEvent {
 						})
 
 						const { track } = consumer
-						if (params.kind === "video") {
-							setInterval(async () => {
-								const stats = await consumer.getStats()
-								console.log([...stats.values()]) // Convert map to an array and log
-							}, 1000)
-						}
+						// if (params.kind === "video") {
+						// 	setInterval(async () => {
+						// 		const stats = await consumer.getStats()
+						// 		console.log([...stats.values()]) // Convert map to an array and log
+						// 	}, 1000)
+						// }
 
 						consumer.on("transportclose", () => {
 							try {
@@ -970,6 +979,7 @@ class MediaSoupClient extends StaticEvent {
 			let videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput")
 			const currentDevice = await this.#mystream.getVideoTracks()[0].getSettings().deviceId
 			this.#videoDeviceId = currentDevice
+			// possible bug
 			videoDevices.forEach((videoList) => {
 				let currentCameraIcons = '<i class="fa-regular fa-square"></i>'
 				if (videoList.deviceId === currentDevice) {
@@ -985,27 +995,62 @@ class MediaSoupClient extends StaticEvent {
 					this.#videoDeviceId = videoList.deviceId
 					document.getElementById(this.#videoDeviceId).firstChild.firstChild.className = "fa-regular fa-square-check"
 
-					let config = {
-						video: {
-							deviceId: { exact: this.#videoDeviceId },
-						},
-					}
+					let config =
+						this.#os.toLocaleLowerCase() === "android" || this.#os.toLocaleLowerCase() == "ios"
+							? {
+									video: {
+										deviceId: { exact: this.#videoDeviceId },
+										facingMode: videoList.label.toLowerCase().includes("front") ? "user" : "environment",
+									},
+							  }
+							: {
+									video: {
+										deviceId: { exact: this.#videoDeviceId },
+									},
+							  }
+					alert(JSON.stringify(videoList, null, 2))
+					alert(JSON.stringify(config, null, 2))
 					const newStream = await navigator.mediaDevices.getUserMedia(config)
-					if (document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0]) {
-						await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0].stop()
-						await document
-							.getElementById(`v-${userId}`)
-							.srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
-						await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
+					// alert(newStream)
+					if (this.#os.toLocaleLowerCase() === "android" || this.#os.toLocaleLowerCase() == "ios") {
+						alert(videoList.label)
+						if (videoList.label.toLowerCase().includes("front")) {
+							config.video.facingMode = "user"
+						} else if (videoList.label.toLowerCase().includes("back")) {
+							config.video.facingMode = "environment"
+						}
+
+						if (document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0]) {
+							await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0].stop()
+							await document
+								.getElementById(`v-${userId}`)
+								.srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
+							await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
+						}
+
+						await this.#mystream.getVideoTracks()[0].stop()
+						await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+						await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
+						await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
+					} else {
+						if (document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0]) {
+							await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0].stop()
+							await document
+								.getElementById(`v-${userId}`)
+								.srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
+							await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
+						}
+
+						await this.#mystream.getVideoTracks()[0].stop()
+						await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+						await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
+						await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
 					}
-					await this.#mystream.getVideoTracks()[0].stop()
-					await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
-					await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
-					await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
 				})
 				listCameraContainer.appendChild(cameraLabel)
 			})
 		} catch (error) {
+			alert(error)
 			console.log("- Error Get Camera Options : ", error)
 			this.constructor.warning({ message: "Gagal mendapatkan pilihan kamera yang tersedia!", back: true })
 		}

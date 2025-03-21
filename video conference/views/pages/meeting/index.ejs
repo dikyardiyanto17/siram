@@ -44,7 +44,7 @@
                         <img src="/assets/icons/layout_1.svg" alt="layout_1">
                     </section>
                 </div>
-                <div class="layout-option-container" data-option="2">
+                <div id="layout-2" class="layout-option-container" data-option="2">
                     <section class="layout-option-title">
                         <img class="radio" src="/assets/icons/radio_button.svg" alt="radio_button_icon">
                         <span id="spotlight">Spotlight</span>
@@ -141,6 +141,17 @@
             </div>
         </div>
         <div class="block-container d-none" id="block-container"></div>
+        <section class="header-container">
+            <div class="camera-speaker-container" id="camera-speaker-container">
+                <button id="switch-camera-mobile" class="switch-camera-mobile">
+                    <img src="/assets/icons/switch_camera_mobile.svg" alt="switch-camera-mobile" srcset="">
+                </button>
+                <button id="mute-speaker-mobile" class="mute-speaker-mobile d-none">
+                    <img src="/assets/icons/mute_speaker_mobile.svg" alt="mute-speaker-mobile" srcset="">
+                </button>
+            </div>
+            <div class="hang-up-button-container" id="hang-up-button-container"></div>
+        </section>
         <section class="upper-container">
             <section class="raise-hand-notification" id="raise-hand-notification">
             </section>
@@ -227,10 +238,10 @@
                         </div>
                     </div>
                     <div class="user-list-footer">
-                        <button id="share-link-button" class="share-link-button">
+                        <!-- <button id="share-link-button" class="share-link-button">
                             <div id="clipboard-success"><span id="copied">Copied</span></div>
                             <span id="share-link-title">Share Link</span>
-                        </button>
+                        </button> -->
                         <button class="mute-all-button" id="mute-all-button">Mute All</button>
                     </div>
                 </section>
@@ -253,25 +264,29 @@
         </section>
         <section class="bottom-container">
             <div class="bottom-content">
-                <section class="left-button-collection">
+                <section class="left-button-collection" id="left-button-collection">
                     <button class="button-container" id="mic-button">
                         <div class="tooltip-container" id="microphone-tooltip">Microphone</div>
                         <img id="mic-icon" class="icons" src="/assets/icons/mic.svg" alt="mic-icons">
-                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up" id="microphone-devices-option">
+                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up" id="microphone-devices-option"
+                            class="microphone-devices-option">
                         <ul id="mic-options" class="d-none">
                             <li id="audio-input"><span class="mic-options-icons"><i
-                                        class="fa-solid fa-microphone-lines"></i></span><span id="microphone-option-title">Microphone</span></li>
+                                        class="fa-solid fa-microphone-lines"></i></span><span
+                                    id="microphone-option-title">Microphone</span></li>
                             <!-- <li id="audio-output"><span class="mic-options-icons"><i
                                         class="fa-solid fa-volume-high"></i></span><span>Speaker</span></li> -->
                         </ul>
                     </button>
                     <button class="button-container" id="camera-button">
                         <img id="camera-icon" class="icons" src="/assets/icons/camera.svg" alt="camera-icons">
-                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up" id="camera-devices-option">
+                        <img src="/assets/icons/arrow_up.svg" alt="arrow-up" id="camera-devices-option"
+                            class="camera-devices-option">
                         <div class="tooltip-container" id="camera-tooltip">Camera</div>
                         <ul id="video-options" class="d-none">
                             <li id="video-input"><span class="input-options-icons"><i
-                                        class="fa-solid fa-video"></i></span><span id="camera-option-title">Camera</span></li>
+                                        class="fa-solid fa-video"></i></span><span
+                                    id="camera-option-title">Camera</span></li>
                         </ul>
                     </button>
                     <div class="record-container d-none" id="record-container">
@@ -306,10 +321,18 @@
                         <div class="tooltip-container">Caption</div>
                         <img class="icons" src="/assets/icons/cc.svg" alt="cc-icons">
                     </button>
+                    <button id="share-link-button" class="button-container">
+                        <div id="clipboard-success"><span id="copied">Copied</span></div>
+                        <div id="share-link-tooltip-title" class="tooltip-container">Share Link</div>
+                        <span id="share-link-title" class="d-none">Share Link</span>
+                        <img class="icons" src="/assets/icons/share_link.svg" alt="cc-icons">
+                    </button>
                     <button class="button-container" id="option-button">
                         <div class="tooltip-container">Menu</div>
                         <img class="icons" src="/assets/icons/option.svg" alt="option-icons">
-                        <div class="option-container d-none" id="option-container">
+                        <div class="option-container" id="option-container">
+                            <p id="menu-option-title"><span>Menu</span> <img src="/assets/icons/close_button_layout.svg"
+                                    alt="close_button" id="close-button-option-list" style="cursor: pointer;"></p>
                             <div class="option-list" id="record-button">
                                 <img src="/assets/icons/record.svg" alt="record-icon">
                                 <span id="start-record">Start Record</span>
@@ -321,9 +344,9 @@
                             <div class="option-list" style="position: relative;" id="video-layout-button">
                                 <img src="/assets/icons/video_layout.svg" alt="record-icon">
                                 <span id="layout-menu">Layout</span>
-                                <hr />
+                                <hr id="setting-line" />
                             </div>
-                            <div class="option-list">
+                            <div class="option-list" id="setting-button">
                                 <img src="/assets/icons/setting.svg" alt="record-icon">
                                 <span id="setting-menu">Setting</span>
                             </div>

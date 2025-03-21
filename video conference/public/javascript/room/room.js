@@ -12,6 +12,135 @@ const usersVariable = new Users()
 const mediasoupClientVariable = new MediaSoupClient()
 usersVariable.faceRecognition = faceRecognition
 
+const getOS = () => {
+	try {
+		const userAgent = navigator.userAgent.toLowerCase()
+		const platform = navigator.platform.toLowerCase()
+		if (platform.includes("win")) return "Windows"
+		if (platform.includes("mac")) return "MacOS"
+		if (platform.includes("linux") && !userAgent.includes("android")) return "Linux"
+		if (userAgent.includes("android")) return "Android"
+		if (/iphone|ipad|ipod/.test(userAgent) || platform.includes("ios")) return "iOS"
+
+		return "Unknown OS"
+	} catch (error) {
+		console.log("- Error Get OS:", error)
+		return "Unknown OS"
+	}
+}
+
+const os = getOS()
+console.log("- OS : ", os)
+
+mediasoupClientVariable.os = os
+usersVariable.os = os
+
+const getResponsive = async () => {
+	try {
+		const os = await getOS()
+		if (os === "Android" || os === "iOS") {
+			const shareButton = document.getElementById("share-link-button")
+			shareLinkButton.addEventListener("click", async () => {
+				try {
+					await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomName}&pw=${password}`)
+					const clipboardSuccess = document.getElementById("clipboard-success")
+
+					clipboardSuccess.style.opacity = 1
+					setTimeout(() => {
+						clipboardSuccess.removeAttribute("style")
+					}, 2000)
+				} catch (error) {
+					console.log("- Error Share Link Button : ", error)
+				}
+			})
+			const cameraSpeakerContainer = document.getElementById("camera-speaker-container")
+			cameraSpeakerContainer.appendChild(shareButton)
+
+			const hangUpButton = document.getElementById("hang-up-button")
+			const hangUpButtonHeaderContainer = document.getElementById("hang-up-button-container")
+			const leftCollection = document.getElementById("left-button-collection")
+			const chatButton = document.getElementById("chat-button")
+			const userListButton = document.getElementById("user-list-button")
+			const menuButton = document.getElementById("option-button")
+			if (hangUpButton && hangUpButtonHeaderContainer) {
+				hangUpButtonHeaderContainer.appendChild(hangUpButton)
+			}
+			leftCollection.appendChild(userListButton)
+			leftCollection.appendChild(chatButton)
+			leftCollection.appendChild(menuButton)
+
+			document.getElementById("raise-hand-button").remove()
+			document.getElementById("cc-button").remove()
+
+			const optionContainer = document.getElementById("option-container")
+			const settingButton = document.getElementById("setting-button") // Target setting button
+
+			// Create Raise Hand Element
+			const raiseHandElement = document.createElement("div")
+			raiseHandElement.classList.add("option-list")
+			raiseHandElement.id = "raise-hand-button"
+			raiseHandElement.innerHTML = `
+				<img src="/assets/icons/raise_hand.svg" alt="raise-hand-icon" id="raise-hand-mobile">
+				<span id="raise-hand-menu">${localStorage.getItem("language") == "en" ? "Raise Hand" : "Angkat Tangan"}</span>
+			`
+
+			// Create Caption Element
+			const captionElement = document.createElement("div")
+			captionElement.classList.add("option-list")
+			captionElement.id = "cc-button"
+			captionElement.innerHTML = `
+				<img src="/assets/icons/cc.svg" alt="caption-icon" id="cc-mobile">
+				<span id="caption-menu">${localStorage.getItem("language") == "en" ? "Caption" : "Caption"}</span>
+			`
+
+			captionElement.addEventListener("click", (e) => {
+				try {
+					e.stopPropagation()
+					eventListenerCollection.changeCCButton()
+				} catch (error) {
+					console.log("- Error Screen Sharing Button : ", error)
+				}
+			})
+
+			raiseHandElement.addEventListener("click", async (e) => {
+				try {
+					e.stopPropagation()
+					const raiseHandStatus = await eventListenerCollection.changeRaiseHandButton()
+					await eventListenerCollection.methodAddRaiseHandUser({
+						id: usersVariable.userId,
+						socket,
+						picture: usersVariable.picture,
+						username: usersVariable.username,
+						status: raiseHandStatus,
+					})
+
+					usersVariable.allUsers.forEach((u) => {
+						if (u.userId != usersVariable.userId) {
+							socket.emit("raise-hand", {
+								to: u.socketId,
+								userId: usersVariable.userId,
+								username: usersVariable.username,
+								picture: usersVariable.picture,
+								status: raiseHandStatus,
+							})
+						}
+					})
+				} catch (error) {
+					console.log("- Error Raise Hand Button : ", error)
+				}
+			})
+
+			// Insert both elements before the setting button
+			optionContainer.insertBefore(raiseHandElement, settingButton)
+			optionContainer.insertBefore(captionElement, settingButton)
+		}
+	} catch (error) {
+		console.log("- Error Responsive : ", error)
+	}
+}
+
+getResponsive()
+
 const connectSocket = async () => {
 	try {
 		socket.connect()
@@ -465,8 +594,9 @@ chatButton.addEventListener("click", () => {
 
 // Raise Hand Button
 let raiseHandButton = document.getElementById("raise-hand-button")
-raiseHandButton.addEventListener("click", async () => {
+raiseHandButton.addEventListener("click", async (e) => {
 	try {
+		e.stopPropagation()
 		const raiseHandStatus = await eventListenerCollection.changeRaiseHandButton()
 		await eventListenerCollection.methodAddRaiseHandUser({
 			id: usersVariable.userId,
@@ -548,8 +678,9 @@ screenSharingButton.addEventListener("click", async () => {
 
 // CC Button
 let ccButton = document.getElementById("cc-button")
-ccButton.addEventListener("click", () => {
+ccButton.addEventListener("click", (e) => {
 	try {
+		e.stopPropagation()
 		eventListenerCollection.changeCCButton()
 	} catch (error) {
 		console.log("- Error Screen Sharing Button : ", error)
@@ -558,6 +689,16 @@ ccButton.addEventListener("click", () => {
 
 // Option Button
 let optionButton = document.getElementById("option-button")
+let closeOptionButton = document.getElementById("close-button-option-list")
+closeOptionButton.addEventListener("click", (e) => {
+	try {
+		e.stopPropagation()
+		eventListenerCollection.changeOptionButton()
+	} catch (error) {
+		console.log("- Error Screen Sharing Button : ", error)
+	}
+})
+
 optionButton.addEventListener("click", (e) => {
 	try {
 		e.stopPropagation()
@@ -1059,3 +1200,105 @@ window.addEventListener("beforeunload", function (event) {
 // 		console.log("- Error Pause Video : ", error)
 // 	}
 // })
+
+if (os.toLowerCase() == "android" || os.toLowerCase() == "ios") {
+	let touchStartVideoCollection = 0
+	let touchEndVideoCollection = 0
+
+	const videoCollection = document.getElementById("video-collection")
+
+	// Detect touch start
+	videoCollection.addEventListener("touchstart", (e) => {
+		try {
+			touchStartVideoCollection = e.touches[0].clientX
+		} catch (error) {
+			console.log("- Errpr Catch Touch Start Video Collection : ", error)
+		}
+	})
+
+	// Detect touch end
+	videoCollection.addEventListener("touchend", (e) => {
+		try {
+			touchEndVideoCollection = e.changedTouches[0].clientX
+			handleSwipeVideoCollection()
+		} catch (error) {
+			console.log("- Error Catch Touch End Video Collection : ", error)
+		}
+	})
+
+	const handleSwipeVideoCollection = () => {
+		try {
+			const swipeDistance = touchEndVideoCollection - touchStartVideoCollection
+
+			// Swipe Left
+			if (usersVariable.currentPage == 1 && swipeDistance > 100 && usersVariable.currentLayout == 2) {
+				usersVariable.updateVideoSecondMethodHandphone({ socket, focus: true })
+				return
+			}
+
+			if (swipeDistance > 100) {
+				usersVariable.previousVideo({ socket })
+			} else if (swipeDistance < -100) {
+				usersVariable.nextVideo({ socket })
+			}
+		} catch (error) {
+			console.log("- Error Handling Swipe : ", error)
+		}
+	}
+
+	let touchStartVideoFocus = 0
+	let touchEndVideoFocus = 0
+
+	const videoFocus = document.getElementById("video-container-focus")
+
+	// Detect touch start
+	videoFocus.addEventListener("touchstart", (e) => {
+		try {
+			touchStartVideoFocus = e.touches[0].clientX
+		} catch (error) {
+			console.log("- Errpr Catch Touch Start Video Collection : ", error)
+		}
+	})
+
+	// Detect touch end
+	videoFocus.addEventListener("touchend", (e) => {
+		try {
+			touchEndVideoFocus = e.changedTouches[0].clientX
+			handleSwipeVideoFocus()
+		} catch (error) {
+			console.log("- Error Catch Touch End Video Collection : ", error)
+		}
+	})
+
+	const handleSwipeVideoFocus = () => {
+		try {
+			const swipeDistance = touchEndVideoFocus - touchStartVideoFocus
+			if (swipeDistance < -100) {
+				usersVariable.updateVideoSecondMethodHandphone({ socket, focus: false })
+			}
+		} catch (error) {
+			console.log("- Error Handling Swipe : ", error)
+		}
+	}
+
+	let audioContext = new (window.AudioContext || window.webkitAudioContext)()
+	let gainNode = audioContext.createGain()
+	gainNode.gain.value = 1 // Default volume
+
+	const muteSpeakerButton = document.getElementById("mute-speaker-mobile")
+	const muteIcon = muteSpeakerButton.querySelector("img")
+
+	muteSpeakerButton.addEventListener("click", () => {
+		try {
+			if (muteIcon.src.includes("mute_speaker_mobile.svg")) {
+				muteIcon.src = "/assets/icons/muted_speaker_mobile.svg"
+				gainNode.gain.value = 0
+			} else {
+				muteIcon.src = "/assets/icons/mute_speaker_mobile.svg"
+				gainNode.gain.value = 1
+			}
+		} catch (error) {
+			console.log("- Error Mute Speaker:", error)
+		}
+	})
+}

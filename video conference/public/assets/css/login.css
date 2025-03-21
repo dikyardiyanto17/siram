@@ -101,3 +101,14 @@
 .loading-hide {
     display: none;
 }
+
+@media (max-width: 768px) {
+    .full-container {
+        height: 100dvh;
+        background-image: url("/assets/pictures/homeBg_mobile.png");
+    }
+    
+    .login-form-container {
+        width: 90%;
+    }
+}

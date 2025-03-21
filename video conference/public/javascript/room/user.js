@@ -125,6 +125,7 @@ class StaticEvent {
 }
 
 class Users extends StaticEvent {
+	#os = ""
 	#picture = ""
 	#username = ""
 	#users
@@ -218,6 +219,22 @@ class Users extends StaticEvent {
 		// Record
 		this.#timerCounter = "00:00:00"
 		this.#elapsedTime = 0
+	}
+
+	get os() {
+		return this.#os
+	}
+
+	set os(newOs) {
+		this.#os = newOs
+	}
+
+	get currentPage() {
+		return this.#currentPage
+	}
+
+	get currentLayout() {
+		return this.#currentLayout
 	}
 
 	get record() {
@@ -942,7 +959,6 @@ class Users extends StaticEvent {
 					userId: this.#userId,
 					userAuthority: this.#authority,
 				})
-				await this.updatePageInformation()
 				if ((this.#authority == 1 || this.#authority == 2) && userId != this.#userId) {
 					const optionKickUser = document.getElementById(`ul-o-k-${userId}`)
 					optionKickUser.addEventListener("click", (e) => {
@@ -1032,6 +1048,7 @@ class Users extends StaticEvent {
 				await this.increaseUsers()
 				await this.addVideoSecondMethod({ username, userId: "ssv_" + userId, track, index, picture: null })
 			}
+			await this.updatePageInformation()
 		} catch (error) {
 			console.log("- Error Add User : ", error)
 		}
@@ -1585,9 +1602,169 @@ class Users extends StaticEvent {
 				if (this.#users == 1) {
 					await document.getElementById("layout-1").click()
 				}
+
+				if (this.#os.toLowerCase() == "android" || this.#os.toLowerCase() == "ios") {
+					await this.updateClassVideoMobile()
+				}
 			}
 		} catch (error) {
 			console.log("- Error Update Video : ", error)
+		}
+	}
+
+	async updateVideoSecondMethodHandphone({ socket, focus }) {
+		try {
+			let customIndex = 0
+			await this.updateVideoContainerLayout()
+			// console.log("\n- Current Layout : ", this.#currentLayout, "\n- Current Page : ", this.#currentPage, "\n- Total Page : ", this.#totalPage)
+			if (!focus) {
+				this.#videoContainer.classList.remove("d-none")
+				if (!this.#videoContainerFocus.classList.contains("d-none")) {
+					this.#videoContainerFocus.classList.add("d-none")
+				}
+				// if (this.#videoContainerFocus.children.length > 0) {
+				// 	this.#videoContainer.prepend(this.#videoContainerFocus.children[0])
+				// }
+
+				if (this.#totalLayout == 5) {
+					// this.#totalLayout = 6
+					this.#layoutCountContainer.forEach((c) => {
+						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+							this.#totalLayout = c.dataset.option
+						}
+					})
+				}
+				if (this.#videoContainer.classList.contains("d-none")) {
+					this.#videoContainer.classList.remove("d-none")
+				}
+				await this.hideShowPreviousNextButton({ status: true })
+				await this.hideShowUpDownButton({ status: false })
+				await this.updatePageInformation()
+				await this.updateVideoContainer()
+				this.#totalDisplayedVideo = 0
+
+				const promises = this.#allUsers.map(async (u, index) => {
+					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
+					const max = this.#currentPage * this.#totalLayout
+					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
+
+					// let track = u.consumer.find((t) => t.kind == "video")
+					for (const track of tracks) {
+						if (track.focus) {
+							continue
+						}
+						customIndex++
+						if (customIndex >= min && customIndex <= max) {
+							await this.showHideVideo({ id: u.userId, status: true })
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status && message != "producer-paused") {
+											console.log("- Track : ", track)
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
+							}
+						} else {
+							await this.showHideVideo({ id: u.userId, status: false })
+							if (track.id != null) {
+								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status) {
+											track.pause()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
+							}
+						}
+					}
+				})
+
+				await Promise.all(promises)
+
+				const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+
+				if (currentVideoDisplayed == 0) {
+					await this.previousVideo({ socket })
+				}
+			} else {
+				await this.hideShowPreviousNextButton({ status: false })
+				await this.hideShowUpDownButton({ status: false })
+				if (!this.#videoContainer.classList.contains("d-none")) {
+					this.#videoContainer.classList.add("d-none")
+				}
+				this.#allUsers.forEach(async (u) => {
+					let tracks = u.consumer.filter((t) => t.kind == "video")
+					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
+
+					for (const track of tracks) {
+						if (track.focus) {
+							const isMove = await this.addFocusVideoSecondMethod({
+								userId: track.appData.label == "screensharing_video" ? "ssv_" + u.userId : u.userId,
+								track: track.track,
+								username: u.username,
+							})
+							if (!isMove) {
+								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
+							}
+
+							if (track.id != null) {
+								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
+									try {
+										if (status && message != "producer-paused") {
+											console.log("- Track : ", track)
+											track.resume()
+										}
+									} catch (error) {
+										console.log("- Error Resuming Consumer : ", error)
+									}
+								})
+							}
+						} else {
+							await this.showHideVideo({ id: u.userId, status: false })
+							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
+								try {
+									if (status) {
+										track.pause()
+									}
+								} catch (error) {
+									console.log("- Error Resuming Consumer : ", error)
+								}
+							})
+						}
+					}
+				})
+			}
+
+			await this.updateClassVideoMobile()
+		} catch (error) {
+			console.log("- Error Update Video : ", error)
+		}
+	}
+
+	async updateClassVideoMobile() {
+		try {
+			if (this.#currentLayout == 1) {
+				await this.updateVideoCurrentClass()
+			} else if (this.#currentLayout == 2) {
+				if (this.#users < this.#totalLayout) {
+					this.#currentVideoClass = `video-user-container-${this.#users - 1}`
+				} else {
+					this.#currentVideoClass = `video-user-container-${this.#totalLayout}`
+				}
+			}
+
+			Array.from(this.#videoContainer.children).forEach((element) => {
+				element.className = this.#currentVideoClass
+			})
+		} catch (error) {
+			console.log("- Error Update Class Video : ", error)
 		}
 	}
 
@@ -1682,7 +1859,11 @@ class Users extends StaticEvent {
 						})
 					}
 				})
-				await document.getElementById("layout-3").click()
+				if (this.#os.toLowerCase() == "android" || this.#os.toLowerCase() == "ios") {
+					await document.getElementById("layout-2").click()
+				} else {
+					await document.getElementById("layout-3").click()
+				}
 			} else {
 				this.#userIdScreenSharing = ""
 				this.#screenSharingMode = false
@@ -2341,6 +2522,7 @@ class Users extends StaticEvent {
 	async startSpeechToText({ socket, status }) {
 		try {
 			if (!status) {
+				console.log(this.#speechToText.recognition)
 				if (this.#speechToText.recognition) {
 					this.#speechToText.recognition.abort()
 				}
@@ -2348,56 +2530,39 @@ class Users extends StaticEvent {
 				this.#speechToText.speechRecognitionList = null
 				return
 			}
+
+			if (this.#speechToText.recognition) {
+				console.warn("Speech recognition is already running.")
+				return
+			}
+
 			const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 			const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList
-			const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent
 			this.#speechToText.recognition = new SpeechRecognition()
 			this.#speechToText.speechRecognitionList = new SpeechGrammarList()
 			this.#speechToText.recognition.continuous = true
 			this.#speechToText.recognition.lang = "id-ID"
 			this.#speechToText.recognition.interimResults = true
 			this.#speechToText.recognition.maxAlternatives = 1
+
 			const ccDisplay = document.getElementById("cc-container")
 			let randomId = await this.constructor.generateRandomId(12)
+
 			this.#speechToText.recognition.onresult = (event) => {
 				let interimResults = ""
-
-				const ccContainer = document.createElement("div")
-				ccContainer.className = "cc-content"
-				ccContainer.id = `cc_${randomId}`
-				const imageCC = document.createElement("img")
-				imageCC.className = "cc-profile-picture"
-				imageCC.src = `${window.location.origin}/photo/${this.#picture}.png`
-				ccContainer.append(imageCC)
-				const ccMessage = document.createElement("div")
-				ccMessage.className = "cc-message"
-				const ccUsername = document.createElement("div")
-				ccUsername.className = "cc-username"
-				const ccUsernameSpan = document.createElement("span")
-				ccUsernameSpan.innerHTML = this.#username
-				ccUsername.append(ccUsernameSpan)
-				ccMessage.append(ccUsername)
-				const ccMessageContainer = document.createElement("div")
-				ccMessageContainer.className = "cc-message-content"
-				const ccMessageSpan = document.createElement("span")
+				const ccMessageSpan = document.getElementById(`cc_message_${randomId}`) || document.createElement("span")
 				ccMessageSpan.id = `cc_message_${randomId}`
-				ccMessageContainer.append(ccMessageSpan)
-				ccMessage.append(ccMessageContainer)
-				ccContainer.append(ccMessage)
-				if (!document.getElementById(`cc_${randomId}`)) {
-					ccDisplay.append(ccContainer)
-				}
 
 				for (let i = event.resultIndex; i < event.results.length; i++) {
 					const transcript = event.results[i][0].transcript
 					if (event.results[i].isFinal) {
 						this.#speechToText.word.push(transcript.trim())
-						if (ccDisplay.lastChild.id != `cc_${randomId}`) {
-							randomId = Users.generateRandomId(12)
+						if (ccDisplay.lastChild.id !== `cc_${randomId}`) {
+							randomId = this.constructor.generateRandomId(12)
 						}
 					} else {
 						interimResults += transcript
-						document.getElementById(`cc_message_${randomId}`).textContent = this.#speechToText.word.join(" ") + " " + interimResults
+						ccMessageSpan.textContent = this.#speechToText.word.join(" ") + " " + interimResults
 					}
 					this.#allUsers.forEach((u) => {
 						socket.emit("transcribe", {
@@ -2409,45 +2574,37 @@ class Users extends StaticEvent {
 						})
 					})
 				}
-
-				let finalWords = this.#speechToText.word.join(" ") + " " + interimResults
-
-				let template = `
-				    <div class="cc-content">
-                        <img class="cc-profile-picture" src="/assets/icons/example_user.svg" alt="cc-profile">
-                        <div class="cc-message">
-                            <div class="cc-username">
-                                <span>Budi Santoso</span>
-                            </div>
-                            <div class="cc-message-content">
-                                <span>Bagaimana dengan hasil rapat kemarin? bagaimana
-                                    dengan hasil rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan
-                                    hasil
-                                    rapat kemarin? bagaimana dengan hasil rapat kemarin? bagaimana dengan hasil rapat
-                                    kemarin?</span>
-                            </div>
-                        </div>
-                    </div>
-
-				`
 				ccDisplay.scrollTop = ccDisplay.scrollHeight
 			}
+
 			this.#speechToText.recognition.onerror = (event) => {
-				if (event.error == "network" || event.error == "no-speech") {
+				console.error("SpeechRecognition Error: ", event)
+				if (event.error === "network" || event.error === "no-speech") {
 					if (this.#speechToText.recognition) {
-						this.#speechToText.recognition.start()
-						console.log("Restart STT On Error")
+						setTimeout(() => {
+							if (!this.#speechToText.recognition.running) {
+								this.#speechToText.recognition.start()
+								console.log("Restarting Speech Recognition...")
+							}
+						}, 1000)
 					}
 				}
 			}
+
 			this.#speechToText.recognition.onend = () => {
-				if (this.#speechToText.recognition) {
-					this.#speechToText.recognition.start()
-				}
+				console.warn("Speech Recognition Ended.")
+				setTimeout(() => {
+					if (this.#speechToText.recognition && !this.#speechToText.recognition.running) {
+						this.#speechToText.recognition.start()
+						console.log("Restarting Speech Recognition...")
+					}
+				}, 1000)
 			}
+
+			console.log("Starting Speech Recognition...")
 			await this.#speechToText.recognition.start()
 		} catch (error) {
-			console.log("- Error Start Speech Recognition : ", error)
+			console.error("- Error Start Speech Recognition: ", error)
 		}
 	}
 }

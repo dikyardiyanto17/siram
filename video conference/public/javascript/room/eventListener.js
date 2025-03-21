@@ -292,9 +292,15 @@ class EventListener {
 			if (this.#raiseHandStatus) {
 				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand.svg"
 				this.#raiseHandButton.classList.remove("active")
+				if (document.getElementById("raise-hand-mobile")){
+					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand.svg"
+				}
 			} else {
 				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand_active.svg"
 				this.#raiseHandButton.classList.add("active")
+				if (document.getElementById("raise-hand-mobile")){
+					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand_active.svg"
+				}
 			}
 			this.#raiseHandStatus = !this.#raiseHandStatus
 			return this.#raiseHandStatus
@@ -308,7 +314,13 @@ class EventListener {
 			if (this.#ccStatus) {
 				this.#ccButton.firstElementChild.src = "/assets/icons/cc.svg"
 				this.#ccButton.classList.remove("active")
+				if (document.getElementById("cc-mobile")){
+					document.getElementById("cc-mobile").src = "/assets/icons/cc.svg"
+				}
 			} else {
+				if (document.getElementById("cc-mobile")){
+					document.getElementById("cc-mobile").src = "/assets/icons/cc_active_2.svg"
+				}
 				this.#ccButton.firstElementChild.src = "/assets/icons/cc_active.svg"
 				this.#ccButton.classList.add("active")
 			}
@@ -327,7 +339,7 @@ class EventListener {
 				this.#optionButton.classList.add("active")
 			}
 			this.#optionStatus = !this.#optionStatus
-			await this.normalHideAndDisplay({ element: this.#optionContainer, status: this.#optionStatus })
+			// await this.normalHideAndDisplay({ element: this.#optionContainer, status: this.#optionStatus })
 		} catch (error) {
 			console.log("- Error Change Raise Hand Button : ", error)
 		}

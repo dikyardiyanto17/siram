@@ -29,6 +29,7 @@ const changeLanguage = ({ language }) => {
 		const microphoneOptionTitle = document.getElementById("microphone-option-title")
 		const cameraTooltip = document.getElementById("camera-tooltip")
 		const cameraOptionTitle = document.getElementById("camera-option-title")
+		const shareLinkTooltip = document.getElementById("share-link-tooltip-title")
 		const timerTitle = document.getElementById("timer-title")
 		const participantsTooltipTitle = document.getElementById("participants-tooltip-title")
 		const chatTooltipTitle = document.getElementById("chat-tooltip-title")
@@ -69,6 +70,7 @@ const changeLanguage = ({ language }) => {
 			videoQualityMenu.innerHTML = "Video Quality"
 			layoutMenu.innerHTML = "Layout"
 			settingMenu.innerHTML = "Setting"
+			shareLinkTooltip.innerHTML = "Share Link"
 		} else if (language == "id") {
 			changeLayout.innerHTML = "Ubah Susunan"
 			tiled.innerHTML = "Petak"
@@ -99,6 +101,7 @@ const changeLanguage = ({ language }) => {
 			videoQualityMenu.innerHTML = "Kualitas Video"
 			layoutMenu.innerHTML = "Ubah Susunan"
 			settingMenu.innerHTML = "Pengaturan"
+			shareLinkTooltip.innerHTML = "Bagikan Link"
 		} else {
 			throw { name: "error", message: "language id is not valid" }
 		}
