@@ -572,6 +572,16 @@ cameraButton.addEventListener("click", () => {
 	}
 })
 
+let switchCameraHandphone = document.getElementById("switch-camera-mobile")
+switchCameraHandphone.addEventListener("click", async () => {
+	try {
+		await mediasoupClientVariable.switchCameraHandphone({ userId: usersVariable.userId })
+	} catch (error) {
+		alert(error)
+	}
+})
+
+
 // User List Button
 let userListButton = document.getElementById("user-list-button")
 userListButton.addEventListener("click", () => {

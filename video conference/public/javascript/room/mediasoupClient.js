@@ -63,6 +63,12 @@ class MediaSoupClient extends StaticEvent {
 	#consumingTransport = []
 	#mystream = null
 	#screenSharingStream = null
+	#phoneSettings = {
+		label: "",
+		id: "",
+		facingMode: "user",
+		cameraIndex: 0,
+	}
 	#audioSetting = {
 		autoGainControl: false,
 		noiseSuppression: true,
@@ -1008,12 +1014,8 @@ class MediaSoupClient extends StaticEvent {
 										deviceId: { exact: this.#videoDeviceId },
 									},
 							  }
-					alert(JSON.stringify(videoList, null, 2))
-					alert(JSON.stringify(config, null, 2))
 					const newStream = await navigator.mediaDevices.getUserMedia(config)
-					// alert(newStream)
 					if (this.#os.toLocaleLowerCase() === "android" || this.#os.toLocaleLowerCase() == "ios") {
-						alert(videoList.label)
 						if (videoList.label.toLowerCase().includes("front")) {
 							config.video.facingMode = "user"
 						} else if (videoList.label.toLowerCase().includes("back")) {
@@ -1050,7 +1052,6 @@ class MediaSoupClient extends StaticEvent {
 				listCameraContainer.appendChild(cameraLabel)
 			})
 		} catch (error) {
-			alert(error)
 			console.log("- Error Get Camera Options : ", error)
 			this.constructor.warning({ message: "Gagal mendapatkan pilihan kamera yang tersedia!", back: true })
 		}
@@ -1163,6 +1164,51 @@ class MediaSoupClient extends StaticEvent {
 			await usersVariable.createAudioVisualizer({ id: usersVariable.userId, track: newStream.getAudioTracks()[0] })
 		} catch (error) {
 			console.log("- Error Switching Microphone : ", error)
+		}
+	}
+
+	async switchCameraHandphone({ userId }) {
+		try {
+			let videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput")
+			this.#phoneSettings = {
+				label:
+					this.#phoneSettings.cameraIndex + 1 >= videoDevices.length
+						? videoDevices[0].label
+						: videoDevices[this.#phoneSettings.cameraIndex + 1].label,
+				id:
+					this.#phoneSettings.cameraIndex + 1 >= videoDevices.length
+						? videoDevices[0].deviceId
+						: videoDevices[this.#phoneSettings.cameraIndex + 1].deviceId,
+				facingMode: "user",
+				cameraIndex: this.#phoneSettings.cameraIndex + 1 >= videoDevices.length ? 0 : this.#phoneSettings.cameraIndex + 1,
+			}
+			let config = {
+				video: {
+					// deviceId: { exact: this.#phoneSettings.id },
+					facingMode: this.#phoneSettings?.label?.toLowerCase().includes("front") ? "user" : "environment",
+				},
+			}
+
+			// alert(JSON.stringify(newStream, null, 2))
+
+			this.#videoDeviceId = this.#phoneSettings.id
+			if (document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0]) {
+				await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0].stop()
+				await document.getElementById(`v-${userId}`).srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
+			}
+
+			await this.#mystream.getVideoTracks()[0].stop()
+			await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+
+			const newStream = await navigator.mediaDevices.getUserMedia(config)
+			await document.getElementById(`v-${userId}`)?.srcObject?.addTrack(newStream.getVideoTracks()[0])
+			await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
+
+			await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
+		} catch (error) {
+			alert(error)
+			console.log("- Error Get Camera Options : ", error)
+			this.constructor.warning({ message: "Gagal mendapatkan pilihan kamera yang tersedia!", back: true })
 		}
 	}
 }

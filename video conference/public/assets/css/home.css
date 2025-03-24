@@ -672,5 +672,8 @@ a {
         padding: 15px 15px;
     }
     
+    .dropdown-content {
+        left: -100%;
+    }
 
 }
