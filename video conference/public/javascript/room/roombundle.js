@@ -34309,6 +34309,22 @@ class EventListener {
 		this.#chatStatus = status
 	}
 
+	get chatButton() {
+		return this.#chatButton
+	}
+
+	set chatButton(newChatButton) {
+		this.#chatButton = newChatButton
+	}
+
+	get userListButton() {
+		return this.#userListButton
+	}
+
+	set userListButton(newUserList) {
+		this.#userListButton = newUserList
+	}
+
 	get microphoneStatus() {
 		return this.#microphoneStatus
 	}
@@ -34350,11 +34366,14 @@ class EventListener {
 		try {
 			this.disablingButton({ element: this.#chatButton })
 			this.disablingButton({ element: this.#userListButton })
+			this.#userListButton = document.getElementById("user-list-button")
+			this.#chatButton = document.getElementById("chat-button")
 			if (this.#chatStatus && !this.#userListStatus) {
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
 				this.changeChatButton()
 			}
 			if (this.#userListStatus) {
+
 				this.#userListButton.firstElementChild.src = "/assets/icons/people.svg"
 				this.#userListButton.classList.remove("active")
 				this.#sideBarStatus = false
@@ -34370,6 +34389,7 @@ class EventListener {
 			this.#userListStatus = !this.#userListStatus
 		} catch (error) {
 			console.log("- Error Change User List Button : ", error)
+			alert(error)
 		}
 	}
 
@@ -34377,6 +34397,8 @@ class EventListener {
 		try {
 			this.disablingButton({ element: this.#userListButton })
 			this.disablingButton({ element: this.#chatButton })
+			this.#chatButton = document.getElementById("chat-button")
+			this.#userListButton = document.getElementById("user-list-button")
 			if (this.#userListStatus && !this.#chatStatus) {
 				this.hideAndDisplay({ element: this.#userListContainer, status: false })
 				this.changeUserListButton()
@@ -34409,18 +34431,54 @@ class EventListener {
 		}
 	}
 
+	async changeChatButtonMobile() {
+		try {
+			if (this.#userListStatus && !this.#chatStatus) {
+				this.hideAndDisplay({ element: this.#userListContainer, status: false })
+				this.changeUserListButton()
+			}
+			this.#chatButton = document.getElementById("chat-button")
+			if (this.#chatStatus) {
+				this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+				this.#chatButton.classList.remove("active")
+				this.#sideBarStatus = false
+				this.hideAndDisplay({ element: this.#chatContainer, status: false })
+				const newMessageLine = document.getElementById("new-message-line")
+				if (newMessageLine) {
+					newMessageLine.remove()
+				}
+			} else {
+				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
+				this.#chatButton.classList.add("active")
+				this.#sideBarStatus = true
+				this.hideAndDisplay({ element: this.#chatContainer, status: true })
+				let chatContent = document.getElementById("chat-content")
+				chatContent.scrollTop = chatContent.scrollHeight
+				const redDotCHat = document.getElementById("red-dot-chat")
+				if (!redDotCHat.classList.contains("d-none")) {
+					redDotCHat.classList.add("d-none")
+				}
+			}
+			await this.changeSideBarContainer()
+			this.#chatStatus = !this.#chatStatus
+		} catch (error) {
+			console.log("- Error Change Chat Button : ", error)
+			alert(error)
+		}
+	}
+
 	async changeRaiseHandButton() {
 		try {
 			if (this.#raiseHandStatus) {
 				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand.svg"
 				this.#raiseHandButton.classList.remove("active")
-				if (document.getElementById("raise-hand-mobile")){
+				if (document.getElementById("raise-hand-mobile")) {
 					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand.svg"
 				}
 			} else {
 				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand_active.svg"
 				this.#raiseHandButton.classList.add("active")
-				if (document.getElementById("raise-hand-mobile")){
+				if (document.getElementById("raise-hand-mobile")) {
 					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand_active.svg"
 				}
 			}
@@ -34436,11 +34494,11 @@ class EventListener {
 			if (this.#ccStatus) {
 				this.#ccButton.firstElementChild.src = "/assets/icons/cc.svg"
 				this.#ccButton.classList.remove("active")
-				if (document.getElementById("cc-mobile")){
+				if (document.getElementById("cc-mobile")) {
 					document.getElementById("cc-mobile").src = "/assets/icons/cc.svg"
 				}
 			} else {
-				if (document.getElementById("cc-mobile")){
+				if (document.getElementById("cc-mobile")) {
 					document.getElementById("cc-mobile").src = "/assets/icons/cc_active_2.svg"
 				}
 				this.#ccButton.firstElementChild.src = "/assets/icons/cc_active.svg"
@@ -36421,7 +36479,7 @@ class MediaSoupClient extends StaticEvent {
 			await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
 
 			const newStream = await navigator.mediaDevices.getUserMedia(config)
-			await document.getElementById(`v-${userId}`)?.srcObject?.addTrack(newStream.getVideoTracks()[0])
+			await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
 			await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
 
 			await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
@@ -36497,32 +36555,62 @@ const getResponsive = async () => {
 			cameraSpeakerContainer.appendChild(shareButton)
 
 			const hangUpButton = document.getElementById("hang-up-button")
-			const hangUpButtonHeaderContainer = document.getElementById("hang-up-button-container")
+			// const hangUpButtonHeaderContainer = document.getElementById("hang-up-button-container")
 			const leftCollection = document.getElementById("left-button-collection")
-			const chatButton = document.getElementById("chat-button")
-			const userListButton = document.getElementById("user-list-button")
+			// const userListButton = document.getElementById("user-list-button")
 			const menuButton = document.getElementById("option-button")
-			if (hangUpButton && hangUpButtonHeaderContainer) {
-				hangUpButtonHeaderContainer.appendChild(hangUpButton)
-			}
-			leftCollection.appendChild(userListButton)
-			leftCollection.appendChild(chatButton)
+			const raiseHandButton = document.getElementById("raise-hand-button")
+			// if (hangUpButton && hangUpButtonHeaderContainer) {
+			// 	hangUpButtonHeaderContainer.appendChild(hangUpButton)
+			// }
+			leftCollection.appendChild(raiseHandButton)
 			leftCollection.appendChild(menuButton)
+			leftCollection.appendChild(hangUpButton)
 
-			document.getElementById("raise-hand-button").remove()
+			// document.getElementById("raise-hand-button").remove()
 			document.getElementById("cc-button").remove()
+			document.getElementById("chat-button").remove()
+			document.getElementById("user-list-button").remove()
 
 			const optionContainer = document.getElementById("option-container")
 			const settingButton = document.getElementById("setting-button") // Target setting button
 
-			// Create Raise Hand Element
-			const raiseHandElement = document.createElement("div")
-			raiseHandElement.classList.add("option-list")
-			raiseHandElement.id = "raise-hand-button"
-			raiseHandElement.innerHTML = `
-				<img src="/assets/icons/raise_hand.svg" alt="raise-hand-icon" id="raise-hand-mobile">
-				<span id="raise-hand-menu">${localStorage.getItem("language") == "en" ? "Raise Hand" : "Angkat Tangan"}</span>
+			// Create Chat Element
+			const chatElement = document.createElement("div")
+			chatElement.classList.add("option-list")
+			chatElement.id = "chat-button"
+			chatElement.innerHTML = `
+				<img src="/assets/icons/chat.svg" alt="caption-icon" id="chat-mobile">
+				<div id="red-dot-chat" class="d-none red-dot"></div>
+				<span id="chat-icons-title">${localStorage.getItem("language") == "en" ? "Chat" : "Pesan"}</span>
 			`
+
+			chatElement.addEventListener("click", (e) => {
+				try {
+					eventListenerCollection.changeChatButton()
+				} catch (error) {
+					console.log("- Error Chat Button : ", error)
+					alert(error)
+				}
+			})
+
+			// Create Chat Element
+			const userListElement = document.createElement("div")
+			userListElement.classList.add("option-list")
+			userListElement.id = "user-list-button"
+			userListElement.innerHTML = `
+				<img src="/assets/icons/people.svg" alt="participants-icon" id="participants-mobile">
+				<div id="red-dot-user-list" class="d-none red-dot"></div>
+				<span id="participants-icons-title">${localStorage.getItem("language") == "en" ? "Pariticpants" : "Peserta"}</span>
+			`
+
+			userListElement.addEventListener("click", () => {
+				try {
+					eventListenerCollection.changeUserListButton()
+				} catch (error) {
+					console.log("- Error User List Button : ", error)
+				}
+			})
 
 			// Create Caption Element
 			const captionElement = document.createElement("div")
@@ -36542,36 +36630,9 @@ const getResponsive = async () => {
 				}
 			})
 
-			raiseHandElement.addEventListener("click", async (e) => {
-				try {
-					e.stopPropagation()
-					const raiseHandStatus = await eventListenerCollection.changeRaiseHandButton()
-					await eventListenerCollection.methodAddRaiseHandUser({
-						id: usersVariable.userId,
-						socket,
-						picture: usersVariable.picture,
-						username: usersVariable.username,
-						status: raiseHandStatus,
-					})
-
-					usersVariable.allUsers.forEach((u) => {
-						if (u.userId != usersVariable.userId) {
-							socket.emit("raise-hand", {
-								to: u.socketId,
-								userId: usersVariable.userId,
-								username: usersVariable.username,
-								picture: usersVariable.picture,
-								status: raiseHandStatus,
-							})
-						}
-					})
-				} catch (error) {
-					console.log("- Error Raise Hand Button : ", error)
-				}
-			})
-
 			// Insert both elements before the setting button
-			optionContainer.insertBefore(raiseHandElement, settingButton)
+			optionContainer.insertBefore(chatElement, settingButton)
+			optionContainer.insertBefore(userListElement, settingButton)
 			optionContainer.insertBefore(captionElement, settingButton)
 		}
 	} catch (error) {
@@ -36999,10 +37060,17 @@ cameraButton.addEventListener("click", () => {
 		const videoProducerStatus = mediasoupClientVariable.videoProducer.paused
 
 		if (videoProducerStatus) {
+			if (os.toLocaleLowerCase() == "android" || os.toLocaleLowerCase() == "ios") {
+				document.getElementById("switch-camera-mobile").classList.remove("d-none")
+			}
 			socket.emit("producer-resume", { socketId: socket.id, producerId: mediasoupClientVariable.videoProducer.id }, async ({ status, message }) => {
 				mediasoupClientVariable.videoProducer.resume()
 			})
 		} else {
+
+			if (os.toLocaleLowerCase() == "android" || os.toLocaleLowerCase() == "ios") {
+				document.getElementById("switch-camera-mobile").classList.add("d-none")
+			}
 			socket.emit("producer-pause", { socketId: socket.id, producerId: mediasoupClientVariable.videoProducer.id }, async ({ status, message }) => {
 				mediasoupClientVariable.videoProducer.pause()
 			})
@@ -37020,7 +37088,6 @@ switchCameraHandphone.addEventListener("click", async () => {
 		alert(error)
 	}
 })
-
 
 // User List Button
 let userListButton = document.getElementById("user-list-button")

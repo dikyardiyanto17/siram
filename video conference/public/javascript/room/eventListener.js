@@ -187,6 +187,22 @@ class EventListener {
 		this.#chatStatus = status
 	}
 
+	get chatButton() {
+		return this.#chatButton
+	}
+
+	set chatButton(newChatButton) {
+		this.#chatButton = newChatButton
+	}
+
+	get userListButton() {
+		return this.#userListButton
+	}
+
+	set userListButton(newUserList) {
+		this.#userListButton = newUserList
+	}
+
 	get microphoneStatus() {
 		return this.#microphoneStatus
 	}
@@ -228,11 +244,14 @@ class EventListener {
 		try {
 			this.disablingButton({ element: this.#chatButton })
 			this.disablingButton({ element: this.#userListButton })
+			this.#userListButton = document.getElementById("user-list-button")
+			this.#chatButton = document.getElementById("chat-button")
 			if (this.#chatStatus && !this.#userListStatus) {
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
 				this.changeChatButton()
 			}
 			if (this.#userListStatus) {
+
 				this.#userListButton.firstElementChild.src = "/assets/icons/people.svg"
 				this.#userListButton.classList.remove("active")
 				this.#sideBarStatus = false
@@ -248,6 +267,7 @@ class EventListener {
 			this.#userListStatus = !this.#userListStatus
 		} catch (error) {
 			console.log("- Error Change User List Button : ", error)
+			alert(error)
 		}
 	}
 
@@ -255,6 +275,8 @@ class EventListener {
 		try {
 			this.disablingButton({ element: this.#userListButton })
 			this.disablingButton({ element: this.#chatButton })
+			this.#chatButton = document.getElementById("chat-button")
+			this.#userListButton = document.getElementById("user-list-button")
 			if (this.#userListStatus && !this.#chatStatus) {
 				this.hideAndDisplay({ element: this.#userListContainer, status: false })
 				this.changeUserListButton()
@@ -287,18 +309,54 @@ class EventListener {
 		}
 	}
 
+	async changeChatButtonMobile() {
+		try {
+			if (this.#userListStatus && !this.#chatStatus) {
+				this.hideAndDisplay({ element: this.#userListContainer, status: false })
+				this.changeUserListButton()
+			}
+			this.#chatButton = document.getElementById("chat-button")
+			if (this.#chatStatus) {
+				this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+				this.#chatButton.classList.remove("active")
+				this.#sideBarStatus = false
+				this.hideAndDisplay({ element: this.#chatContainer, status: false })
+				const newMessageLine = document.getElementById("new-message-line")
+				if (newMessageLine) {
+					newMessageLine.remove()
+				}
+			} else {
+				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
+				this.#chatButton.classList.add("active")
+				this.#sideBarStatus = true
+				this.hideAndDisplay({ element: this.#chatContainer, status: true })
+				let chatContent = document.getElementById("chat-content")
+				chatContent.scrollTop = chatContent.scrollHeight
+				const redDotCHat = document.getElementById("red-dot-chat")
+				if (!redDotCHat.classList.contains("d-none")) {
+					redDotCHat.classList.add("d-none")
+				}
+			}
+			await this.changeSideBarContainer()
+			this.#chatStatus = !this.#chatStatus
+		} catch (error) {
+			console.log("- Error Change Chat Button : ", error)
+			alert(error)
+		}
+	}
+
 	async changeRaiseHandButton() {
 		try {
 			if (this.#raiseHandStatus) {
 				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand.svg"
 				this.#raiseHandButton.classList.remove("active")
-				if (document.getElementById("raise-hand-mobile")){
+				if (document.getElementById("raise-hand-mobile")) {
 					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand.svg"
 				}
 			} else {
 				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand_active.svg"
 				this.#raiseHandButton.classList.add("active")
-				if (document.getElementById("raise-hand-mobile")){
+				if (document.getElementById("raise-hand-mobile")) {
 					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand_active.svg"
 				}
 			}
@@ -314,11 +372,11 @@ class EventListener {
 			if (this.#ccStatus) {
 				this.#ccButton.firstElementChild.src = "/assets/icons/cc.svg"
 				this.#ccButton.classList.remove("active")
-				if (document.getElementById("cc-mobile")){
+				if (document.getElementById("cc-mobile")) {
 					document.getElementById("cc-mobile").src = "/assets/icons/cc.svg"
 				}
 			} else {
-				if (document.getElementById("cc-mobile")){
+				if (document.getElementById("cc-mobile")) {
 					document.getElementById("cc-mobile").src = "/assets/icons/cc_active_2.svg"
 				}
 				this.#ccButton.firstElementChild.src = "/assets/icons/cc_active.svg"

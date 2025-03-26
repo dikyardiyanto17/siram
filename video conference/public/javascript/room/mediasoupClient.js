@@ -1201,7 +1201,7 @@ class MediaSoupClient extends StaticEvent {
 			await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
 
 			const newStream = await navigator.mediaDevices.getUserMedia(config)
-			await document.getElementById(`v-${userId}`)?.srcObject?.addTrack(newStream.getVideoTracks()[0])
+			await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
 			await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
 
 			await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })

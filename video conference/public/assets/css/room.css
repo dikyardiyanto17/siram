@@ -1923,11 +1923,13 @@ input:focus {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-direction: row-reverse;
     }
 
     .camera-speaker-container {
         width: 50%;
         display: flex;
+        flex-direction: row-reverse;
     }
 
     .hang-up-button-container {
@@ -1958,16 +1960,16 @@ input:focus {
         width: 45px;
     }
 
-    .header-container>.hang-up-button-container>button {
-        border-radius: 20px;
+    #hang-up-button {
+        /* border-radius: 20px;
         padding: 5px 15px !important;
         background: none;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 5px;
+        border: none !important; */
         background-color: #CB2233 !important;
-        border: none !important;
     }
 
     .bottom-content {
@@ -2250,6 +2252,18 @@ input:focus {
         border-width: 7px 5px 0 5px;
         border-style: solid;
         border-color: grey transparent transparent transparent;
+    }
+
+    #option-button.active>.option-container {
+        z-index: 99;
+    }
+
+    #chat-button {
+        position: relative;
+    }
+
+    #user-list-button {
+        position: relative;
     }
 
 }
