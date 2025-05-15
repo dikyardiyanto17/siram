@@ -1,4 +1,4 @@
-const { baseUrl } = require("../../../config")
+const { baseUrl } = require("../../config")
 const { decodeToken, encodeToken } = require("../../helper/jwt")
 
 class Login {

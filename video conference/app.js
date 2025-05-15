@@ -21,7 +21,7 @@ const errorHandler = require("./middlewares/errorHandler.js")
 const { decodeToken } = require("./helper/jwt.js")
 const { LiveMeeting } = require("./server_parameter/live_meeting.js")
 const { saveSession } = require("./helper/index.js")
-const { url } = require("../config/index.js")
+const { url } = require("./config/index.js")
 
 app.use(cors())
 app.set("view engine", "ejs")

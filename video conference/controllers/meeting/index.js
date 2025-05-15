@@ -1,4 +1,4 @@
-const { baseUrl } = require("../../../config")
+const { baseUrl } = require("../../config")
 
 class Meeting {
 	static async index(req, res, next) {
