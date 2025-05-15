@@ -8,7 +8,7 @@ const authenthication = async (req, res, next) => {
 		if (path == "/" && !token) {
 			const { rid, pw } = req.query
 			if (rid && rid.trim() !== "" && pw && pw.trim() !== "") {
-				await res.redirect(`/login?rid=${encodeURIComponent(rid)}&pw=${encodeURIComponent(pw)}`)
+				await res.redirect(`/telepati/login?rid=${encodeURIComponent(rid)}&pw=${encodeURIComponent(pw)}`)
 				return
 			}
 			await res.redirect("login")
