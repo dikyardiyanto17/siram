@@ -1,3 +1,5 @@
+const { baseUrl } = require("../../../config")
+
 class Home {
 	static async index(req, res, next) {
 		try {
@@ -7,6 +9,7 @@ class Home {
 				participant_id: req.user.participant_id,
 				token: req.session.token,
 				picture,
+				baseUrl,
 			})
 		} catch (error) {
 			next(error)

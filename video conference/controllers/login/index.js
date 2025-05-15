@@ -1,3 +1,4 @@
+const { baseUrl } = require("../../../config")
 const { decodeToken, encodeToken } = require("../../helper/jwt")
 
 class Login {
@@ -23,6 +24,7 @@ class Login {
 				participant_id: user.participant_id,
 				token: token,
 				picture: user.photo_path,
+				baseUrl,
 			})
 		} catch (error) {
 			next(error)

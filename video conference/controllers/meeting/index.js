@@ -1,3 +1,5 @@
+const { baseUrl } = require("../../../config")
+
 class Meeting {
 	static async index(req, res, next) {
 		try {
@@ -14,6 +16,7 @@ class Meeting {
 				token: roomToken,
 				user_token: req.session.token,
 				video_type: videoType,
+				baseUrl,
 			})
 		} catch (error) {
 			next(error)

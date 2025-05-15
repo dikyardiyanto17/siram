@@ -21,6 +21,7 @@ const errorHandler = require("./middlewares/errorHandler.js")
 const { decodeToken } = require("./helper/jwt.js")
 const { LiveMeeting } = require("./server_parameter/live_meeting.js")
 const { saveSession } = require("./helper/index.js")
+const { url } = require("../config/index.js")
 
 app.use(cors())
 app.set("view engine", "ejs")
@@ -29,7 +30,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }))
 app.use(express.json({ limit: "50mb" }))
 
 app.use(express.static("public"))
-app.use(express.static(path.join(__dirname, "public")))
+app.use(url, express.static(path.join(__dirname, "public")))
 
 const sessionMiddleware = session({
 	secret: process.env.EXPRESS_SESSION_SECRET || "ISULOSTNEMUCODSDRTPSESSION",
@@ -717,6 +718,6 @@ app.get("/mediasoup/restart", async (req, res, next) => {
 	}
 })
 
-app.use(router)
+app.use(url, router)
 
 app.use(errorHandler)
