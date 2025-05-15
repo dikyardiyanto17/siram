@@ -1,4 +1,3 @@
-const baseUrl = window.location.origin
 const loginForm = {
 	participant_id: "",
 	full_name: "",
