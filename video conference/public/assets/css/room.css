@@ -142,11 +142,11 @@
 }
 
 .layout-modal-content-2-content::before {
-    content: url('/assets/icons/layout_option_1.svg');
+    content: url('https://modoto.net/telepati/assets/icons/layout_option_1.svg');
 }
 
 .layout-modal-content-2-content::after {
-    content: url('/assets/icons/layout_option_2.svg');
+    content: url('https://modoto.net/telepati/assets/icons/layout_option_2.svg');
 }
 
 input {
