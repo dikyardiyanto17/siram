@@ -215,11 +215,11 @@ class EventListener {
 		try {
 			const myUserLicMic = document.getElementById(`mic-ul-${id}`)
 			if (this.#microphoneStatus) {
-				myUserLicMic.src = "/assets/icons/user_list_mic.svg"
-				this.#microphoneButton.src = "/assets/icons/mic_muted.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic.svg`
+				this.#microphoneButton.src = `${baseUrl}/assets/icons/mic_muted.svg`
 			} else {
-				myUserLicMic.src = "/assets/icons/user_list_mic_active.svg"
-				this.#microphoneButton.src = "/assets/icons/mic.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic_active.svg`
+				this.#microphoneButton.src = `${baseUrl}/assets/icons/mic.svg`
 			}
 			this.#microphoneStatus = !this.#microphoneStatus
 		} catch (error) {
@@ -230,9 +230,9 @@ class EventListener {
 	async changeCameraButton() {
 		try {
 			if (this.#cameraStatus) {
-				this.#cameraButton.src = "/assets/icons/camera_off.svg"
+				this.#cameraButton.src = `${baseUrl}/assets/icons/camera_off.svg`
 			} else {
-				this.#cameraButton.src = "/assets/icons/camera.svg"
+				this.#cameraButton.src = `${baseUrl}/assets/icons/camera.svg`
 			}
 			this.#cameraStatus = !this.#cameraStatus
 		} catch (error) {
@@ -251,13 +251,12 @@ class EventListener {
 				this.changeChatButton()
 			}
 			if (this.#userListStatus) {
-
-				this.#userListButton.firstElementChild.src = "/assets/icons/people.svg"
+				this.#userListButton.firstElementChild.src = `${baseUrl}/assets/icons/people.svg`
 				this.#userListButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#userListContainer, status: false })
 			} else {
-				this.#userListButton.firstElementChild.src = "/assets/icons/people_active.svg"
+				this.#userListButton.firstElementChild.src = `${baseUrl}/assets/icons/people_active.svg`
 				this.#userListButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#userListContainer, status: true })
@@ -282,7 +281,7 @@ class EventListener {
 				this.changeUserListButton()
 			}
 			if (this.#chatStatus) {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat.svg`
 				this.#chatButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
@@ -291,7 +290,7 @@ class EventListener {
 					newMessageLine.remove()
 				}
 			} else {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat_active.svg`
 				this.#chatButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
@@ -317,7 +316,7 @@ class EventListener {
 			}
 			this.#chatButton = document.getElementById("chat-button")
 			if (this.#chatStatus) {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat.svg`
 				this.#chatButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
@@ -326,7 +325,7 @@ class EventListener {
 					newMessageLine.remove()
 				}
 			} else {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat_active.svg`
 				this.#chatButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
@@ -348,16 +347,16 @@ class EventListener {
 	async changeRaiseHandButton() {
 		try {
 			if (this.#raiseHandStatus) {
-				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand.svg"
+				this.#raiseHandButton.firstElementChild.src = `${baseUrl}/assets/icons/raise_hand.svg`
 				this.#raiseHandButton.classList.remove("active")
 				if (document.getElementById("raise-hand-mobile")) {
-					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand.svg"
+					document.getElementById("raise-hand-mobile").src = `${baseUrl}/assets/icons/raise_hand.svg`
 				}
 			} else {
-				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand_active.svg"
+				this.#raiseHandButton.firstElementChild.src = `${baseUrl}/assets/icons/raise_hand_active.svg`
 				this.#raiseHandButton.classList.add("active")
 				if (document.getElementById("raise-hand-mobile")) {
-					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand_active.svg"
+					document.getElementById("raise-hand-mobile").src = `${baseUrl}/assets/icons/raise_hand_active.svg`
 				}
 			}
 			this.#raiseHandStatus = !this.#raiseHandStatus
@@ -370,16 +369,16 @@ class EventListener {
 	async changeCCButton() {
 		try {
 			if (this.#ccStatus) {
-				this.#ccButton.firstElementChild.src = "/assets/icons/cc.svg"
+				this.#ccButton.firstElementChild.src = `${baseUrl}/assets/icons/cc.svg`
 				this.#ccButton.classList.remove("active")
 				if (document.getElementById("cc-mobile")) {
-					document.getElementById("cc-mobile").src = "/assets/icons/cc.svg"
+					document.getElementById("cc-mobile").src = `${baseUrl}/assets/icons/cc.svg`
 				}
 			} else {
 				if (document.getElementById("cc-mobile")) {
-					document.getElementById("cc-mobile").src = "/assets/icons/cc_active_2.svg"
+					document.getElementById("cc-mobile").src = `${baseUrl}/assets/icons/cc_active_2.svg`
 				}
-				this.#ccButton.firstElementChild.src = "/assets/icons/cc_active.svg"
+				this.#ccButton.firstElementChild.src = `${baseUrl}/assets/icons/cc_active.svg`
 				this.#ccButton.classList.add("active")
 			}
 			this.#ccStatus = !this.#ccStatus
@@ -611,10 +610,10 @@ class EventListener {
 			for (const c of this.#upstreamOptionContainer) {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#upstreamSelected = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			}
 			return this.#upstreamSelected
@@ -628,10 +627,10 @@ class EventListener {
 			for (const c of this.#downstreamOptionContainer) {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#downstreamSelected = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			}
 			return this.#downstreamSelected
@@ -645,10 +644,10 @@ class EventListener {
 			this.#layoutVideoOptions.forEach((c) => {
 				const radio = c.querySelector(".radio")
 				if (c === container) {
-					radio.src = "/assets/icons/radio_button_active.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button_active.svg`
 					this.#upstreamSelected = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/radio_button.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button.svg`
 				}
 			})
 			await this.statusLayoutCount()
@@ -665,10 +664,10 @@ class EventListener {
 			this.#layoutCountContainer.forEach((c) => {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#layoutCount = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			})
 		} catch (error) {
@@ -711,12 +710,12 @@ class EventListener {
 			}
 			if (this.#recordStatus) {
 				await this.normalHideAndDisplay({ element: this.#recordContainer, status: false })
-				this.#recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				this.#recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 				this.#recordButton.lastElementChild.innerHTML = "Mulai Merekam"
 				this.#recordButton.removeAttribute("pointer-events")
 			} else {
 				await this.normalHideAndDisplay({ element: this.#recordContainer, status: true })
-				this.#recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
+				this.#recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record_active.svg`
 				this.#recordButton.lastElementChild.innerHTML = "Berhenti Merekam"
 				this.#recordButton.setAttribute("pointer-events", "none")
 			}
@@ -807,9 +806,9 @@ class EventListener {
 										<span class="user-list-username">${username}</span>
 									</div>
 									<div class="user-list-icons">
-										<img style="cursor: pointer;" src="/assets/icons/accept.svg"
+										<img style="cursor: pointer;" src="${baseUrl}/assets/icons/accept.svg"
 											alt="user-list-icon" class="user-list-icon" id="accept-${id}" />
-										<img style="cursor: pointer;" src="/assets/icons/reject.svg" alt="user-list-icon" class="user-list-icon" 
+										<img style="cursor: pointer;" src="${baseUrl}/assets/icons/reject.svg" alt="user-list-icon" class="user-list-icon" 
 										id="reject-${id}" />
 									</div>
 								`
@@ -817,14 +816,14 @@ class EventListener {
 			const currentUserWaitingAcceptElement = document.getElementById(`accept-${id}`)
 			const acceptMouseOver = () => {
 				try {
-					currentUserWaitingAcceptElement.src = `/assets/icons/accept_active.svg`
+					currentUserWaitingAcceptElement.src = `${baseUrl}/assets/icons/accept_active.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Accept : ", error)
 				}
 			}
 			const acceptMouseLeave = () => {
 				try {
-					currentUserWaitingAcceptElement.src = `/assets/icons/accept.svg`
+					currentUserWaitingAcceptElement.src = `${baseUrl}/assets/icons/accept.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Accept : ", error)
 				}
@@ -832,14 +831,14 @@ class EventListener {
 
 			const rejectMouseOver = () => {
 				try {
-					currentUserWaitingRejectElement.src = `/assets/icons/reject_active.svg`
+					currentUserWaitingRejectElement.src = `${baseUrl}/assets/icons/reject_active.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Reject : ", error)
 				}
 			}
 			const rejectMouseLeave = () => {
 				try {
-					currentUserWaitingRejectElement.src = `/assets/icons/reject.svg`
+					currentUserWaitingRejectElement.src = `${baseUrl}/assets/icons/reject.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Accept : ", error)
 				}
@@ -908,7 +907,7 @@ class EventListener {
 												<span class="user-list-username">${username}</span>
 											</div>
 											<div class="user-list-icons">
-												<img src="/assets/icons/raise_hand_list.svg"
+												<img src="${baseUrl}/assets/icons/raise_hand_list.svg"
 													alt="user-list-icon" class="user-list-icon" id="raise-hand-${id}" />
 											</div>
 										`
@@ -930,7 +929,7 @@ class EventListener {
 			const raisedHandElement = document.createElement("div")
 			raisedHandElement.className = "raised-hand"
 			raisedHandElement.innerHTML = `
-				<img src="/assets/icons/raise_hand.svg" alt=""><span>${username}</span>
+				<img src="${baseUrl}/assets/icons/raise_hand.svg" alt=""><span>${username}</span>
 			`
 			this.#raiseHandNotificationContainer.append(raisedHandElement)
 
@@ -986,7 +985,7 @@ class EventListener {
 			const newUserContainer = document.createElement("section")
 			newUserContainer.className = "new-user-join"
 			newUserContainer.innerHTML = `<img src="${
-				picture ? `${baseUrl}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
+				picture ? `${baseUrl}/photo/${picture}.png` : `${baseUrl}/assets/pictures/default_user_pic.png`
 			}" alt="new-user-join" class="new-user-profile-picture"><span class="notification-text">${username} join the room</span>`
 			newUserNotificationContainer.appendChild(newUserContainer)
 			setTimeout(() => {

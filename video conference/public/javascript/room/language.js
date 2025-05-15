@@ -112,7 +112,7 @@ const changeLanguage = ({ language }) => {
 			throw { name: "error", message: "language id is not valid" }
 		}
 	} catch (error) {
-		console.log("- Error Change Languange")
+		console.log("- Error Change Languange", error)
 	}
 }
 

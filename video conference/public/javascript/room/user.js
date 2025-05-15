@@ -49,11 +49,11 @@ class StaticEvent {
                                 </div>
                                 <div class="user-list-icons">
 									${authorityElement}
-                                    <img id="mic-ul-${id}" src="/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
+                                    <img id="mic-ul-${id}" src="${baseUrl}/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
-                                    <img id="camera-ul-${id}" src="/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
+                                    <img id="camera-ul-${id}" src="${baseUrl}/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
-                                    <img style="cursor: pointer;" id="ul-o-${id}" src="/assets/icons/user_list_option.svg" alt="user-list-icon"
+                                    <img style="cursor: pointer;" id="ul-o-${id}" src="${baseUrl}/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
 									<div class="user-list-icons-option d-none" id="ul-oc-${id}"><span id="ul-o-f-${id}">Pin</span>
 									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">${kickTitle == "id" ? "Keluarkan" : "Remove"}}</span>` : ""}
@@ -484,7 +484,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.increaseTotalDisplayedVodeo()
@@ -550,7 +550,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.increaseTotalDisplayedVodeo()
@@ -605,7 +605,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.insertVideo({ track, id: userId })
@@ -651,7 +651,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.insertVideo({ track, id: userId })
@@ -885,10 +885,10 @@ class Users extends StaticEvent {
 			document.querySelectorAll(".layout-option-container").forEach((c) => {
 				const radio = c.querySelector(".radio")
 				if (c === container) {
-					radio.src = "/assets/icons/radio_button_active.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button_active.svg`
 					this.#currentLayout = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/radio_button.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button.svg`
 				}
 			})
 			await this.statusLayoutCount()
@@ -1008,9 +1008,9 @@ class Users extends StaticEvent {
 						document.querySelectorAll(".layout-option-container").forEach((c) => {
 							const radio = c.querySelector(".radio")
 							if (c.dataset.option == 2) {
-								radio.src = "/assets/icons/radio_button_active.svg"
+								radio.src = `${baseUrl}/assets/icons/radio_button_active.svg`
 							} else {
-								radio.src = "/assets/icons/radio_button.svg"
+								radio.src = `${baseUrl}/assets/icons/radio_button.svg`
 							}
 						})
 						await this.statusLayoutCount()
@@ -1145,10 +1145,10 @@ class Users extends StaticEvent {
 			this.#layoutCountContainer.forEach((c) => {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#totalLayout = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			})
 
@@ -1222,7 +1222,7 @@ class Users extends StaticEvent {
 				if (this.#totalLayout == 5) {
 					// this.#totalLayout = 6
 					this.#layoutCountContainer.forEach((c) => {
-						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+						if (c.firstElementChild.src.endsWith(`${baseUrl}/assets/icons/mini_radio_active.svg`)) {
 							this.#totalLayout = c.dataset.option
 						}
 					})
@@ -1409,7 +1409,7 @@ class Users extends StaticEvent {
 				if (this.#totalLayout == 5) {
 					// this.#totalLayout = 6
 					this.#layoutCountContainer.forEach((c) => {
-						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+						if (c.firstElementChild.src.endsWith(`${baseUrl}/assets/icons/mini_radio_active.svg`)) {
 							this.#totalLayout = c.dataset.option
 						}
 					})
@@ -1629,7 +1629,7 @@ class Users extends StaticEvent {
 				if (this.#totalLayout == 5) {
 					// this.#totalLayout = 6
 					this.#layoutCountContainer.forEach((c) => {
-						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+						if (c.firstElementChild.src.endsWith(`${baseUrl}/assets/icons/mini_radio_active.svg`)) {
 							this.#totalLayout = c.dataset.option
 						}
 					})
@@ -2033,18 +2033,18 @@ class Users extends StaticEvent {
 			const recordButton = document.getElementById("record-button")
 			if (from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
-				recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 				this.#record.isRecording = false
 			} else if (this.#record.isRecording && !from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
-				recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 				// recordButton.removeAttribute("pointer-events")
 				this.#record.isRecording = !this.#record.isRecording
 			} else {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: true })
-				recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
+				recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record_active.svg`
 				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Berhenti Merekam" : "Stop Record"
 				// recordButton.setAttribute("pointer-events", "none")
 				this.#record.isRecording = !this.#record.isRecording
@@ -2059,7 +2059,7 @@ class Users extends StaticEvent {
 	async resetTimer() {
 		try {
 			const recordButton = document.getElementById("record-button")
-			recordButton.firstElementChild.src = "/assets/icons/record.svg"
+			recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 			recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 			recordButton.removeAttribute("pointer-events")
 			await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
@@ -2244,27 +2244,27 @@ class Users extends StaticEvent {
 					analyser.getByteFrequencyData(dataArray)
 					const barHeight = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
 					if (!track.enabled) {
-						audioVisualizerImage.src = "/assets/icons/mic_muted.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_muted.svg`
 					} else if (barHeight <= 3) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_1.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_1.svg`
 					} else if (barHeight <= 6) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_2.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_2.svg`
 					} else if (barHeight <= 9) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_3.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_3.svg`
 					} else if (barHeight <= 12) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_4.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_4.svg`
 					} else if (barHeight <= 15) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_5.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_5.svg`
 					} else if (barHeight <= 18) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_6.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_6.svg`
 					} else if (barHeight <= 21) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_7.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_7.svg`
 					} else if (barHeight <= 24) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_8.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_8.svg`
 					} else if (barHeight <= 27) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_9.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_9.svg`
 					} else {
-						audioVisualizerImage.src = "/assets/icons/mic_level_10.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_10.svg`
 					}
 
 					requestAnimationFrame(drawBar)

@@ -7,16 +7,16 @@ class StaticEvent {
 			const microphoneButton = document.getElementById("mic-icon")
 			const microphoneVideo = document.getElementById(`video-mic-${id}`)
 			if (isActive) {
-				myUserLicMic.src = "/assets/icons/user_list_mic_active.svg"
-				microphoneButton.src = "/assets/icons/mic.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic_active.svg`
+				microphoneButton.src = `${baseUrl}/assets/icons/mic.svg`
 				if (microphoneVideo) {
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				}
 			} else {
-				myUserLicMic.src = "/assets/icons/user_list_mic.svg"
-				microphoneButton.src = "/assets/icons/mic_muted.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic.svg`
+				microphoneButton.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				if (microphoneVideo) {
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				}
 			}
 		} catch (error) {
@@ -30,11 +30,11 @@ class StaticEvent {
 				const microphoneVideo = document.getElementById(`video-mic-${id}`)
 				const targetElement = document.getElementById(`mic-ul-${id}`)
 				if (isActive) {
-					targetElement.src = "/assets/icons/user_list_mic_active.svg"
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					targetElement.src = `${baseUrl}/assets/icons/user_list_mic_active.svg`
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				} else {
-					targetElement.src = "/assets/icons/user_list_mic.svg"
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					targetElement.src = `${baseUrl}/assets/icons/user_list_mic.svg`
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				}
 			}
 		} catch (error) {
@@ -271,7 +271,7 @@ class MediaSoupClient extends StaticEvent {
 
 			const imageContainerElement = document.createElement("div")
 			imageContainerElement.className = "video-mic-icon"
-			imageContainerElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_2.svg"id="video-mic-${userId}" alt="mic_icon">`
+			imageContainerElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_2.svg"id="video-mic-${userId}" alt="mic_icon">`
 
 			userContainerNewElement.appendChild(imageContainerElement)
 
@@ -532,8 +532,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("pause", () => {
 				console.log("video observer pause")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
-				document.getElementById("camera-icon").src = "/assets/icons/camera_off.svg"
-				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
+				document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera_off.svg`
+				document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
 				if (videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.remove("d-none")
 				}
@@ -542,8 +542,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("resume", () => {
 				console.log("video observer resume")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
-				document.getElementById("camera-icon").src = "/assets/icons/camera.svg"
-				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
+				document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera.svg`
+				document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
 				if (!videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.add("d-none")
 				}
@@ -665,7 +665,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (pauser) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
-									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
+									document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
 									if (videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.remove("d-none")
 									}
@@ -683,7 +683,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (resumer) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
-									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
+									document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
 									if (!videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.add("d-none")
 									}
@@ -847,7 +847,7 @@ class MediaSoupClient extends StaticEvent {
 		try {
 			if (this.#screenSharingStatus) {
 				this.#screenSharingStatus = false
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+				this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing.svg`
 				this.#screenSharingButton.classList.remove("active")
 				if (this.#screenSharingVideoProducer) {
 					socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer?.id, label: "screensharing_video" })
@@ -861,7 +861,7 @@ class MediaSoupClient extends StaticEvent {
 				return null
 			} else {
 				this.#screenSharingStatus = true
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing_active.svg"
+				this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing_active.svg`
 				this.#screenSharingButton.classList.add("active")
 				return await this.getScreenSharing({ socket })
 			}
@@ -951,7 +951,7 @@ class MediaSoupClient extends StaticEvent {
 				return null
 			}
 		} catch (error) {
-			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing.svg`
 			this.#screenSharingButton.classList.remove("active")
 			this.#screenSharingStatus = false
 			console.log("- Error Getting Screen Sharing : ", error)
@@ -963,7 +963,7 @@ class MediaSoupClient extends StaticEvent {
 		try {
 			this.#screenSharingMode = false
 			this.#screenSharingStatus = false
-			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing.svg`
 			this.#screenSharingButton.classList.remove("active")
 			if (this.#screenSharingAudioProducer != null && this.#screenSharingAudioProducer.id == producerId) {
 				this.#screenSharingAudioProducer.close()

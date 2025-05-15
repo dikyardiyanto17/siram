@@ -34337,11 +34337,11 @@ class EventListener {
 		try {
 			const myUserLicMic = document.getElementById(`mic-ul-${id}`)
 			if (this.#microphoneStatus) {
-				myUserLicMic.src = "/assets/icons/user_list_mic.svg"
-				this.#microphoneButton.src = "/assets/icons/mic_muted.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic.svg`
+				this.#microphoneButton.src = `${baseUrl}/assets/icons/mic_muted.svg`
 			} else {
-				myUserLicMic.src = "/assets/icons/user_list_mic_active.svg"
-				this.#microphoneButton.src = "/assets/icons/mic.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic_active.svg`
+				this.#microphoneButton.src = `${baseUrl}/assets/icons/mic.svg`
 			}
 			this.#microphoneStatus = !this.#microphoneStatus
 		} catch (error) {
@@ -34352,9 +34352,9 @@ class EventListener {
 	async changeCameraButton() {
 		try {
 			if (this.#cameraStatus) {
-				this.#cameraButton.src = "/assets/icons/camera_off.svg"
+				this.#cameraButton.src = `${baseUrl}/assets/icons/camera_off.svg`
 			} else {
-				this.#cameraButton.src = "/assets/icons/camera.svg"
+				this.#cameraButton.src = `${baseUrl}/assets/icons/camera.svg`
 			}
 			this.#cameraStatus = !this.#cameraStatus
 		} catch (error) {
@@ -34373,13 +34373,12 @@ class EventListener {
 				this.changeChatButton()
 			}
 			if (this.#userListStatus) {
-
-				this.#userListButton.firstElementChild.src = "/assets/icons/people.svg"
+				this.#userListButton.firstElementChild.src = `${baseUrl}/assets/icons/people.svg`
 				this.#userListButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#userListContainer, status: false })
 			} else {
-				this.#userListButton.firstElementChild.src = "/assets/icons/people_active.svg"
+				this.#userListButton.firstElementChild.src = `${baseUrl}/assets/icons/people_active.svg`
 				this.#userListButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#userListContainer, status: true })
@@ -34404,7 +34403,7 @@ class EventListener {
 				this.changeUserListButton()
 			}
 			if (this.#chatStatus) {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat.svg`
 				this.#chatButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
@@ -34413,7 +34412,7 @@ class EventListener {
 					newMessageLine.remove()
 				}
 			} else {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat_active.svg`
 				this.#chatButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
@@ -34439,7 +34438,7 @@ class EventListener {
 			}
 			this.#chatButton = document.getElementById("chat-button")
 			if (this.#chatStatus) {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat.svg`
 				this.#chatButton.classList.remove("active")
 				this.#sideBarStatus = false
 				this.hideAndDisplay({ element: this.#chatContainer, status: false })
@@ -34448,7 +34447,7 @@ class EventListener {
 					newMessageLine.remove()
 				}
 			} else {
-				this.#chatButton.firstElementChild.src = "/assets/icons/chat_active.svg"
+				this.#chatButton.firstElementChild.src = `${baseUrl}/assets/icons/chat_active.svg`
 				this.#chatButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
@@ -34470,16 +34469,16 @@ class EventListener {
 	async changeRaiseHandButton() {
 		try {
 			if (this.#raiseHandStatus) {
-				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand.svg"
+				this.#raiseHandButton.firstElementChild.src = `${baseUrl}/assets/icons/raise_hand.svg`
 				this.#raiseHandButton.classList.remove("active")
 				if (document.getElementById("raise-hand-mobile")) {
-					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand.svg"
+					document.getElementById("raise-hand-mobile").src = `${baseUrl}/assets/icons/raise_hand.svg`
 				}
 			} else {
-				this.#raiseHandButton.firstElementChild.src = "/assets/icons/raise_hand_active.svg"
+				this.#raiseHandButton.firstElementChild.src = `${baseUrl}/assets/icons/raise_hand_active.svg`
 				this.#raiseHandButton.classList.add("active")
 				if (document.getElementById("raise-hand-mobile")) {
-					document.getElementById("raise-hand-mobile").src = "/assets/icons/raise_hand_active.svg"
+					document.getElementById("raise-hand-mobile").src = `${baseUrl}/assets/icons/raise_hand_active.svg`
 				}
 			}
 			this.#raiseHandStatus = !this.#raiseHandStatus
@@ -34492,16 +34491,16 @@ class EventListener {
 	async changeCCButton() {
 		try {
 			if (this.#ccStatus) {
-				this.#ccButton.firstElementChild.src = "/assets/icons/cc.svg"
+				this.#ccButton.firstElementChild.src = `${baseUrl}/assets/icons/cc.svg`
 				this.#ccButton.classList.remove("active")
 				if (document.getElementById("cc-mobile")) {
-					document.getElementById("cc-mobile").src = "/assets/icons/cc.svg"
+					document.getElementById("cc-mobile").src = `${baseUrl}/assets/icons/cc.svg`
 				}
 			} else {
 				if (document.getElementById("cc-mobile")) {
-					document.getElementById("cc-mobile").src = "/assets/icons/cc_active_2.svg"
+					document.getElementById("cc-mobile").src = `${baseUrl}/assets/icons/cc_active_2.svg`
 				}
-				this.#ccButton.firstElementChild.src = "/assets/icons/cc_active.svg"
+				this.#ccButton.firstElementChild.src = `${baseUrl}/assets/icons/cc_active.svg`
 				this.#ccButton.classList.add("active")
 			}
 			this.#ccStatus = !this.#ccStatus
@@ -34733,10 +34732,10 @@ class EventListener {
 			for (const c of this.#upstreamOptionContainer) {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#upstreamSelected = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			}
 			return this.#upstreamSelected
@@ -34750,10 +34749,10 @@ class EventListener {
 			for (const c of this.#downstreamOptionContainer) {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#downstreamSelected = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			}
 			return this.#downstreamSelected
@@ -34767,10 +34766,10 @@ class EventListener {
 			this.#layoutVideoOptions.forEach((c) => {
 				const radio = c.querySelector(".radio")
 				if (c === container) {
-					radio.src = "/assets/icons/radio_button_active.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button_active.svg`
 					this.#upstreamSelected = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/radio_button.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button.svg`
 				}
 			})
 			await this.statusLayoutCount()
@@ -34787,10 +34786,10 @@ class EventListener {
 			this.#layoutCountContainer.forEach((c) => {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#layoutCount = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			})
 		} catch (error) {
@@ -34833,12 +34832,12 @@ class EventListener {
 			}
 			if (this.#recordStatus) {
 				await this.normalHideAndDisplay({ element: this.#recordContainer, status: false })
-				this.#recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				this.#recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 				this.#recordButton.lastElementChild.innerHTML = "Mulai Merekam"
 				this.#recordButton.removeAttribute("pointer-events")
 			} else {
 				await this.normalHideAndDisplay({ element: this.#recordContainer, status: true })
-				this.#recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
+				this.#recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record_active.svg`
 				this.#recordButton.lastElementChild.innerHTML = "Berhenti Merekam"
 				this.#recordButton.setAttribute("pointer-events", "none")
 			}
@@ -34929,9 +34928,9 @@ class EventListener {
 										<span class="user-list-username">${username}</span>
 									</div>
 									<div class="user-list-icons">
-										<img style="cursor: pointer;" src="/assets/icons/accept.svg"
+										<img style="cursor: pointer;" src="${baseUrl}/assets/icons/accept.svg"
 											alt="user-list-icon" class="user-list-icon" id="accept-${id}" />
-										<img style="cursor: pointer;" src="/assets/icons/reject.svg" alt="user-list-icon" class="user-list-icon" 
+										<img style="cursor: pointer;" src="${baseUrl}/assets/icons/reject.svg" alt="user-list-icon" class="user-list-icon" 
 										id="reject-${id}" />
 									</div>
 								`
@@ -34939,14 +34938,14 @@ class EventListener {
 			const currentUserWaitingAcceptElement = document.getElementById(`accept-${id}`)
 			const acceptMouseOver = () => {
 				try {
-					currentUserWaitingAcceptElement.src = `/assets/icons/accept_active.svg`
+					currentUserWaitingAcceptElement.src = `${baseUrl}/assets/icons/accept_active.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Accept : ", error)
 				}
 			}
 			const acceptMouseLeave = () => {
 				try {
-					currentUserWaitingAcceptElement.src = `/assets/icons/accept.svg`
+					currentUserWaitingAcceptElement.src = `${baseUrl}/assets/icons/accept.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Accept : ", error)
 				}
@@ -34954,14 +34953,14 @@ class EventListener {
 
 			const rejectMouseOver = () => {
 				try {
-					currentUserWaitingRejectElement.src = `/assets/icons/reject_active.svg`
+					currentUserWaitingRejectElement.src = `${baseUrl}/assets/icons/reject_active.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Reject : ", error)
 				}
 			}
 			const rejectMouseLeave = () => {
 				try {
-					currentUserWaitingRejectElement.src = `/assets/icons/reject.svg`
+					currentUserWaitingRejectElement.src = `${baseUrl}/assets/icons/reject.svg`
 				} catch (error) {
 					console.log("- Error Mouse Over Accept : ", error)
 				}
@@ -35030,7 +35029,7 @@ class EventListener {
 												<span class="user-list-username">${username}</span>
 											</div>
 											<div class="user-list-icons">
-												<img src="/assets/icons/raise_hand_list.svg"
+												<img src="${baseUrl}/assets/icons/raise_hand_list.svg"
 													alt="user-list-icon" class="user-list-icon" id="raise-hand-${id}" />
 											</div>
 										`
@@ -35052,7 +35051,7 @@ class EventListener {
 			const raisedHandElement = document.createElement("div")
 			raisedHandElement.className = "raised-hand"
 			raisedHandElement.innerHTML = `
-				<img src="/assets/icons/raise_hand.svg" alt=""><span>${username}</span>
+				<img src="${baseUrl}/assets/icons/raise_hand.svg" alt=""><span>${username}</span>
 			`
 			this.#raiseHandNotificationContainer.append(raisedHandElement)
 
@@ -35108,7 +35107,7 @@ class EventListener {
 			const newUserContainer = document.createElement("section")
 			newUserContainer.className = "new-user-join"
 			newUserContainer.innerHTML = `<img src="${
-				picture ? `${baseUrl}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
+				picture ? `${baseUrl}/photo/${picture}.png` : `${baseUrl}/assets/pictures/default_user_pic.png`
 			}" alt="new-user-join" class="new-user-profile-picture"><span class="notification-text">${username} join the room</span>`
 			newUserNotificationContainer.appendChild(newUserContainer)
 			setTimeout(() => {
@@ -35285,16 +35284,16 @@ class StaticEvent {
 			const microphoneButton = document.getElementById("mic-icon")
 			const microphoneVideo = document.getElementById(`video-mic-${id}`)
 			if (isActive) {
-				myUserLicMic.src = "/assets/icons/user_list_mic_active.svg"
-				microphoneButton.src = "/assets/icons/mic.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic_active.svg`
+				microphoneButton.src = `${baseUrl}/assets/icons/mic.svg`
 				if (microphoneVideo) {
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				}
 			} else {
-				myUserLicMic.src = "/assets/icons/user_list_mic.svg"
-				microphoneButton.src = "/assets/icons/mic_muted.svg"
+				myUserLicMic.src = `${baseUrl}/assets/icons/user_list_mic.svg`
+				microphoneButton.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				if (microphoneVideo) {
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				}
 			}
 		} catch (error) {
@@ -35308,11 +35307,11 @@ class StaticEvent {
 				const microphoneVideo = document.getElementById(`video-mic-${id}`)
 				const targetElement = document.getElementById(`mic-ul-${id}`)
 				if (isActive) {
-					targetElement.src = "/assets/icons/user_list_mic_active.svg"
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					targetElement.src = `${baseUrl}/assets/icons/user_list_mic_active.svg`
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				} else {
-					targetElement.src = "/assets/icons/user_list_mic.svg"
-					microphoneVideo.src = "/assets/icons/mic_muted.svg"
+					targetElement.src = `${baseUrl}/assets/icons/user_list_mic.svg`
+					microphoneVideo.src = `${baseUrl}/assets/icons/mic_muted.svg`
 				}
 			}
 		} catch (error) {
@@ -35549,7 +35548,7 @@ class MediaSoupClient extends StaticEvent {
 
 			const imageContainerElement = document.createElement("div")
 			imageContainerElement.className = "video-mic-icon"
-			imageContainerElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_2.svg"id="video-mic-${userId}" alt="mic_icon">`
+			imageContainerElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_2.svg"id="video-mic-${userId}" alt="mic_icon">`
 
 			userContainerNewElement.appendChild(imageContainerElement)
 
@@ -35810,8 +35809,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("pause", () => {
 				console.log("video observer pause")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
-				document.getElementById("camera-icon").src = "/assets/icons/camera_off.svg"
-				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
+				document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera_off.svg`
+				document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
 				if (videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.remove("d-none")
 				}
@@ -35820,8 +35819,8 @@ class MediaSoupClient extends StaticEvent {
 			this.#videoProducer.observer.on("resume", () => {
 				console.log("video observer resume")
 				const videoPicture = document.getElementById(`turn-off-${userId}`)
-				document.getElementById("camera-icon").src = "/assets/icons/camera.svg"
-				document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
+				document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera.svg`
+				document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
 				if (!videoPicture.classList.contains("d-none")) {
 					videoPicture.classList.add("d-none")
 				}
@@ -35943,7 +35942,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (pauser) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
-									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera.svg"
+									document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
 									if (videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.remove("d-none")
 									}
@@ -35961,7 +35960,7 @@ class MediaSoupClient extends StaticEvent {
 								console.log("Consumer Observer (resumer) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
 									const videoPicture = document.getElementById(`turn-off-${userId}`)
-									document.getElementById(`camera-ul-${userId}`).src = "/assets/icons/user_list_camera_active.svg"
+									document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
 									if (!videoPicture.classList.contains("d-none")) {
 										videoPicture.classList.add("d-none")
 									}
@@ -36125,7 +36124,7 @@ class MediaSoupClient extends StaticEvent {
 		try {
 			if (this.#screenSharingStatus) {
 				this.#screenSharingStatus = false
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+				this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing.svg`
 				this.#screenSharingButton.classList.remove("active")
 				if (this.#screenSharingVideoProducer) {
 					socket.emit("stop-screensharing", { producerId: this.#screenSharingVideoProducer?.id, label: "screensharing_video" })
@@ -36139,7 +36138,7 @@ class MediaSoupClient extends StaticEvent {
 				return null
 			} else {
 				this.#screenSharingStatus = true
-				this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing_active.svg"
+				this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing_active.svg`
 				this.#screenSharingButton.classList.add("active")
 				return await this.getScreenSharing({ socket })
 			}
@@ -36229,7 +36228,7 @@ class MediaSoupClient extends StaticEvent {
 				return null
 			}
 		} catch (error) {
-			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing.svg`
 			this.#screenSharingButton.classList.remove("active")
 			this.#screenSharingStatus = false
 			console.log("- Error Getting Screen Sharing : ", error)
@@ -36241,7 +36240,7 @@ class MediaSoupClient extends StaticEvent {
 		try {
 			this.#screenSharingMode = false
 			this.#screenSharingStatus = false
-			this.#screenSharingButton.firstElementChild.src = "/assets/icons/screen_sharing.svg"
+			this.#screenSharingButton.firstElementChild.src = `${baseUrl}/assets/icons/screen_sharing.svg`
 			this.#screenSharingButton.classList.remove("active")
 			if (this.#screenSharingAudioProducer != null && this.#screenSharingAudioProducer.id == producerId) {
 				this.#screenSharingAudioProducer.close()
@@ -36580,7 +36579,7 @@ const getResponsive = async () => {
 			chatElement.classList.add("option-list")
 			chatElement.id = "chat-button"
 			chatElement.innerHTML = `
-				<img src="/assets/icons/chat.svg" alt="caption-icon" id="chat-mobile">
+				<img src="${baseUrl}/assets/icons/chat.svg" alt="caption-icon" id="chat-mobile">
 				<div id="red-dot-chat" class="d-none red-dot"></div>
 				<span id="chat-icons-title">${localStorage.getItem("language") == "en" ? "Chat" : "Pesan"}</span>
 			`
@@ -36599,7 +36598,7 @@ const getResponsive = async () => {
 			userListElement.classList.add("option-list")
 			userListElement.id = "user-list-button"
 			userListElement.innerHTML = `
-				<img src="/assets/icons/people.svg" alt="participants-icon" id="participants-mobile">
+				<img src="${baseUrl}/assets/icons/people.svg" alt="participants-icon" id="participants-mobile">
 				<div id="red-dot-user-list" class="d-none red-dot"></div>
 				<span id="participants-icons-title">${localStorage.getItem("language") == "en" ? "Pariticpants" : "Peserta"}</span>
 			`
@@ -36617,7 +36616,7 @@ const getResponsive = async () => {
 			captionElement.classList.add("option-list")
 			captionElement.id = "cc-button"
 			captionElement.innerHTML = `
-				<img src="/assets/icons/cc.svg" alt="caption-icon" id="cc-mobile">
+				<img src="${baseUrl}/assets/icons/cc.svg" alt="caption-icon" id="cc-mobile">
 				<span id="caption-menu">${localStorage.getItem("language") == "en" ? "Caption" : "Caption"}</span>
 			`
 
@@ -37808,10 +37807,10 @@ if (os.toLowerCase() == "android" || os.toLowerCase() == "ios") {
 	muteSpeakerButton.addEventListener("click", () => {
 		try {
 			if (muteIcon.src.includes("mute_speaker_mobile.svg")) {
-				muteIcon.src = "/assets/icons/muted_speaker_mobile.svg"
+				muteIcon.src = `${baseUrl}/assets/icons/muted_speaker_mobile.svg`
 				gainNode.gain.value = 0
 			} else {
-				muteIcon.src = "/assets/icons/mute_speaker_mobile.svg"
+				muteIcon.src = `${baseUrl}/assets/icons/mute_speaker_mobile.svg`
 				gainNode.gain.value = 1
 			}
 		} catch (error) {
@@ -37872,11 +37871,11 @@ class StaticEvent {
                                 </div>
                                 <div class="user-list-icons">
 									${authorityElement}
-                                    <img id="mic-ul-${id}" src="/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
+                                    <img id="mic-ul-${id}" src="${baseUrl}/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
-                                    <img id="camera-ul-${id}" src="/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
+                                    <img id="camera-ul-${id}" src="${baseUrl}/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
-                                    <img style="cursor: pointer;" id="ul-o-${id}" src="/assets/icons/user_list_option.svg" alt="user-list-icon"
+                                    <img style="cursor: pointer;" id="ul-o-${id}" src="${baseUrl}/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
 									<div class="user-list-icons-option d-none" id="ul-oc-${id}"><span id="ul-o-f-${id}">Pin</span>
 									${userId != id && (userAuthority == 1 || userAuthority == 2) ? `<span id="ul-o-k-${id}">${kickTitle == "id" ? "Keluarkan" : "Remove"}}</span>` : ""}
@@ -38307,7 +38306,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.increaseTotalDisplayedVodeo()
@@ -38373,7 +38372,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.increaseTotalDisplayedVodeo()
@@ -38428,7 +38427,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.insertVideo({ track, id: userId })
@@ -38474,7 +38473,7 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
 				await this.insertVideo({ track, id: userId })
@@ -38708,10 +38707,10 @@ class Users extends StaticEvent {
 			document.querySelectorAll(".layout-option-container").forEach((c) => {
 				const radio = c.querySelector(".radio")
 				if (c === container) {
-					radio.src = "/assets/icons/radio_button_active.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button_active.svg`
 					this.#currentLayout = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/radio_button.svg"
+					radio.src = `${baseUrl}/assets/icons/radio_button.svg`
 				}
 			})
 			await this.statusLayoutCount()
@@ -38831,9 +38830,9 @@ class Users extends StaticEvent {
 						document.querySelectorAll(".layout-option-container").forEach((c) => {
 							const radio = c.querySelector(".radio")
 							if (c.dataset.option == 2) {
-								radio.src = "/assets/icons/radio_button_active.svg"
+								radio.src = `${baseUrl}/assets/icons/radio_button_active.svg`
 							} else {
-								radio.src = "/assets/icons/radio_button.svg"
+								radio.src = `${baseUrl}/assets/icons/radio_button.svg`
 							}
 						})
 						await this.statusLayoutCount()
@@ -38968,10 +38967,10 @@ class Users extends StaticEvent {
 			this.#layoutCountContainer.forEach((c) => {
 				const radio = c.querySelector(".mini-radio")
 				if (c === container) {
-					radio.src = "/assets/icons/mini_radio_active.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio_active.svg`
 					this.#totalLayout = c.dataset.option
 				} else {
-					radio.src = "/assets/icons/mini_radio.svg"
+					radio.src = `${baseUrl}/assets/icons/mini_radio.svg`
 				}
 			})
 
@@ -39045,7 +39044,7 @@ class Users extends StaticEvent {
 				if (this.#totalLayout == 5) {
 					// this.#totalLayout = 6
 					this.#layoutCountContainer.forEach((c) => {
-						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+						if (c.firstElementChild.src.endsWith(`${baseUrl}/assets/icons/mini_radio_active.svg`)) {
 							this.#totalLayout = c.dataset.option
 						}
 					})
@@ -39232,7 +39231,7 @@ class Users extends StaticEvent {
 				if (this.#totalLayout == 5) {
 					// this.#totalLayout = 6
 					this.#layoutCountContainer.forEach((c) => {
-						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+						if (c.firstElementChild.src.endsWith(`${baseUrl}/assets/icons/mini_radio_active.svg`)) {
 							this.#totalLayout = c.dataset.option
 						}
 					})
@@ -39452,7 +39451,7 @@ class Users extends StaticEvent {
 				if (this.#totalLayout == 5) {
 					// this.#totalLayout = 6
 					this.#layoutCountContainer.forEach((c) => {
-						if (c.firstElementChild.src.endsWith("/assets/icons/mini_radio_active.svg")) {
+						if (c.firstElementChild.src.endsWith(`${baseUrl}/assets/icons/mini_radio_active.svg`)) {
 							this.#totalLayout = c.dataset.option
 						}
 					})
@@ -39856,18 +39855,18 @@ class Users extends StaticEvent {
 			const recordButton = document.getElementById("record-button")
 			if (from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
-				recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 				this.#record.isRecording = false
 			} else if (this.#record.isRecording && !from) {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
-				recordButton.firstElementChild.src = "/assets/icons/record.svg"
+				recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 				// recordButton.removeAttribute("pointer-events")
 				this.#record.isRecording = !this.#record.isRecording
 			} else {
 				await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: true })
-				recordButton.firstElementChild.src = "/assets/icons/record_active.svg"
+				recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record_active.svg`
 				recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Berhenti Merekam" : "Stop Record"
 				// recordButton.setAttribute("pointer-events", "none")
 				this.#record.isRecording = !this.#record.isRecording
@@ -39882,7 +39881,7 @@ class Users extends StaticEvent {
 	async resetTimer() {
 		try {
 			const recordButton = document.getElementById("record-button")
-			recordButton.firstElementChild.src = "/assets/icons/record.svg"
+			recordButton.firstElementChild.src = `${baseUrl}/assets/icons/record.svg`
 			recordButton.lastElementChild.innerHTML = localStorage.getItem("language") == "id" ? "Mulai Merekam" : "Start Record"
 			recordButton.removeAttribute("pointer-events")
 			await this.constructor.normalHideAndDisplay({ element: document.getElementById("record-container"), status: false })
@@ -40067,27 +40066,27 @@ class Users extends StaticEvent {
 					analyser.getByteFrequencyData(dataArray)
 					const barHeight = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
 					if (!track.enabled) {
-						audioVisualizerImage.src = "/assets/icons/mic_muted.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_muted.svg`
 					} else if (barHeight <= 3) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_1.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_1.svg`
 					} else if (barHeight <= 6) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_2.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_2.svg`
 					} else if (barHeight <= 9) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_3.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_3.svg`
 					} else if (barHeight <= 12) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_4.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_4.svg`
 					} else if (barHeight <= 15) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_5.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_5.svg`
 					} else if (barHeight <= 18) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_6.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_6.svg`
 					} else if (barHeight <= 21) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_7.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_7.svg`
 					} else if (barHeight <= 24) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_8.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_8.svg`
 					} else if (barHeight <= 27) {
-						audioVisualizerImage.src = "/assets/icons/mic_level_9.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_9.svg`
 					} else {
-						audioVisualizerImage.src = "/assets/icons/mic_level_10.svg"
+						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_10.svg`
 					}
 
 					requestAnimationFrame(drawBar)

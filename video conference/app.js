@@ -67,7 +67,7 @@ httpServer.listen(port, async () => {
 	console.log("App On : " + port)
 })
 const io = new Server(httpServer, {
-	path: "/socket",
+	path: "/telepati/socket",
 })
 
 io.use((socket, next) => {
@@ -76,7 +76,6 @@ io.use((socket, next) => {
 
 io.on("connection", async (socket) => {
 	const userSession = socket.request.session
-
 	socket.on("disconnect", async () => {
 		try {
 			const user = await liveMeeting.findUserBySocket({ socketId: socket.id })

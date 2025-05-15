@@ -82,7 +82,7 @@ const getResponsive = async () => {
 			chatElement.classList.add("option-list")
 			chatElement.id = "chat-button"
 			chatElement.innerHTML = `
-				<img src="/assets/icons/chat.svg" alt="caption-icon" id="chat-mobile">
+				<img src="${baseUrl}/assets/icons/chat.svg" alt="caption-icon" id="chat-mobile">
 				<div id="red-dot-chat" class="d-none red-dot"></div>
 				<span id="chat-icons-title">${localStorage.getItem("language") == "en" ? "Chat" : "Pesan"}</span>
 			`
@@ -101,7 +101,7 @@ const getResponsive = async () => {
 			userListElement.classList.add("option-list")
 			userListElement.id = "user-list-button"
 			userListElement.innerHTML = `
-				<img src="/assets/icons/people.svg" alt="participants-icon" id="participants-mobile">
+				<img src="${baseUrl}/assets/icons/people.svg" alt="participants-icon" id="participants-mobile">
 				<div id="red-dot-user-list" class="d-none red-dot"></div>
 				<span id="participants-icons-title">${localStorage.getItem("language") == "en" ? "Pariticpants" : "Peserta"}</span>
 			`
@@ -119,7 +119,7 @@ const getResponsive = async () => {
 			captionElement.classList.add("option-list")
 			captionElement.id = "cc-button"
 			captionElement.innerHTML = `
-				<img src="/assets/icons/cc.svg" alt="caption-icon" id="cc-mobile">
+				<img src="${baseUrl}/assets/icons/cc.svg" alt="caption-icon" id="cc-mobile">
 				<span id="caption-menu">${localStorage.getItem("language") == "en" ? "Caption" : "Caption"}</span>
 			`
 
@@ -1310,10 +1310,10 @@ if (os.toLowerCase() == "android" || os.toLowerCase() == "ios") {
 	muteSpeakerButton.addEventListener("click", () => {
 		try {
 			if (muteIcon.src.includes("mute_speaker_mobile.svg")) {
-				muteIcon.src = "/assets/icons/muted_speaker_mobile.svg"
+				muteIcon.src = `${baseUrl}/assets/icons/muted_speaker_mobile.svg`
 				gainNode.gain.value = 0
 			} else {
-				muteIcon.src = "/assets/icons/mute_speaker_mobile.svg"
+				muteIcon.src = `${baseUrl}/assets/icons/mute_speaker_mobile.svg`
 				gainNode.gain.value = 1
 			}
 		} catch (error) {
