@@ -1,4 +1,4 @@
-const { baseUrl } = require("../../config")
+const { baseUrl } = require("../../config/index.js")
 const { decodeToken, encodeToken } = require("../../helper/jwt")
 
 class Login {
@@ -7,14 +7,14 @@ class Login {
 			const { token } = req.session
 
 			if (!token) {
-				await res.render("pages/login/index")
+				await res.render("pages/login/index", { baseUrl })
 				return
 			}
 
 			const decodedUser = await decodeToken(token)
 
 			if (!decodedUser) {
-				await res.render("pages/login/index")
+				await res.render("pages/login/index", { baseUrl })
 				return
 			}
 			const { user } = decodedUser
