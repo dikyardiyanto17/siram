@@ -37,11 +37,10 @@ const sessionMiddleware = session({
 	resave: false,
 	saveUninitialized: false,
 	cookie: {
-		secure: true,
-		// secure: false,
+		// secure: true,
+		secure: false,
 		sameSite: true,
-		maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-		path: "/telepati",
+		maxAge: 2 * 60 * 60 * 1000, // 2 day in milliseconds
 	},
 })
 
