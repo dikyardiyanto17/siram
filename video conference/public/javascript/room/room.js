@@ -42,7 +42,7 @@ const getResponsive = async () => {
 			const shareButton = document.getElementById("share-link-button")
 			shareLinkButton.addEventListener("click", async () => {
 				try {
-					await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomName}&pw=${password}`)
+					await navigator.clipboard.writeText(`${baseUrl}/?rid=${roomName}&pw=${password}`)
 					const clipboardSuccess = document.getElementById("clipboard-success")
 
 					clipboardSuccess.style.opacity = 1
@@ -172,7 +172,7 @@ const connectSocket = async () => {
 						await mediasoupClientVariable.setEncoding()
 						await mediasoupClientVariable.getMyStream({
 							faceRecognition,
-							picture: `${window.location.origin}/photo/${picture}.png`,
+							picture: `${baseUrl}/photo/${picture}.png`,
 							userId,
 							username,
 						})
@@ -234,7 +234,7 @@ const connectSocket = async () => {
 						await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
 						// document.getElementById("loading-id").className = "loading-hide"
 					} else {
-						window.location.href = window.location.origin
+						window.location.href = baseUrl
 					}
 				} catch (error) {
 					console.log("- Error Join Room : ", error)
@@ -465,7 +465,7 @@ socket.on("transcribe", async ({ randomId, message, username, picture }) => {
 		ccContainer.id = `cc_${randomId}`
 		const imageCC = document.createElement("img")
 		imageCC.className = "cc-profile-picture"
-		imageCC.src = `${window.location.origin}/photo/${picture}.png`
+		imageCC.src = `${baseUrl}/photo/${picture}.png`
 		ccContainer.append(imageCC)
 		const ccMessage = document.createElement("div")
 		ccMessage.className = "cc-message"
@@ -512,7 +512,7 @@ socket.on("kick-user", async ({ message }) => {
 		setTimeout(() => {
 			socket.emit("hang-up", { userid: usersVariable.userId }, ({ status }) => {
 				socket.disconnect()
-				window.location.href = `${window.location.origin}`
+				window.location.href = baseUrl
 			})
 		}, 3000)
 	} catch (error) {
@@ -927,7 +927,7 @@ messageInput.addEventListener("keyup", async (event) => {
 			let chatContent = document.getElementById("chat-content")
 			chatContent.scrollTop = chatContent.scrollHeight
 			messageInput.value = ""
-			const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
+			const response = await fetch(`${baseUrl}/api/video_conference/message`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -982,7 +982,7 @@ sendMessageButton.addEventListener("click", async (event) => {
 		let chatContent = document.getElementById("chat-content")
 		chatContent.scrollTop = chatContent.scrollHeight
 		messageInput.value = ""
-		const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
+		const response = await fetch(`${baseUrl}/api/video_conference/message`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -1000,7 +1000,7 @@ hangUpButton.addEventListener("click", async () => {
 	try {
 		socket.emit("hang-up", { userid: usersVariable.userId }, ({ status }) => {
 			socket.disconnect()
-			window.location.href = `${window.location.origin}`
+			window.location.href = `${baseUrl}`
 		})
 	} catch (error) {
 		console.log("- Error Hang Up Button : ", error)
@@ -1123,7 +1123,7 @@ const shareLinkButton = document.getElementById("share-link-button")
 
 shareLinkButton.addEventListener("click", async () => {
 	try {
-		await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomName}&pw=${password}`)
+		await navigator.clipboard.writeText(`${baseUrl}/?rid=${roomName}&pw=${password}`)
 		const clipboardSuccess = document.getElementById("clipboard-success")
 
 		clipboardSuccess.style.opacity = 1

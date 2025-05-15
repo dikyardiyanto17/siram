@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="stylesheet" href="/assets/css/home.css">
+    <link rel="stylesheet" href="[/= baseUrl /]/assets/css/home.css">
     <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
     <title>Telepati</title>
@@ -20,27 +20,27 @@
     <div class="full-container">
         <div class="navbar-container">
             <div class="navbar">
-                <img src="/assets/pictures/RDS_Logo.png" alt="rdslogo" srcset="">
+                <img src="[/= baseUrl /]/assets/pictures/RDS_Logo.png" alt="rdslogo" srcset="">
                 <div class="option-container">
                     <div id="language-option" class="dropdown">
                         <button class="dropdown-btn">
-                            <img id="selected-flag" src="/assets/icons/us_flag.svg" alt="us_flag">
+                            <img id="selected-flag" src="[/= baseUrl /]/assets/icons/us_flag.svg" alt="us_flag">
                             <span id="selected-language">EN</span>
                         </button>
                         <div class="dropdown-content">
                             <div class="dropdown-item" data-value="id" data-lang="Indonesian" id="indonesian-language">
-                                <img src="/assets/icons/indonesia_flag.svg" alt="Indonesia Flag">
+                                <img src="[/= baseUrl /]/assets/icons/indonesia_flag.svg" alt="Indonesia Flag">
                                 <span>Indonesian</span>
                             </div>
                             <div class="dropdown-item" data-value="en" data-lang="English" id="english-language">
-                                <img src="/assets/icons/us_flag.svg" alt="US Flag">
+                                <img src="[/= baseUrl /]/assets/icons/us_flag.svg" alt="US Flag">
                                 <span>English</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="log-out-container" id="log-out-button">
-                        <span>Log Out</span><img src="/assets/icons/log_out_door.svg" alt="door" srcset="">
+                        <span>Log Out</span><img src="[/= baseUrl /]/assets/icons/log_out_door.svg" alt="door" srcset="">
                     </div>
                 </div>
             </div>
@@ -61,18 +61,18 @@
             </div>
             <div class="right-box">
                 <div class="picture-container">
-                    <img src="/assets/pictures/home_picture.png" alt="rdspeople" srcset="">
+                    <img src="[/= baseUrl /]/assets/pictures/home_picture.png" alt="rdspeople" srcset="">
                 </div>
             </div>
         </div>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <script src="/javascript/url/url.js"></script>
+    <script src="[/= baseUrl /]/javascript/url/url.js"></script>
     <script>
         const token = [/- JSON.stringify(token) /]
         const picture = [/- JSON.stringify(picture) /]
     </script>
-    <script src="/javascript/home/homebundle.js"></script>
+    <script src="[/= baseUrl /]/javascript/home/homebundle.js"></script>
 </body>
 
 </html>

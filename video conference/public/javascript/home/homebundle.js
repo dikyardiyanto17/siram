@@ -11964,7 +11964,7 @@ if (typeof this !== 'undefined' && this.Sweetalert2){this.swal = this.sweetAlert
 const { default: Swal } = require("sweetalert2")
 const { socket } = require("../socket/socket")
 const url = window.location
-const baseUrl = window.location.origin
+// const baseUrl = baseUrl
 
 const urlParam = new URL(window.location.href)
 const params = new URLSearchParams(urlParam.search)
@@ -12186,7 +12186,7 @@ joinSubmit.addEventListener("click", async (e) => {
 socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	try {
 		if (response) {
-			window.location.href = url.origin + "/room/" + roomId
+			window.location.href = baseUrl + "/room/" + roomId
 		} else {
 			waitingModal.classList.add("d-none")
 			setFormStyle({ status: true })
@@ -12206,10 +12206,10 @@ const joiningRoom = async ({ roomId, password, token }) => {
 	try {
 		socket.emit("joining-room", { position: "home", token }, ({ status, roomName, meetingDate, meeting_type }) => {
 			if (status) {
-				window.location.href = url.origin + "/room/" + roomName.replace(/\s+/g, "-")
+				window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
 			} else {
 				if (meeting_type == 1) {
-					window.location.href = `${window.location.origin}/lobby`
+					window.location.href = `${baseUrl}/lobby`
 					return
 				}
 				if (!meetingDate || !roomName || roomName.trim() == "") {
@@ -12289,9 +12289,9 @@ const setFormStyle = async ({ status }) => {
 const logoutButton = document.getElementById("log-out-button")
 logoutButton.addEventListener("click", async () => {
 	try {
-		const response = await fetch(`${window.location.origin}/logout`)
+		const response = await fetch(`${baseUrl}/logout`)
 		if (response.ok) {
-			window.location.href = `${window.location.href}login`
+			window.location.href = `${baseUrl}/login`
 		}
 	} catch (error) {
 		console.log("- Error Log Out Button : ", error)
@@ -12301,8 +12301,8 @@ logoutButton.addEventListener("click", async () => {
 },{"../socket/socket":46,"sweetalert2":44}],46:[function(require,module,exports){
 const { io } = require("socket.io-client")
 
-const url = window.location
-const socket = io(`${url.origin}`, { path: "/socket", autoConnect: false })
+const socket = io("https://modoto.net/telepati", { path: "/telepati/socket", autoConnect: false })
+// const socket = io("https://localhost:9100", { path: "/telepati/socket", autoConnect: false })
 
 module.exports = { socket }
 

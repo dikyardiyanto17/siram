@@ -1,7 +1,7 @@
 const { default: Swal } = require("sweetalert2")
 const { socket } = require("../socket/socket")
 const url = window.location
-const baseUrl = window.location.origin
+// const baseUrl = baseUrl
 
 const urlParam = new URL(window.location.href)
 const params = new URLSearchParams(urlParam.search)
@@ -223,7 +223,7 @@ joinSubmit.addEventListener("click", async (e) => {
 socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	try {
 		if (response) {
-			window.location.href = url.origin + "/room/" + roomId
+			window.location.href = baseUrl + "/room/" + roomId
 		} else {
 			waitingModal.classList.add("d-none")
 			setFormStyle({ status: true })
@@ -243,10 +243,10 @@ const joiningRoom = async ({ roomId, password, token }) => {
 	try {
 		socket.emit("joining-room", { position: "home", token }, ({ status, roomName, meetingDate, meeting_type }) => {
 			if (status) {
-				window.location.href = url.origin + "/room/" + roomName.replace(/\s+/g, "-")
+				window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
 			} else {
 				if (meeting_type == 1) {
-					window.location.href = `${window.location.origin}/lobby`
+					window.location.href = `${baseUrl}/lobby`
 					return
 				}
 				if (!meetingDate || !roomName || roomName.trim() == "") {
@@ -326,9 +326,9 @@ const setFormStyle = async ({ status }) => {
 const logoutButton = document.getElementById("log-out-button")
 logoutButton.addEventListener("click", async () => {
 	try {
-		const response = await fetch(`${window.location.origin}/logout`)
+		const response = await fetch(`${baseUrl}/logout`)
 		if (response.ok) {
-			window.location.href = `${window.location.href}login`
+			window.location.href = `${baseUrl}/login`
 		}
 	} catch (error) {
 		console.log("- Error Log Out Button : ", error)

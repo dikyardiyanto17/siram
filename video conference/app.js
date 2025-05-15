@@ -60,7 +60,7 @@ let liveMeeting = new LiveMeeting()
 // 	console.log("App On : " + port)
 // })
 // const io = new Server(httpsServer, {
-// 	path: "/socket",
+// 	path: "/telepati/socket",
 // })
 
 const httpServer = http.createServer(app)

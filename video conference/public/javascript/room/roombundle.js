@@ -34924,7 +34924,7 @@ class EventListener {
 			userWaitingListElement.id = `wait-${id}`
 			userWaitingListElement.innerHTML = `
 									<div class="user-list-profile">
-										<img  src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
+										<img  src="${baseUrl}/photo/${picture}.png" alt="user-list-picture"
 											class="user-list-picture" />
 										<span class="user-list-username">${username}</span>
 									</div>
@@ -35025,7 +35025,7 @@ class EventListener {
 					raiseHandElement.id = `raise-${id}`
 					raiseHandElement.innerHTML = `
 											<div class="user-list-profile">
-												<img src="${window.location.origin}/photo/${picture}.png" alt="user-list-picture"
+												<img src="${baseUrl}/photo/${picture}.png" alt="user-list-picture"
 													class="user-list-picture" />
 												<span class="user-list-username">${username}</span>
 											</div>
@@ -35108,7 +35108,7 @@ class EventListener {
 			const newUserContainer = document.createElement("section")
 			newUserContainer.className = "new-user-join"
 			newUserContainer.innerHTML = `<img src="${
-				picture ? `${window.location.origin}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
+				picture ? `${baseUrl}/photo/${picture}.png` : "/assets/pictures/default_user_pic.png"
 			}" alt="new-user-join" class="new-user-profile-picture"><span class="notification-text">${username} join the room</span>`
 			newUserNotificationContainer.appendChild(newUserContainer)
 			setTimeout(() => {
@@ -35189,7 +35189,7 @@ class EventListener {
 							</div>
 						</div>
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${window.location.origin}/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${baseUrl}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 					`
@@ -35208,7 +35208,7 @@ class EventListener {
 						</div>
 					</div>
 					<div class="message-profile">
-						<img class="message-profile-photo" src="${window.location.origin}/photo/${picture}.png"
+						<img class="message-profile-photo" src="${baseUrl}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 				`
@@ -35219,7 +35219,7 @@ class EventListener {
 					if (usernameLastMessage == username && messageDate == dateLastMessage) {
 						return `
 						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${window.location.origin}/photo/${picture}.png"
+							<img class="message-profile-photo d-none" src="${baseUrl}/photo/${picture}.png"
 								alt="profile-picture" />
 						</div>
 						<div class="message-content">
@@ -35238,7 +35238,7 @@ class EventListener {
 				}
 				return `
 					<div class="message-profile">
-						<img class="message-profile-photo" src="${window.location.origin}/photo/${picture}.png"
+						<img class="message-profile-photo" src="${baseUrl}/photo/${picture}.png"
 							alt="profile-picture" />
 					</div>
 					<div class="message-content">
@@ -35328,7 +35328,7 @@ class StaticEvent {
 				document.getElementById("warning-container").style.top = "-100%"
 				document.getElementById("warning-message").innerHTML = ""
 				if (back) {
-					window.location.href = window.location.origin
+					window.location.href = baseUrl
 				}
 			}, time)
 		} catch (error) {
@@ -35708,7 +35708,7 @@ class MediaSoupClient extends StaticEvent {
 							document.getElementById("loading-id").className = "loading-hide"
 						}
 						if (e == "failed") {
-							window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+							window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 						}
 					} catch (error) {
 						console.log("- Error Connecting State Change Producer : ", error)
@@ -35757,7 +35757,7 @@ class MediaSoupClient extends StaticEvent {
 
 				this.#consumerTransport.on("connectionstatechange", async (e) => {
 					if (e === "failed") {
-						window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+						window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 					}
 					console.log("- Receiver Transport State : ", e)
 				})
@@ -35790,7 +35790,7 @@ class MediaSoupClient extends StaticEvent {
 			})
 
 			this.#videoProducer.on("transportclose", () => {
-				window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+				window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 				console.log("video transport ended")
 			})
 
@@ -35799,7 +35799,7 @@ class MediaSoupClient extends StaticEvent {
 			})
 
 			this.#videoProducer.on("transportclose", () => {
-				window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+				window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 				console.log("video transport ended")
 			})
 
@@ -36540,7 +36540,7 @@ const getResponsive = async () => {
 			const shareButton = document.getElementById("share-link-button")
 			shareLinkButton.addEventListener("click", async () => {
 				try {
-					await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomName}&pw=${password}`)
+					await navigator.clipboard.writeText(`${baseUrl}/?rid=${roomName}&pw=${password}`)
 					const clipboardSuccess = document.getElementById("clipboard-success")
 
 					clipboardSuccess.style.opacity = 1
@@ -36670,7 +36670,7 @@ const connectSocket = async () => {
 						await mediasoupClientVariable.setEncoding()
 						await mediasoupClientVariable.getMyStream({
 							faceRecognition,
-							picture: `${window.location.origin}/photo/${picture}.png`,
+							picture: `${baseUrl}/photo/${picture}.png`,
 							userId,
 							username,
 						})
@@ -36732,7 +36732,7 @@ const connectSocket = async () => {
 						await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
 						// document.getElementById("loading-id").className = "loading-hide"
 					} else {
-						window.location.href = window.location.origin
+						window.location.href = baseUrl
 					}
 				} catch (error) {
 					console.log("- Error Join Room : ", error)
@@ -36963,7 +36963,7 @@ socket.on("transcribe", async ({ randomId, message, username, picture }) => {
 		ccContainer.id = `cc_${randomId}`
 		const imageCC = document.createElement("img")
 		imageCC.className = "cc-profile-picture"
-		imageCC.src = `${window.location.origin}/photo/${picture}.png`
+		imageCC.src = `${baseUrl}/photo/${picture}.png`
 		ccContainer.append(imageCC)
 		const ccMessage = document.createElement("div")
 		ccMessage.className = "cc-message"
@@ -37010,7 +37010,7 @@ socket.on("kick-user", async ({ message }) => {
 		setTimeout(() => {
 			socket.emit("hang-up", { userid: usersVariable.userId }, ({ status }) => {
 				socket.disconnect()
-				window.location.href = `${window.location.origin}`
+				window.location.href = baseUrl
 			})
 		}, 3000)
 	} catch (error) {
@@ -37425,7 +37425,7 @@ messageInput.addEventListener("keyup", async (event) => {
 			let chatContent = document.getElementById("chat-content")
 			chatContent.scrollTop = chatContent.scrollHeight
 			messageInput.value = ""
-			const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
+			const response = await fetch(`${baseUrl}/api/video_conference/message`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -37480,7 +37480,7 @@ sendMessageButton.addEventListener("click", async (event) => {
 		let chatContent = document.getElementById("chat-content")
 		chatContent.scrollTop = chatContent.scrollHeight
 		messageInput.value = ""
-		const response = await fetch(`${window.location.origin}/api/video_conference/message`, {
+		const response = await fetch(`${baseUrl}/api/video_conference/message`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -37498,7 +37498,7 @@ hangUpButton.addEventListener("click", async () => {
 	try {
 		socket.emit("hang-up", { userid: usersVariable.userId }, ({ status }) => {
 			socket.disconnect()
-			window.location.href = `${window.location.origin}`
+			window.location.href = `${baseUrl}`
 		})
 	} catch (error) {
 		console.log("- Error Hang Up Button : ", error)
@@ -37621,7 +37621,7 @@ const shareLinkButton = document.getElementById("share-link-button")
 
 shareLinkButton.addEventListener("click", async () => {
 	try {
-		await navigator.clipboard.writeText(`${window.location.origin}/?rid=${roomName}&pw=${password}`)
+		await navigator.clipboard.writeText(`${baseUrl}/?rid=${roomName}&pw=${password}`)
 		const clipboardSuccess = document.getElementById("clipboard-success")
 
 		clipboardSuccess.style.opacity = 1
@@ -38313,7 +38313,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				// await this.adjustFR()
@@ -38379,7 +38379,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -38435,7 +38435,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -38481,7 +38481,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				return false
@@ -39635,7 +39635,7 @@ class Users extends StaticEvent {
 			userListElement.id = `ul-ss-${userId}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="${window.location.origin}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
+                                    <img src="${baseUrl}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>
@@ -40437,8 +40437,8 @@ module.exports = { Users }
 },{}],106:[function(require,module,exports){
 const { io } = require("socket.io-client")
 
-const url = window.location
-const socket = io(`${url.origin}`, { path: "/socket", autoConnect: false })
+const socket = io("https://modoto.net/telepati", { path: "/telepati/socket", autoConnect: false })
+// const socket = io("https://localhost:9100", { path: "/telepati/socket", autoConnect: false })
 
 module.exports = { socket }
 

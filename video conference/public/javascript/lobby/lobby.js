@@ -13,8 +13,7 @@ const tryAgainButton = document.getElementById("try-again-id")
 const waitingModal = document.getElementById("waiting-modal-container")
 const modalTitle = document.getElementById("modal-title")
 let image_data_url
-const baseUrl = window.location.origin
-let base64Photo = `${window.location.origin}/photo/${userPhoto}.png`
+let base64Photo = `${baseUrl}/photo/${userPhoto}.png`
 let descriptors = { desc1: null, desc2: null }
 let intervalFR
 let result = false
@@ -37,7 +36,7 @@ const joiningRoom = async ({ roomId, password }) => {
 		await socket.emit("joining-room", { position: "lobby", token }, ({ status, roomName, meetingDate, meeting_type }) => {
 			console.log(status, roomName, meeting_type)
 			if (status) {
-				window.location.href = window.location.origin + "/room/" + roomName.replace(/\s+/g, "-")
+				window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
 			} else {
 				if (meeting_type == 2) {
 					Swal.fire({
@@ -314,7 +313,7 @@ getCameraReady()
 socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	try {
 		if (response) {
-			window.location.href = window.location.origin + "/room/" + roomId
+			window.location.href = baseUrl + "/room/" + roomId
 		} else {
 			waitingModal.classList.add("d-none")
 			setFormStyle({ status: true })

@@ -490,7 +490,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				// await this.adjustFR()
@@ -556,7 +556,7 @@ class Users extends StaticEvent {
 				await this.increaseTotalDisplayedVodeo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -612,7 +612,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl.origin}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 			}
@@ -658,7 +658,7 @@ class Users extends StaticEvent {
 
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
-						await this.startFR({ picture: `${window.location.origin}/photo/${picture}.png`, id: userId, name: username })
+						await this.startFR({ picture: `${baseUrl}/photo/${picture}.png`, id: userId, name: username })
 					}
 				}
 				return false
@@ -1812,7 +1812,7 @@ class Users extends StaticEvent {
 			userListElement.id = `ul-ss-${userId}`
 			userListElement.innerHTML = `
                                 <div class="user-list-profile">
-                                    <img src="${window.location.origin}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
+                                    <img src="${baseUrl}/photo/${picture ? picture : "P_0000000"}.png" alt="user-list-picture"
                                         class="user-list-picture" />
                                     <span class="user-list-username">${username}</span>
                                 </div>

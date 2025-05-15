@@ -50,7 +50,7 @@ class StaticEvent {
 				document.getElementById("warning-container").style.top = "-100%"
 				document.getElementById("warning-message").innerHTML = ""
 				if (back) {
-					window.location.href = window.location.origin
+					window.location.href = baseUrl
 				}
 			}, time)
 		} catch (error) {
@@ -430,7 +430,7 @@ class MediaSoupClient extends StaticEvent {
 							document.getElementById("loading-id").className = "loading-hide"
 						}
 						if (e == "failed") {
-							window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+							window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 						}
 					} catch (error) {
 						console.log("- Error Connecting State Change Producer : ", error)
@@ -479,7 +479,7 @@ class MediaSoupClient extends StaticEvent {
 
 				this.#consumerTransport.on("connectionstatechange", async (e) => {
 					if (e === "failed") {
-						window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+						window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 					}
 					console.log("- Receiver Transport State : ", e)
 				})
@@ -512,7 +512,7 @@ class MediaSoupClient extends StaticEvent {
 			})
 
 			this.#videoProducer.on("transportclose", () => {
-				window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+				window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 				console.log("video transport ended")
 			})
 
@@ -521,7 +521,7 @@ class MediaSoupClient extends StaticEvent {
 			})
 
 			this.#videoProducer.on("transportclose", () => {
-				window.location.href = `${window.location.origin}/?rid=${roomId}&pw=${password}`
+				window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 				console.log("video transport ended")
 			})
 
