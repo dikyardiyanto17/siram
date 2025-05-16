@@ -21,6 +21,9 @@ class MediaSoup {
 
 	#turnServer = [
 		{
+			urls: "stun:203.175.10.29:3478",
+		},
+		{
 			urls: "turn:203.175.10.29:3478",
 			username: "siram2024",
 			credential: "P@sswordSiram12@jakarta",
