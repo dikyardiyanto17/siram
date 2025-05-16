@@ -22,10 +22,10 @@ class MediaSoup {
 	// turn server
 	#turnServer = [
 		{
-			urls: "stun:92.127.199.123",
+			urls: "stun:92.127.199.123:3478",
 		},
 		{
-			urls: "turn:92.127.199.123",
+			urls: "turn:92.127.199.123:3478",
 			username: "RDS2025",
 			credential: "P@sswordRds12@jakarta",
 		},
