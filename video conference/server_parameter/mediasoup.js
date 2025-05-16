@@ -19,7 +19,16 @@ class MediaSoup {
 
 	#portToOpen = 1040
 
+	// turn server
 	#turnServer = [
+		{
+			urls: "stun:92.127.199.123",
+		},
+		{
+			urls: "turn:92.127.199.123",
+			username: "RDS2025",
+			credential: "P@sswordRds12@jakarta",
+		},
 		{
 			urls: "stun:203.175.10.29:3478",
 		},
