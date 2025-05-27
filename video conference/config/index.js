@@ -1,18 +1,19 @@
 const portToOpen = [1040] // for mediasoup tcp/udp binding,
 const privateIp = "0.0.0.0"
-const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
+// const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
 // const publicIp = "203.175.10.29" // VPS
-// const publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
+const publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
 module.exports = {
 	appName: "Telepati",
-	baseUrl: "https://localhost:9100/telepati",
-	// baseUrl: "https://modoto.net/telepati",
-	socketBaseUrl: "https://localhost:9100",
-	// socketBaseUrl: "https://modoto.net",
+	// baseUrl: "https://localhost:9100/telepati",
+	baseUrl: "https://modoto.net/telepati",
+	// socketBaseUrl: "https://localhost:9100",
+	socketBaseUrl: "https://modoto.net",
 	url: "/telepati",
 	socketPath: "/telepati/socket",
 	port: 9100,
-	isHttps: true,
+	isHttps: false,
+	// isHttps: true,
 	maxCores: 2, // How many core you want to provide to mediasoup
 	incomingMinBitRate: 1500000,
 	incomingMaxBitRate: 1500000,
