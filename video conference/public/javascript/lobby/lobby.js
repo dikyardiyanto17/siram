@@ -230,6 +230,12 @@ const warning = ({ message }) => {
 	}
 }
 
+if (localStorage.getItem("full_name")) {
+	console.log(localStorage.getItem("full_name"))
+	document.getElementById("full_name").value = localStorage.getItem("full_name")
+	lobbyForm.full_name = localStorage.getItem("full_name")
+}
+
 const lobbyFormElement = document.getElementById("lobby-form-container")
 lobbyFormElement.addEventListener("submit", async (event) => {
 	try {
@@ -251,8 +257,8 @@ lobbyFormElement.addEventListener("submit", async (event) => {
 			throw { message: "Id Peserta Wajib Di isi" }
 		}
 
-		localStorage.setItem("full_name", full_name)
-		localStorage.setItem("participant_id", full_name)
+		localStorage.setItem("full_name", lobbyForm.full_name)
+		localStorage.setItem("participant_id", lobbyForm.participant_id)
 
 		const response = await fetch(`${baseUrl}/custom_api/login`, {
 			method: "POST",
