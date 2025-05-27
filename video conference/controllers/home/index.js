@@ -1,4 +1,4 @@
-const { baseUrl } = require("../../config")
+const { baseUrl } = require("../../config/index.js")
 
 class Home {
 	static async index(req, res, next) {

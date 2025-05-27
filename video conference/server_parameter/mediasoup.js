@@ -1,5 +1,5 @@
 const mediasoup = require("mediasoup")
-const { turnServer, mediaCodecs, maxCores, incomingMaxBitRate, listenInfos } = require("../config")
+const { turnServer, mediaCodecs, maxCores, incomingMaxBitRate, listenInfos } = require("../config/index.js")
 
 class MediaSoup {
 	// #publicIp = "147.139.177.186" // Wire Guard

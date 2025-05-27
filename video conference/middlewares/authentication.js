@@ -1,4 +1,4 @@
-const { url } = require("../config")
+const { url } = require("../config/index.js")
 const { decodeToken } = require("../helper/jwt")
 
 const authenthication = async (req, res, next) => {

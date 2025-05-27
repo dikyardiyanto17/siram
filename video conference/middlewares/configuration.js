@@ -1,4 +1,4 @@
-const { appName, baseUrl, socketPath, socketBaseUrl, viewerEnabled, initialSetting } = require("../config")
+const { appName, baseUrl, socketPath, socketBaseUrl, viewerEnabled, initialSetting } = require("../config/index.js")
 
 const configuration = async (req, res, next) => {
 	try {
