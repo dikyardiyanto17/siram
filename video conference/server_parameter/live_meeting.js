@@ -2,6 +2,7 @@ const { saveSession } = require("../helper")
 
 class LiveMeeting {
 	#users = []
+	#broadcastUsers = []
 
 	get users() {
 		return this.#users
@@ -101,11 +102,11 @@ class LiveMeeting {
 		}
 	}
 
-	async informUser({ roomId, producerId, socket, userId }) {
+	async informUser({ roomId, producerId, socket, userId, producerPaused }) {
 		try {
 			this.#users.forEach((u) => {
 				if (u.participantId != userId && u.roomId == roomId && u.joined && u.verified && !u.waiting) {
-					socket.to(u.socketId).emit("new-producer", { producerId, userId, socketId: socket.id })
+					socket.to(u.socketId).emit("new-producer", { producerId, userId, socketId: socket.id, producerPaused })
 				}
 			})
 		} catch (error) {
@@ -207,6 +208,18 @@ class LiveMeeting {
 			}
 		} catch (error) {
 			console.log("- Error Deleted User : ", error)
+		}
+	}
+
+	async informViewer({ roomId, userId, socket, username }) {
+		try {
+			this.#users.forEach((u) => {
+				if (u.roomId == roomId && u.participantId != userId) {
+					socket.to(u.socketId).emit("viewer-joined-feedback", { id: userId, socketId: socket.id, username })
+				}
+			})
+		} catch (error) {
+			console.log("- Error get user room : ", error)
 		}
 	}
 }

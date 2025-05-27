@@ -66,6 +66,39 @@ class StaticEvent {
 		}
 	}
 
+	static methodAddViewerList({ id, username }) {
+		try {
+			if (!document.getElementById(`ul-${id}`)) {
+				const alphabetUsername = this.getInitialsAndColor(username)
+				let viewerListElement = document.createElement("div")
+
+				// let authorityElement = ``
+				// const kickTitle = localStorage.getItem("language")
+
+				viewerListElement.className = "user-list-content"
+				viewerListElement.id = `ul-${id}`
+				viewerListElement.innerHTML = `
+									<div class="user-list-profile">
+										<span id="color-${id}" style="color: ${alphabetUsername.color};" class="user-list-picture">${alphabetUsername.initials}</span>
+										<span class="user-list-username">${username}</span>
+									</div>
+									<div class="user-list-icons">
+									</div>
+								`
+				document.getElementById("viewer-list-container").appendChild(viewerListElement)
+			}
+		} catch (error) {
+			console.log("- Error Add User : ", error)
+		}
+	}
+
+	static getViewerFeatere() {
+		try {
+		} catch (error) {
+			console.log("- Error Viewer Feature : ", error)
+		}
+	}
+
 	static updateTotalUserList({ total }) {
 		try {
 			document.getElementById("user-list-total").innerHTML = total
@@ -333,7 +366,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async increaseTotalDisplayedVodeo() {
+	async increaseTotalDisplayedVideo() {
 		this.#totalDisplayedVideo++
 	}
 
@@ -487,7 +520,7 @@ class Users extends StaticEvent {
 				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
-				await this.increaseTotalDisplayedVodeo()
+				await this.increaseTotalDisplayedVideo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
 						await this.startFR({ picture: `${baseUrl}/photo/${picture}.png`, id: userId, name: username })
@@ -510,7 +543,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addVideoSecondMethod({ userId, track, username, picture }) {
+	async addVideoSecondMethod({ userId, track = null, username, picture, isActive = true }) {
 		try {
 			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
 			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
@@ -518,7 +551,6 @@ class Users extends StaticEvent {
 			}
 
 			const checkUserElement = document.getElementById(`vc-${userId}`)
-			console.log(` Check Element : `, checkUserElement, " - User Id : ", userId)
 			if (!checkUserElement) {
 				const alphabetName = await this.constructor.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
@@ -553,7 +585,11 @@ class Users extends StaticEvent {
 				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
-				await this.increaseTotalDisplayedVodeo()
+				if (!track) {
+					document.getElementById(`turn-off-${userId}`).classList.remove("d-none")
+				}
+
+				await this.increaseTotalDisplayedVideo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
 						await this.startFR({ picture: `${baseUrl.origin}/photo/${picture}.png`, id: userId, name: username })
@@ -562,6 +598,10 @@ class Users extends StaticEvent {
 			}
 			if (track) {
 				await this.insertVideo({ track, id: userId })
+			}
+
+			if (isActive && track) {
+				document.getElementById(`turn-off-${userId}`).classList.add("d-none")
 			}
 
 			await this.updateVideoCurrentClass()
@@ -679,6 +719,11 @@ class Users extends StaticEvent {
 				throw new Error("Provided track is not a video track")
 			}
 
+			// const pictureVideo = document.getElementById(`turn-off-${id}`)
+			// if (pictureVideo) {
+			// 	pictureVideo.classList.add("d-none")
+			// }
+
 			const videoElement = document.getElementById("v-" + id)
 			if (videoElement?.srcObject?.getVideoTracks()[0]) {
 				return
@@ -774,11 +819,14 @@ class Users extends StaticEvent {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 
 			if (checkUserElement) {
-				const tracks = await document.getElementById(`v-${userId}`).srcObject.getTracks()
+				const tracks = await document.getElementById(`v-${userId}`)?.srcObject?.getTracks()
 
-				tracks.forEach((track) => {
-					track.stop()
-				})
+				if (tracks) {
+					tracks.forEach((track) => {
+						track.stop()
+					})
+				}
+
 				checkUserElement.remove()
 				await this.updateVideoCurrentClass()
 				await this.updateVideoPreviousClass()
@@ -937,17 +985,30 @@ class Users extends StaticEvent {
 		focus = false,
 		socket,
 		index = null,
+		isViewer = false,
 		appData = null,
 	}) {
 		try {
 			let triggerPush = true
+			if (isViewer) {
+				this.constructor.methodAddViewerList({ id: userId, username })
+				return
+			}
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
-				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }], username, frInterval: null })
+				this.#allUsers.push({
+					userId,
+					isViewer,
+					authority,
+					socketId,
+					consumer: [{ kind, id: consumerId, track, appData, focus }],
+					username,
+					frInterval: null,
+				})
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
 				if (kind == "video") {
-					await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture })
+					await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture, isActive: appData.isActive })
 				}
 				// await this.addVideo({ username, userId, track: null, index, picture: appData.picture })
 
@@ -1019,6 +1080,7 @@ class Users extends StaticEvent {
 						console.log("- Error Option User List Container : ", error)
 					}
 				})
+				await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture, isActive: appData.isActive })
 				triggerPush = false
 			}
 			if (kind == "audio" && consumerId == null && appData.label == "audio") {
@@ -1035,7 +1097,7 @@ class Users extends StaticEvent {
 				await this.createAudioVisualizer({ id: userId, track })
 			}
 			if (kind == "video" && appData.label == "video") {
-				await this.addVideoSecondMethod({ username, userId, track, index, picture: appData.picture })
+				await this.addVideoSecondMethod({ username, userId, track, index, picture: appData.picture, isActive: appData.isActive })
 			}
 
 			if (appData && appData.label == "screensharing_audio") {
@@ -1075,7 +1137,7 @@ class Users extends StaticEvent {
 
 			this.#allUsers = this.#allUsers.filter((u) => u.userId != userId)
 
-			this.#users = this.#allUsers.length
+			this.#users = this.#allUsers.filter((u) => !u.isViewer).length
 
 			if (changeFocus && this.#allUsers.length > 0) {
 				this.#allUsers[0].consumer.forEach((c) => {
@@ -1426,6 +1488,9 @@ class Users extends StaticEvent {
 				const promises = this.#allUsers.map(async (u, index) => {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
+					if (u.isViewer) {
+						return
+					}
 					let tracks = u.consumer.filter((t) => t.kind == "video")
 					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
 
@@ -1438,7 +1503,6 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
-											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
@@ -2532,7 +2596,6 @@ class Users extends StaticEvent {
 			}
 
 			if (this.#speechToText.recognition) {
-				console.warn("Speech recognition is already running.")
 				return
 			}
 
@@ -2578,13 +2641,11 @@ class Users extends StaticEvent {
 			}
 
 			this.#speechToText.recognition.onerror = (event) => {
-				console.error("SpeechRecognition Error: ", event)
 				if (event.error === "network" || event.error === "no-speech") {
 					if (this.#speechToText.recognition) {
 						setTimeout(() => {
 							if (!this.#speechToText.recognition.running) {
 								this.#speechToText.recognition.start()
-								console.log("Restarting Speech Recognition...")
 							}
 						}, 1000)
 					}
@@ -2592,16 +2653,13 @@ class Users extends StaticEvent {
 			}
 
 			this.#speechToText.recognition.onend = () => {
-				console.warn("Speech Recognition Ended.")
 				setTimeout(() => {
 					if (this.#speechToText.recognition && !this.#speechToText.recognition.running) {
 						this.#speechToText.recognition.start()
-						console.log("Restarting Speech Recognition...")
 					}
 				}, 1000)
 			}
 
-			console.log("Starting Speech Recognition...")
 			await this.#speechToText.recognition.start()
 		} catch (error) {
 			console.error("- Error Start Speech Recognition: ", error)

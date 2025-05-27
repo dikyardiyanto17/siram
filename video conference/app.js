@@ -1,4 +1,5 @@
 require("dotenv").config()
+const { url, port, isHttps, encodedLimit, expressSessionConfiguration, socketPath } = require("./config/index.js")
 
 const ejs = require("ejs")
 ejs.delimiter = "/"
@@ -10,7 +11,6 @@ const cors = require("cors")
 const session = require("express-session")
 const router = require("./routes/index.js")
 const app = express()
-const port = 9100
 const { options } = require("./certif")
 const http = require("http")
 const path = require("path")
@@ -21,31 +21,25 @@ const errorHandler = require("./middlewares/errorHandler.js")
 const { decodeToken } = require("./helper/jwt.js")
 const { LiveMeeting } = require("./server_parameter/live_meeting.js")
 const { saveSession } = require("./helper/index.js")
-const { url } = require("./config/index.js")
+const configuration = require("./middlewares/configuration.js")
 
 app.use(cors())
 app.set("view engine", "ejs")
 app.use(express.static(path.join(__dirname, "views")))
-app.use(express.urlencoded({ limit: "50mb", extended: true }))
-app.use(express.json({ limit: "50mb" }))
+app.use(express.urlencoded({ limit: encodedLimit, extended: true }))
+app.use(express.json({ limit: encodedLimit }))
 
 app.use(express.static("public"))
 app.use(url, express.static(path.join(__dirname, "public")))
 
 const sessionMiddleware = session({
 	secret: process.env.EXPRESS_SESSION_SECRET || "ISULOSTNEMUCODSDRTPSESSION",
-	resave: false,
-	saveUninitialized: false,
-	cookie: {
-		// secure: true,
-		secure: false,
-		sameSite: true,
-		maxAge: 2 * 60 * 60 * 1000, // 2 day in milliseconds
-	},
+	...expressSessionConfiguration,
 })
 
 app.set("trust proxy", 1)
 
+app.use(configuration)
 app.use(sessionMiddleware)
 
 let mediasoupVariable = new MediaSoup()
@@ -53,22 +47,24 @@ let liveMeeting = new LiveMeeting()
 // if (mediasoupVariable.workers.length == 0) {
 // 	mediasoupVariable.createWorker()
 // }
-
-// const httpsServer = https.createServer(options, app)
-// httpsServer.listen(port, async () => {
-// 	console.log("App On : " + port)
-// })
-// const io = new Server(httpsServer, {
-// 	path: "/telepati/socket",
-// })
-
-const httpServer = http.createServer(app)
-httpServer.listen(port, async () => {
-	console.log("App On : " + port)
-})
-const io = new Server(httpServer, {
-	path: "/telepati/socket",
-})
+let io
+if (isHttps) {
+	const httpsServer = https.createServer(options, app)
+	httpsServer.listen(port, async () => {
+		console.log("App On : " + port)
+	})
+	io = new Server(httpsServer, {
+		path: socketPath,
+	})
+} else {
+	const httpServer = http.createServer(app)
+	httpServer.listen(port, async () => {
+		console.log("App On : " + port)
+	})
+	io = new Server(httpServer, {
+		path: socketPath,
+	})
+}
 
 io.use((socket, next) => {
 	sessionMiddleware(socket.request, socket.request.res || {}, next)
@@ -83,22 +79,207 @@ io.on("connection", async (socket) => {
 				await mediasoupVariable.deleteAndCloseUser({ userId: user.participantId })
 				await liveMeeting.deleteUser({ socket, userSession })
 			}
-
 			console.log("- Deleted User : ", user)
 		} catch (error) {
 			console.log("- Error Disconnecting Socket : ", error)
 		}
 	})
 
-	socket.on("joining-room", async ({ position, token }, callback) => {
+	socket.on("viewer-joined", async ({ roomId, id, username }) => {
+		try {
+			await liveMeeting.informViewer({ roomId, userId: id, socket, username })
+		} catch (error) {
+			console.log("- Error viewer joined : ", error)
+		}
+	})
+
+	socket.on("viewer-joined-feedback", async ({ socketId, id, username }) => {
+		try {
+			socket.to(socketId).emit("viewer-joined-feedback", { socketId, id, username })
+		} catch (error) {
+			console.log("- Error viewer joined : ", error)
+		}
+	})
+
+	// socket.on("joining-room", async ({ position, token, isViewer = false }, callback) => {
+	// 	try {
+	// 		const decodedRoom = await decodeToken(token)
+	// 		const decodedUser = await decodeToken(userSession.token)
+	// 		if (!decodedRoom || !decodedUser) {
+	// 			callback({ status: false, message: "Invalid Token" })
+	// 			throw { name: "Invalid", message: "Invalid Token" }
+	// 		}
+	// 		const { participant_id, full_name, user_id, role, exception, status, photo, photo_path, nik, nrp, authority } = decodedUser.user
+	// 		const {
+	// 			id,
+	// 			no_perkara,
+	// 			meeting_type,
+	// 			room_id,
+	// 			face_recognition,
+	// 			password,
+	// 			room_name,
+	// 			reference_room_id,
+	// 			max_participants,
+	// 			start_date,
+	// 			end_date,
+	// 			status: roomStatus,
+	// 			note,
+	// 			last_updated_at,
+	// 			deleted_at,
+	// 			created_by,
+	// 			created_at,
+	// 			updated_at,
+	// 			video_type,
+	// 		} = decodedRoom
+
+	// 		if (position == "room" && !userSession.roomToken) {
+	// 			callback({ status: false, message: "Invalid Token" })
+	// 			throw { name: "Invalid", message: "Invalid Token" }
+	// 		}
+
+	// 		if (position == "home") {
+	// 			userSession.meeting = {
+	// 				firstTimeJoin: true,
+	// 				waiting: true,
+	// 				verified: false,
+	// 				authority: authority,
+	// 				meetingType: meeting_type,
+	// 				roomId: room_id,
+	// 				password: password,
+	// 				faceRecognition: face_recognition,
+	// 				userId: user_id,
+	// 				participantId: participant_id,
+	// 				photoPath: photo_path,
+	// 				role: role,
+	// 				nik: nik,
+	// 				nrp: role,
+	// 				roomName: room_name,
+	// 				videoType: video_type,
+	// 				startDate: start_date,
+	// 			}
+	// 			userSession.roomToken = token
+	// 			await saveSession(userSession)
+	// 		}
+
+	// 		// // Create worker if its doesnot exist
+	// 		// if (mediasoupVariable.workers.length == 0) {
+	// 		// 	await mediasoupVariable.createWorker()
+	// 		// }
+
+	// 		// Add User data to node.js server for the 1st time enter the room
+	// 		if (position == "home" || position == "lobby") {
+	// 			if ((meeting_type == 1 && position == "home") || (meeting_type == 2 && position == "lobby")) {
+	// 				callback({ status: false, roomName: room_name, meetingDate: start_date, meeting_type })
+	// 				return
+	// 			}
+
+	// 			await liveMeeting.addUser({
+	// 				participantId: participant_id,
+	// 				roomId: room_id,
+	// 				socketId: socket.id,
+	// 				authority: authority,
+	// 				verified: false,
+	// 				joined: false,
+	// 				waiting: true,
+	// 				username: full_name,
+	// 				picture: photo_path,
+	// 				isViewer,
+	// 			})
+
+	// 			// Check user authority
+	// 			// If user is admin (1 or 2), it will auto enter the room without waiting, otherwise wait in home or lobby
+	// 			if (authority == 1 || authority == 2) {
+	// 				// Change status USER to verified is true and and not waiting (false)
+	// 				await liveMeeting.changeVerifiedList({ participantId: participant_id, roomId: room_id, status: true })
+	// 				await liveMeeting.changeWaitingList({ participantId: participant_id, status: false, roomId: room_id })
+
+	// 				console.log(room_name, meeting_type, start_date, meeting_type)
+	// 				// Send signal to user if the permit is granted
+	// 				callback({ status: true, roomName: room_name, meetingDate: start_date, meeting_type })
+	// 			} else if (authority == 3) {
+	// 				// Normal user
+	// 				// Check if user already did joined the room
+	// 				const checkUserDidJoined = await liveMeeting.findUser({ roomId: room_id, userId: participant_id })
+	// 				const { verified } = checkUserDidJoined
+
+	// 				// if user did already joined the room, its doesnot need permission anymore, otherwise its waiting in the room
+	// 				if (verified) {
+	// 					callback({ status: true, roomName: room_name, meetingDate: start_date, meeting_type })
+	// 				} else {
+	// 					// find admin to send signal if USER is waiting in the room and waiting for admin permission
+	// 					const admins = await liveMeeting.findAdmin({ roomId: room_id })
+	// 					admins.forEach((u) => {
+	// 						socket.to(u.socketId).emit("member-joining-room", { id: participant_id, socketId: socket.id, username: full_name, picture: photo_path })
+	// 					})
+	// 					callback({ status: false, roomName: room_name, meetingDate: start_date, meeting_type, picture: photo_path })
+	// 				}
+	// 			} else {
+	// 				throw { name: "Invalid", message: "User tidak valid!" }
+	// 			}
+	// 		} else if (position == "room") {
+	// 			// User joining in the ROOM page
+
+	// 			// Check if user is saved or not in not js variabel
+	// 			const checkUser = await liveMeeting.checkUser({ participantId: participant_id, roomId: room_id })
+	// 			if (!checkUser) {
+	// 				callback({ status: false, roomName: room_name, meetingDate: start_date, meeting_type })
+	// 				return
+	// 			}
+
+	// 			// Change the deleted proccess user in case user is not log out because its over, but network
+	// 			await liveMeeting.changeProcessDeleteUserList({ participantId: participant_id, roomId: room_id, status: false })
+
+	// 			// Change USER joined status and update socket id
+	// 			await liveMeeting.changeJoinedList({ participantId: participant_id, roomId: room_id, status: true, socketId: socket.id })
+
+	// 			// Get routers
+	// 			const router = await mediasoupVariable.getRouter({ roomId: room_id })
+	// 			const rtpCapabilities = router.rtpCapabilities
+
+	// 			// If USER is admin, get the waiting list
+	// 			if (authority == 1 || authority == 2) {
+	// 				const waitingList = await liveMeeting.getWaitingList({ roomId: room_id })
+	// 				callback({
+	// 					status: true,
+	// 					roomId: room_id,
+	// 					userId: participant_id,
+	// 					authority: authority,
+	// 					rtpCapabilities,
+	// 					waitingList,
+	// 					username: full_name,
+	// 					meeting_type,
+	// 					isViewer,
+	// 				})
+	// 				return
+	// 			}
+
+	// 			callback({
+	// 				status: true,
+	// 				roomId: room_id,
+	// 				userId: participant_id,
+	// 				authority: authority,
+	// 				rtpCapabilities,
+	// 				username: full_name,
+	// 				meeting_type,
+	// 				isViewer,
+	// 			})
+	// 		} else {
+	// 			throw { name: "Invalid", message: "User tidak valid!" }
+	// 		}
+	// 	} catch (error) {
+	// 		console.log("- Error Joining Room : ", error)
+	// 	}
+	// })
+
+	socket.on("joining-room", async ({ position, token, isViewer = false }, callback) => {
 		try {
 			const decodedRoom = await decodeToken(token)
-			const decodedUser = await decodeToken(userSession.token)
-			if (!decodedRoom || !decodedUser) {
+
+			if (!decodedRoom) {
 				callback({ status: false, message: "Invalid Token" })
 				throw { name: "Invalid", message: "Invalid Token" }
 			}
-			const { participant_id, full_name, user_id, role, exception, status, photo, photo_path, nik, nrp, authority } = decodedUser.user
+
 			const {
 				id,
 				no_perkara,
@@ -127,28 +308,33 @@ io.on("connection", async (socket) => {
 			}
 
 			if (position == "home") {
-				userSession.meeting = {
-					firstTimeJoin: true,
-					waiting: true,
-					verified: false,
-					authority: authority,
-					meetingType: meeting_type,
-					roomId: room_id,
-					password: password,
-					faceRecognition: face_recognition,
-					userId: user_id,
-					participantId: participant_id,
-					photoPath: photo_path,
-					role: role,
-					nik: nik,
-					nrp: role,
-					roomName: room_name,
-					videoType: video_type,
-					startDate: start_date,
+				if (!userSession.meeting) {
+					userSession.meeting = {
+						firstTimeJoin: true,
+						waiting: true,
+						verified: false,
+						authority: 1,
+						meetingType: meeting_type,
+						roomId: room_id,
+						password: password,
+						faceRecognition: face_recognition,
+						roomName: room_name,
+						videoType: video_type,
+						startDate: start_date,
+					}
+					userSession.roomToken = token
+					await saveSession(userSession)
 				}
-				userSession.roomToken = token
-				await saveSession(userSession)
+				callback({ status: true, roomName: room_name, meetingDate: start_date, meeting_type })
+				return
 			}
+
+			const decodedUser = await decodeToken(userSession.token)
+			if (!decodedRoom || !decodedUser) {
+				callback({ status: false, message: "Invalid Token" })
+				throw { name: "Invalid", message: "Invalid Token" }
+			}
+			const { participant_id, full_name, user_id, role, exception, status, photo, photo_path, nik, nrp, authority } = decodedUser.user
 
 			// // Create worker if its doesnot exist
 			// if (mediasoupVariable.workers.length == 0) {
@@ -157,11 +343,6 @@ io.on("connection", async (socket) => {
 
 			// Add User data to node.js server for the 1st time enter the room
 			if (position == "home" || position == "lobby") {
-				if ((meeting_type == 1 && position == "home") || (meeting_type == 2 && position == "lobby")) {
-					callback({ status: false, roomName: room_name, meetingDate: start_date, meeting_type })
-					return
-				}
-
 				await liveMeeting.addUser({
 					participantId: participant_id,
 					roomId: room_id,
@@ -172,6 +353,7 @@ io.on("connection", async (socket) => {
 					waiting: true,
 					username: full_name,
 					picture: photo_path,
+					isViewer,
 				})
 
 				// Check user authority
@@ -236,6 +418,7 @@ io.on("connection", async (socket) => {
 						waitingList,
 						username: full_name,
 						meeting_type,
+						isViewer,
 					})
 					return
 				}
@@ -248,6 +431,7 @@ io.on("connection", async (socket) => {
 					rtpCapabilities,
 					username: full_name,
 					meeting_type,
+					isViewer,
 				})
 			} else {
 				throw { name: "Invalid", message: "User tidak valid!" }
@@ -336,8 +520,10 @@ io.on("connection", async (socket) => {
 		try {
 			rtpParameters.rtcp = { reducedSize: true }
 			const producer = await mediasoupVariable.createProducer({ userId, kind, rtpParameters, appData, roomId, socketId: socket.id })
-
-			await liveMeeting.informUser({ roomId, producerId: producer.id, socket, userId })
+			if (!appData.isActive) {
+				await producer.pause()
+			}
+			await liveMeeting.informUser({ roomId, producerId: producer.id, socket, userId, producerPaused: producer.paused })
 			const user = await liveMeeting.findUser({ roomId, userId })
 			if (kind == "audio") {
 				liveMeeting.users.forEach((u) => {
@@ -486,6 +672,7 @@ io.on("connection", async (socket) => {
 					}
 				}
 			})
+			console.log(producerList)
 
 			callback({ producerList })
 		} catch (error) {
@@ -595,6 +782,8 @@ io.on("connection", async (socket) => {
 	})
 })
 
+// for monitoring purpose
+
 app.get("/rooms", async (req, res, next) => {
 	try {
 		const { roomId } = req.session
@@ -648,7 +837,15 @@ app.get("/mediasoup/transports", async (req, res, next) => {
 
 app.get("/mediasoup/producers", async (req, res, next) => {
 	try {
-		res.send({ producers: mediasoupVariable.producers, total: mediasoupVariable.producers.length })
+		res.send({
+			producers: mediasoupVariable.producers.map((p) => ({
+				id: p.producer.id,
+				kind: p.producer.kind,
+				paused: p.producer.paused,
+				appData: p.producer.appData,
+			})),
+			total: mediasoupVariable.producers.length,
+		})
 	} catch (error) {
 		console.log("- Error get Room")
 	}
@@ -656,7 +853,15 @@ app.get("/mediasoup/producers", async (req, res, next) => {
 
 app.get("/mediasoup/consumers", async (req, res, next) => {
 	try {
-		res.send({ consumers: mediasoupVariable.consumers, total: mediasoupVariable.consumers.length })
+		res.send({
+			consumers: mediasoupVariable.consumers.map((c) => ({
+				id: c.consumer.id,
+				kind: c.consumer.kind,
+				paused: c.consumer.paused,
+				appData: c.consumer.appData,
+			})),
+			total: mediasoupVariable.consumers.length,
+		})
 	} catch (error) {
 		console.log("- Error get Room")
 	}

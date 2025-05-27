@@ -6,84 +6,81 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="assets/css/room.css" type="text/css" /> -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="stylesheet" href="/assets/css/lobby.css">
+    <link rel="stylesheet" href="[/= baseUrl /]/assets/css/lobby.css">
     <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <title>Telepati</title>
+    <title>[/= appName /]</title>
 </head>
 
 <body>
     <div class="full-container">
-        <div class="waiting-modal-container d-none" id="waiting-modal-container">
-            <div class="waiting-modal">
-                <div class="waiting-modal-header">
-                    <div class="modal-title-container">
-                        <p>Ruang Sidang <span id="modal-title"></span></p>
-                    </div>
-                    <div class="modal-event">
-                        <img src="/assets/icons/date.svg" alt="date_icon" />
-                        <span>Hari Ini</span>
-                        &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <img src="/assets/icons/clock.svg" alt="clock_icon" />
-                        <span id="start_date_modal"></span>
-                    </div>
-                </div>
-                <div class="waiting-modal-content">
-                    <div class="waiting-modal-content-left">
-                        <img src="/assets/pictures/waitingPic.png" alt="waiting">
-                    </div>
-                    <div class="waiting-modal-content-right">
-                        <div class="left-line"></div>
-                        <div class="waiting-modal-description">
-                            <p>Selamat Datang di Ruang Tunggu Persidangan!</p>
-                            <span>Mohon sabar, Host akan mempersilahkan Anda masuk.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="loading">
-            <img src="/assets/icons/spinner.svg" alt="loading-bar" />
+        <div id="loading-id" class="loading-show">
+            <img src="[/= baseUrl /]/assets/pictures/loading.svg" alt="loading-bar" />
         </div>
         <div id="warning-container" class="warning-container">
             <span id="warning-message"></span>
         </div>
-        <div class="face-recognition-container">
-            <div class="photo-booth">
-                <canvas id="canvas-element" style="display: none;"></canvas>
-                <img id="image--output" alt="verifikasi wajah" class="image-output d-none">
-                <video id="local-video" poster="/assets/icons/spinner.svg" preload="auto" autoplay class="user-video"
-                    muted></video>
-                <canvas id="face-matcher-box" style="position: absolute;"></canvas>
-                <div class="face-recognition" id="face-recognition-id"></div>
+        <form class="lobby-form-container" id="lobby-form-container">
+            <div id="video-container">
+                <div id="video-picture-container">
+                    <img src="[/= baseUrl /]/photo/P_0000000.png" alt="" id="video-picture">
+                </div>
+                <video id="video-demo" src=""></video>
             </div>
-            <div class="verification-proccess-container">
-                <div class="verification-proccess">
-                    <img id="proccess-icon" class="proccess-icon" src="/assets/icons/warn.svg" alt="ongoing-proccess">
-                    &nbsp;&nbsp;<span id="proccess-message">Mohon posisi wajah disesuaikan dengan frame.</span>
+            <div class="lobby-form-content">
+                <div class="input-meeting">
+                    <!-- <span>Nama Lengkap</span> -->
+                    <input placeholder="Nama..." type="text" name="full_name" id="full_name">
+                </div>
+                [/ if (initialSetting) {/]
+                <div class="toggle-group">
+                    <label for="mic">Mic</label>
+                    <label class="switch">
+                        <input type="checkbox" id="mic-checkbox" name="mic">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-group">
+                    <label for="camera">Camera</label>
+                    <label class="switch">
+                        <input type="checkbox" id="camera-checkbox" name="camera">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                [/ } /]
+                [/ if (viewerEnabled) {/]
+                <div class="toggle-group">
+                    <label for="viewer">Viewer</label>
+                    <label class="switch">
+                        <input type="checkbox" id="viewer-checkbox" name="viewer">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                [/ }/]
+                <div class="input-meeting d-none">
+                    <span>ID Peserta</span>
+                    <input placeholder="" type="text" name="participant_id" id="participant_id">
                 </div>
             </div>
-            <progress class="progress-bar-custom" id="progress-bar" max="100" value="0"></progress>
-            <div class="try-again-container d-none" id="try-again-container-id">
-                <button type="button" id="try-again-id"><span>Coba Lagi</span></button>
+            <div class="lobby-form-footer">
+                <button id="submit-button" type="submit" class="next-button">Lanjutkan</button>
             </div>
-        </div>
+        </form>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <script src="/assets/plugins/face-api/face-api.min.js"></script>
-    <script src="/javascript/url/url.js"></script>
     <script>
-        const userPhoto = [/- JSON.stringify(photo_path) /]
-        const meetingDate = [/- JSON.stringify(start_date) /]
-        const roomName = [/- JSON.stringify(room_name) /]
-        const roomId = [/- JSON.stringify(room_id) /]
-        const password = [/- JSON.stringify(password) /]
-        const token = [/- JSON.stringify(token) /]
+        const baseUrl = [/- JSON.stringify(baseUrl) /]
+        const socketPath = [/- JSON.stringify(socketPath) /]
+        const socketBaseUrl = [/- JSON.stringify(socketBaseUrl) /]
+        const viewerEnabled = [/- JSON.stringify(viewerEnabled) /]
+        const initialSetting = [/- JSON.stringify(initialSetting) /]
     </script>
-    <script src="/javascript/lobby/lobbybundle.js"></script>
+    <script src="[/= baseUrl /]/javascript/lobby/lobbybundle.js"></script>
 </body>
 
 </html>

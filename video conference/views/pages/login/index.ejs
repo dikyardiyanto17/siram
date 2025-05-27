@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="[/= baseUrl /]/assets/css/login.css">
     <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <title>Telepati</title>
+    <title>[/= appName /]</title>
 </head>
 
 <body>
@@ -33,6 +33,32 @@
                     <!-- <span>Nama Lengkap</span> -->
                     <input placeholder="Nama..." type="text" name="full_name" id="full_name">
                 </div>
+                [/ if (initialSetting) {/]
+                <div class="toggle-group">
+                    <label for="mic">Mic</label>
+                    <label class="switch">
+                        <input type="checkbox" id="mic-checkbox" name="mic">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-group">
+                    <label for="camera">Camera</label>
+                    <label class="switch">
+                        <input type="checkbox" id="camera-checkbox" name="camera">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                [/ } /]
+                [/ if (viewerEnabled) {/]
+                <div class="toggle-group">
+                    <label for="broadcast">Broadcast</label>
+                    <label class="switch">
+                        <input type="checkbox" id="broadcast-checkbox" name="broadcast">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                [/ }/]
                 <div class="input-meeting d-none">
                     <span>ID Peserta</span>
                     <input placeholder="" type="text" name="participant_id" id="participant_id">
@@ -44,7 +70,9 @@
         </form>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <script src="[/= baseUrl /]/javascript/url/url.js"></script>
+    <script>
+        const baseUrl = [/- JSON.stringify(baseUrl) /]
+    </script>
     <script src="[/= baseUrl /]/javascript/login/login.js"></script>
 </body>
 

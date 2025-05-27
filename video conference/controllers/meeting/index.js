@@ -1,5 +1,3 @@
-const { baseUrl } = require("../../config")
-
 class Meeting {
 	static async index(req, res, next) {
 		try {
@@ -7,7 +5,7 @@ class Meeting {
 			const { roomToken } = req.session
 			res.render("pages/meeting/index", {
 				authority,
-				participant_id: participantId,
+				participant_id: req.user.participant_id,
 				roomId,
 				meetingType,
 				picture: photoPath ? photoPath : "P_0000000",
@@ -16,7 +14,6 @@ class Meeting {
 				token: roomToken,
 				user_token: req.session.token,
 				video_type: videoType,
-				baseUrl,
 			})
 		} catch (error) {
 			next(error)

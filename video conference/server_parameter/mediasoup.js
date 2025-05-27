@@ -1,7 +1,7 @@
 const mediasoup = require("mediasoup")
+const { turnServer, mediaCodecs, maxCores, incomingMaxBitRate, listenInfos } = require("../config")
 
 class MediaSoup {
-	#privateIp = "0.0.0.0"
 	// #publicIp = "147.139.177.186" // Wire Guard
 	// #publicIp = "192.167.71.20" // RDS Lantai 1
 	// #publicIp = "192.167.61.8" // RDS Harmoni Lantai 1
@@ -10,83 +10,17 @@ class MediaSoup {
 	// #publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
 	// #publicIp = "192.193.194.78" // RIS
 	// #publicIp = "203.175.10.29" // VPS
-	#publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
 	// #publicIp = "203.194.113.166" // VPS	2 Core Pak Indra
 	// #publicIp = "192.168.20.177" // KOS
 	// #publicIp = "192.168.205.229" // RDS co.id
 	// #publicIp = "203.175.10.29"
 	// #publicIp = "192.168.18.68" // RDS 5g
 
-	#portToOpen = 1040
-
 	// turn server
-	#turnServer = [
-		{
-			urls: "stun:92.127.199.123:3478",
-		},
-		{
-			urls: "turn:92.127.199.123:3478",
-			username: "RDS2025",
-			credential: "P@sswordRds12@jakarta",
-		},
-		{
-			urls: "stun:203.175.10.29:3478",
-		},
-		{
-			urls: "turn:203.175.10.29:3478",
-			username: "siram2024",
-			credential: "P@sswordSiram12@jakarta",
-		},
-	]
-	#mediaCodecs = [
-		{
-			kind: "audio",
-			mimeType: "audio/opus",
-			clockRate: 48000,
-			channels: 2,
-		},
-		{
-			kind: "video",
-			mimeType: "video/VP8",
-			clockRate: 90000,
-			parameters: {
-				"x-google-start-bitrate": 1000,
-			},
-		},
-		{
-			kind: "video",
-			mimeType: "video/VP9",
-			clockRate: 90000,
-			parameters: {
-				"profile-id": 2,
-				"x-google-start-bitrate": 1000,
-			},
-		},
-		{
-			kind: "video",
-			mimeType: "video/h264",
-			clockRate: 90000,
-			parameters: {
-				"packetization-mode": 1,
-				"profile-level-id": "4d0032",
-				"level-asymmetry-allowed": 1,
-				"x-google-start-bitrate": 1000,
-			},
-		},
-		{
-			kind: "video",
-			mimeType: "video/h264",
-			clockRate: 90000,
-			parameters: {
-				"packetization-mode": 1,
-				"profile-level-id": "42e01f",
-				"level-asymmetry-allowed": 1,
-				"x-google-start-bitrate": 1000,
-			},
-		},
-	]
+	#turnServer = [...turnServer]
+	#mediaCodecs = [...mediaCodecs]
 
-	#maxCores = 2
+	#maxCores = maxCores
 
 	#workers = []
 	#routers = []
@@ -94,27 +28,14 @@ class MediaSoup {
 	#producers = []
 	#consumers = []
 
-	#incomingMinBitRate = 1500000
-	#incomingMaxBitRate = 1500000
+	#incomingMinBitRate = incomingMaxBitRate
+	#incomingMaxBitRate = incomingMaxBitRate
 
 	#listenInfo
 
 	constructor() {
 		this.#listenInfo = {
-			listenInfos: [
-				{
-					protocol: "udp",
-					ip: this.#privateIp,
-					announcedIp: this.#publicIp,
-					port: this.#portToOpen,
-				},
-				{
-					protocol: "tcp",
-					ip: this.#privateIp,
-					announcedIp: this.#publicIp,
-					port: this.#portToOpen,
-				},
-			],
+			listenInfos: [...listenInfos],
 		}
 	}
 
@@ -393,6 +314,7 @@ class MediaSoup {
 			transport.observer.on("newproducer", (producer) => {
 				try {
 					this.#producers.push({ producer })
+					console.log("- PRODUCER : ", producer.paused)
 					console.log(`Transport Observer (newproducer) ${transport.id} => `, producer.id)
 				} catch (error) {
 					console.log(`- Error Transport Observer (newproducer) ${transport.id} : `, error)
@@ -431,6 +353,7 @@ class MediaSoup {
 					rtpParameters,
 					appData: { ...appData, userId, kind, roomId, socketId: socketId },
 					keyFrameRequestDelay: 1000,
+					// paused: appData.isActive ? false : true,
 				})
 
 				// Producer Event
@@ -589,6 +512,9 @@ class MediaSoup {
 			consumer.on("producerpause", () => {
 				try {
 					console.log(`Consumer (producerpause) ${consumerTransport.id} => ${consumer.id}`)
+					if (!consumer.paused) {
+						consumer.pause()
+					}
 					socket.emit("producer-pause", { pause: true, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerpause) => ", error)
@@ -598,6 +524,9 @@ class MediaSoup {
 			consumer.on("producerresume", () => {
 				try {
 					console.log(`Consumer (producerresume) ${consumerTransport.id} => ${consumer.id}`)
+					if (consumer.paused) {
+						consumer.resume()
+					}
 					socket.emit("producer-pause", { pause: false, producerId, userId })
 				} catch (error) {
 					console.log("- Error Consumer (producerresume) => ", error)

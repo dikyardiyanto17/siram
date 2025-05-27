@@ -41,11 +41,11 @@ class Users {
 		}
 	}
 
-	async informUser({ roomId, socket, userId, producerId }) {
+	async informUser({ roomId, socket, userId, producerId, producerPaused }) {
 		try {
 			this.#users.forEach((user) => {
 				if (userId != user.id && user.roomId == roomId) {
-					socket.to(user.socketId).emit("new-producer", { producerId, userId, socketId: socket.id })
+					socket.to(user.socketId).emit("new-producer", { producerId, userId, socketId: socket.id, producerPaused })
 				}
 			})
 		} catch (error) {

@@ -35301,6 +35301,39 @@ class StaticEvent {
 		}
 	}
 
+	static async changeVideo({ userId, isActive, isCurrentUser }) {
+		try {
+			const videoPicture = document.getElementById(`turn-off-${userId}`)
+			if (isCurrentUser) {
+				if (isActive) {
+					document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera.svg`
+					document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
+					if (!videoPicture.classList.contains("d-none")) {
+						videoPicture.classList.add("d-none")
+					}
+				} else {
+					document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera_off.svg`
+					document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
+					videoPicture.classList.remove("d-none")
+				}
+			} else {
+				if (isActive) {
+					document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
+					if (!videoPicture.classList.contains("d-none")) {
+						videoPicture.classList.add("d-none")
+					}
+				} else {
+					document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
+					if (videoPicture.classList.contains("d-none")) {
+						videoPicture.classList.remove("d-none")
+					}
+				}
+			}
+		} catch (error) {
+			console.log(error)
+		}
+	}
+
 	static changeUserList({ type, id, isActive }) {
 		try {
 			if (type == "mic") {
@@ -35319,7 +35352,7 @@ class StaticEvent {
 		}
 	}
 
-	static warning({ message, back = false, time = 3000 }) {
+	static warning({ message, back = false, time = 10000 }) {
 		try {
 			document.getElementById("warning-container").style.top = "50px"
 			document.getElementById("warning-message").innerHTML = message
@@ -35337,6 +35370,12 @@ class StaticEvent {
 }
 
 class MediaSoupClient extends StaticEvent {
+	#availableDevices = {
+		camera: true,
+		microphone: true,
+	}
+	#triggered = false
+	#isViewer = false
 	#consumingTransport = []
 	#mystream = null
 	#screenSharingStream = null
@@ -35414,6 +35453,37 @@ class MediaSoupClient extends StaticEvent {
 		this.#screenSharingMode = false
 		this.#screenSharingStatus = false
 		this.#screenSharingButton = document.getElementById("screen-sharing-button")
+	}
+
+	get isViewer() {
+		return this.#isViewer
+	}
+
+	set isViewer(newStatus) {
+		this.#isViewer = newStatus
+	}
+
+	get availableDevices() {
+		return this.#availableDevices
+	}
+
+	set availableDevices(devices) {
+		this.#availableDevices = devices
+	}
+
+	get audioPrams() {
+		return this.#audioParams
+	}
+
+	set audioPrams(newParams) {
+		this.#audioParams = newParams
+	}
+	get videoParams() {
+		return this.#videoParams
+	}
+
+	set videoParams(newPrams) {
+		this.#videoParams = newPrams
 	}
 
 	get os() {
@@ -35615,16 +35685,113 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
+	async createSilentAudioTrack() {
+		const audioContext = new AudioContext()
+
+		const oscillator = audioContext.createOscillator()
+		oscillator.frequency.value = 0 // Frequency of 0 = silence
+		const dst = audioContext.createMediaStreamDestination()
+		oscillator.connect(dst)
+		oscillator.start()
+
+		return dst.stream.getAudioTracks()[0]
+	}
+
+	async checkMediaDevices() {
+		if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+			console.warn("MediaDevices API not supported.")
+			return { hasCamera: false, hasMic: false }
+		}
+
+		try {
+			const devices = await navigator.mediaDevices.enumerateDevices()
+
+			const hasCamera = devices.some((device) => device.kind === "videoinput")
+			const hasMic = devices.some((device) => device.kind === "audioinput")
+
+			if (!hasCamera) {
+				this.#availableDevices.camera = false
+			}
+
+			if (!hasMic) {
+				this.#availableDevices.microphone = false
+				this.constructor.changeMicButton({ id: userId, isActive: false })
+			}
+
+			// test no camera and mic
+			this.#availableDevices.camera = true
+			this.#availableDevices.microphone = true
+
+			return { hasCamera, hasMic }
+		} catch (err) {
+			console.error("Error accessing media devices:", err)
+			return { hasCamera: false, hasMic: false }
+		}
+	}
+
 	async getMyStream({ faceRecognition, picture, userId, username }) {
 		try {
+			if (!this.#availableDevices.camera && !this.#availableDevices.microphone && !this.#isViewer) {
+				// Create fake audio
+				const silentAudioTrack = await this.createSilentAudioTrack()
+				const stream = new MediaStream([silentAudioTrack])
+				this.#mystream = stream
+				this.constructor.changeMicButton({ id: userId, isActive: false })
+				return
+			}
+
+			if (!this.#availableDevices.camera && this.#availableDevices.microphone && !this.#isViewer) {
+				this.#mystream = await navigator.mediaDevices.getUserMedia({
+					audio: { ...this.#audioSetting },
+				})
+				return
+			}
+
+			const videoConstraints = {
+				width: { ideal: 1280 },
+				height: { ideal: 720 },
+				frameRate: { ideal: 30, max: 60 },
+				...(this.#videoDeviceId && { deviceId: { exact: this.#videoDeviceId } }),
+			}
+
+			if (this.#availableDevices.camera && !this.#availableDevices.microphone && !this.#isViewer) {
+				const videoStream = await navigator.mediaDevices.getUserMedia({
+					video: videoConstraints,
+					audio: false,
+				})
+				const silentAudioTrack = await this.createSilentAudioTrack()
+				const mixedStream = new MediaStream([...videoStream.getVideoTracks(), silentAudioTrack])
+				this.#mystream = mixedStream
+				return
+			}
+
+			if (this.#mystream) {
+				const videoStream = await navigator.mediaDevices.getUserMedia({
+					video: videoConstraints,
+					audio: false,
+				})
+				const videoTrack = videoStream.getVideoTracks()[0]
+				this.#mystream.addTrack(videoTrack)
+				return
+			}
+			if (!this.#mystream && !this.#videoParams.appData.isActive) {
+				this.#mystream = await navigator.mediaDevices.getUserMedia({
+					audio: { ...this.#audioSetting },
+				})
+				return
+			}
 			this.#mystream = await navigator.mediaDevices.getUserMedia({
 				audio: { ...this.#audioSetting },
-				video: {
-					width: { ideal: 1280 }, // Request 1280px width
-					height: { ideal: 720 }, // Request 720px height
-					frameRate: { ideal: 30, max: 60 }, // Higher FPS for smooth video
-				},
+				video: videoConstraints,
 			})
+
+			// this.#availableDevices.camera = false
+			// this.#availableDevices.microphone = false
+
+			// const silentAudioTrack = await this.createSilentAudioTrack()
+			// const stream = new MediaStream([silentAudioTrack])
+			// this.#mystream = stream
+			return
 		} catch (error) {
 			if (
 				error == "NotAllowedError: Permission denied" ||
@@ -35704,9 +35871,12 @@ class MediaSoupClient extends StaticEvent {
 					try {
 						console.log("- State Change Producer : ", e)
 						if (e == "connected") {
+							// if (!this.#triggered && ){
+							// }
 							document.getElementById("loading-id").className = "loading-hide"
 						}
 						if (e == "failed") {
+							socket.close()
 							window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 						}
 					} catch (error) {
@@ -35729,7 +35899,23 @@ class MediaSoupClient extends StaticEvent {
 				})
 				this.#producerTransport.observer.on("newproducer", (producer) => {
 					try {
-						console.log("- Create New Producer : ", producer.id)
+						console.log("- Created new producer : ", producer.id)
+						// if (producer.kind == "video" && producer.appData.label == "video") {
+						// 	this.constructor.changeVideo({ userId, isActive: true, isCurrentUser: true })
+						// }
+						// if (!producer.appData.isActive && producer.kind == "video" && producer.appData.label == "video") {
+						// 	socket.emit("producer-pause", { socketId: socket.id, producerId: producer.id }, async ({ status, message }) => {
+						// 		producer.pause()
+						// 	})
+						// 	this.constructor.changeVideo({ userId, isActive: false, isCurrentUser: true })
+						// }
+
+						// if (!producer.appData.isActive && producer.kind == "audio" && producer.appData.label == "audio") {
+						// 	socket.emit("producer-pause", { socketId: socket.id, producerId: producer.id }, async ({ status, message }) => {
+						// 		producer.pause()
+						// 	})
+						// 	this.constructor.changeMicButton({ id: userId, isActive: false })
+						// }
 					} catch (error) {
 						console.log(`- Error Create New Producer ${producer.id}: `, error)
 					}
@@ -35743,6 +35929,9 @@ class MediaSoupClient extends StaticEvent {
 				})
 				await this.createConsumerTransport({ socket, roomId, userId })
 				await this.connectSendTransport({ socket, picture: usersVariable.picture, userId })
+				if (!this.#videoParams.appData.isActive) {
+					this.constructor.changeVideo({ userId, isActive: false, isCurrentUser: true })
+				}
 			})
 		} catch (error) {
 			console.log("- Error Create Send Transport : ", error)
@@ -35777,80 +35966,81 @@ class MediaSoupClient extends StaticEvent {
 
 	async connectSendTransport({ socket, picture, userId }) {
 		try {
-			this.#audioParams.track = this.#mystream.getAudioTracks()[0]
-			this.#videoParams.track = this.#mystream.getVideoTracks()[0]
-			this.#audioParams.appData.picture = picture
-			this.#videoParams.appData.picture = picture
-			this.#audioProducer = await this.#producerTransport.produce(this.#audioParams)
-			this.#videoProducer = await this.#producerTransport.produce(this.#videoParams)
-			this.#videoProducer.on("trackended", () => {
-				// window.location.reload()
-				console.log("video track ended")
-			})
+			if (this.#videoParams.appData.isActive && !this.#videoProducer) {
+				this.#videoParams.track = this.#mystream.getVideoTracks()[0]
+				this.#videoParams.appData.picture = picture
+				this.#videoProducer = await this.#producerTransport.produce(this.#videoParams)
 
-			this.#videoProducer.on("transportclose", () => {
-				window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
-				console.log("video transport ended")
-			})
+				this.#videoProducer.on("trackended", () => {
+					// window.location.reload()
+					console.log("video track ended")
+				})
 
-			this.#videoProducer.observer.on("close", () => {
-				console.log("video observer close")
-			})
+				this.#videoProducer.on("transportclose", () => {
+					window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
+					console.log("video transport ended")
+				})
 
-			this.#videoProducer.on("transportclose", () => {
-				window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
-				console.log("video transport ended")
-			})
+				this.#videoProducer.observer.on("close", () => {
+					console.log("video observer close")
+				})
 
-			this.#videoProducer.observer.on("close", () => {
-				console.log("video observer close")
-			})
+				this.#videoProducer.on("transportclose", () => {
+					window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
+					console.log("video transport ended")
+				})
 
-			this.#videoProducer.observer.on("pause", () => {
-				console.log("video observer pause")
-				const videoPicture = document.getElementById(`turn-off-${userId}`)
-				document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera_off.svg`
-				document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
-				if (videoPicture.classList.contains("d-none")) {
-					videoPicture.classList.remove("d-none")
+				this.#videoProducer.observer.on("close", () => {
+					console.log("video observer close")
+				})
+
+				this.#videoProducer.observer.on("pause", () => {
+					this.constructor.changeVideo({ userId, isActive: false, isCurrentUser: true })
+				})
+
+				this.#videoProducer.observer.on("resume", () => {
+					console.log("video observer resume")
+					this.constructor.changeVideo({ userId, isActive: true, isCurrentUser: true })
+				})
+				this.#videoProducer.setMaxSpatialLayer(2)
+			}
+
+			if (!this.#audioProducer) {
+				this.#audioParams.appData.picture = picture
+				if (!this.#availableDevices.microphone) {
+					this.#audioParams.appData.isActive = false
 				}
-			})
+				this.#audioParams.track = this.#mystream.getAudioTracks()[0]
+				this.#audioProducer = await this.#producerTransport.produce(this.#audioParams)
 
-			this.#videoProducer.observer.on("resume", () => {
-				console.log("video observer resume")
-				const videoPicture = document.getElementById(`turn-off-${userId}`)
-				document.getElementById("camera-icon").src = `${baseUrl}/assets/icons/camera.svg`
-				document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
-				if (!videoPicture.classList.contains("d-none")) {
-					videoPicture.classList.add("d-none")
+				if (!this.#audioParams.appData.isActive) {
+					this.constructor.changeMicButton({ id: userId, isActive: false })
 				}
-			})
 
-			// possible bug
-			this.#audioProducer.on("trackended", () => {
-				console.log("audio track ended")
-				this.constructor.warning({ message: "Microphone sedang bermasalah!\nSedang memuat ulang halaman!", back: true })
-			})
+				// possible bug
+				this.#audioProducer.on("trackended", () => {
+					console.log("audio track ended")
+					this.constructor.warning({ message: "Microphone sedang bermasalah!\nSedang memuat ulang halaman!", back: true })
+				})
 
-			this.#audioProducer.on("transportclose", () => {
-				console.log("audio transport ended")
-			})
+				this.#audioProducer.on("transportclose", () => {
+					console.log("audio transport ended")
+				})
 
-			this.#audioProducer.observer.on("close", () => {
-				console.log("audio observer close")
-			})
+				this.#audioProducer.observer.on("close", () => {
+					console.log("audio observer close")
+				})
 
-			this.#audioProducer.observer.on("pause", () => {
-				console.log("- Audio Producer is paused")
-				this.constructor.changeMicButton({ id: userId, isActive: false })
-			})
+				this.#audioProducer.observer.on("pause", () => {
+					console.log("- Audio Producer is paused")
+					this.constructor.changeMicButton({ id: userId, isActive: false })
+				})
 
-			this.#audioProducer.observer.on("resume", () => {
-				console.log("- Audio Producer is resumed")
-				this.constructor.changeMicButton({ id: userId, isActive: true })
-			})
-
-			this.#videoProducer.setMaxSpatialLayer(2)
+				this.#audioProducer.observer.on("resume", () => {
+					console.log("- Audio Producer is resumed")
+					this.constructor.changeMicButton({ id: userId, isActive: true })
+				})
+			}
 		} catch (error) {
 			console.log("- Error Connect Transport Producer : ", error)
 		}
@@ -35904,6 +36094,7 @@ class MediaSoupClient extends StaticEvent {
 				async ({ params }) => {
 					try {
 						const { appData } = params
+						console.log("- Params : ", params)
 						const streamId = params.kind == "audio" ? `audio-${params.userId}` : `video-${params.userId}`
 						const consumer = await this.#consumerTransport.consume({
 							id: params.id,
@@ -35914,12 +36105,6 @@ class MediaSoupClient extends StaticEvent {
 						})
 
 						const { track } = consumer
-						// if (params.kind === "video") {
-						// 	setInterval(async () => {
-						// 		const stats = await consumer.getStats()
-						// 		console.log([...stats.values()]) // Convert map to an array and log
-						// 	}, 1000)
-						// }
 
 						consumer.on("transportclose", () => {
 							try {
@@ -35941,11 +36126,7 @@ class MediaSoupClient extends StaticEvent {
 							try {
 								console.log("Consumer Observer (pauser) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
-									const videoPicture = document.getElementById(`turn-off-${userId}`)
-									document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera.svg`
-									if (videoPicture.classList.contains("d-none")) {
-										videoPicture.classList.remove("d-none")
-									}
+									this.constructor.changeVideo({ userId, isActive: false, isCurrentUser: false })
 								}
 								if (params.kind == "audio" && appData.label == "audio") {
 									track.enabled = false
@@ -35959,11 +36140,7 @@ class MediaSoupClient extends StaticEvent {
 							try {
 								console.log("Consumer Observer (resumer) => ", consumer.id)
 								if (params.kind == "video" && appData.label == "video") {
-									const videoPicture = document.getElementById(`turn-off-${userId}`)
-									document.getElementById(`camera-ul-${userId}`).src = `${baseUrl}/assets/icons/user_list_camera_active.svg`
-									if (!videoPicture.classList.contains("d-none")) {
-										videoPicture.classList.add("d-none")
-									}
+									this.constructor.changeVideo({ userId, isActive: true, isCurrentUser: false })
 								}
 								if (params.kind == "audio" && appData.label == "audio") {
 									track.enabled = true
@@ -35993,6 +36170,7 @@ class MediaSoupClient extends StaticEvent {
 							focus: false,
 							socket,
 							index,
+							isViewer: false,
 							appData,
 						})
 
@@ -36002,11 +36180,13 @@ class MediaSoupClient extends StaticEvent {
 						// }
 
 						let checkVideo = await usersVariable.checkVideo({ userId })
-						if (checkVideo && params.kind == "video" && !params.producerPaused) {
+						if (params.kind == "video" && !params.producerPaused) {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
 									if (status && message != "producer-paused") {
-										consumer.resume()
+										if (consumer.paused) {
+											consumer.resume()
+										}
 									}
 								} catch (error) {
 									console.log("- Error Resuming Consumer : ", error)
@@ -36014,11 +36194,13 @@ class MediaSoupClient extends StaticEvent {
 							})
 						}
 
-						if (checkVideo && params.kind == "video" && params.producerPaused) {
+						if (params.kind == "video" && params.producerPaused) {
 							socket.emit("consumer-pause", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
 									if (status) {
-										consumer.pause()
+										if (!consumer.paused) {
+											consumer.pause()
+										}
 									}
 								} catch (error) {
 									console.log("- Error Resuming Consumer : ", error)
@@ -36043,7 +36225,9 @@ class MediaSoupClient extends StaticEvent {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
 									if (status && message != "producer-paused") {
-										consumer.resume()
+										if (consumer.paused) {
+											consumer.resume()
+										}
 									}
 								} catch (error) {
 									console.log("- Error Resuming Consumer : ", error)
@@ -36055,12 +36239,17 @@ class MediaSoupClient extends StaticEvent {
 							socket.emit("consumer-pause", { serverConsumerId: consumer.id }, async ({ status, message }) => {
 								try {
 									if (status) {
-										consumer.pause()
+										if (!consumer.paused) {
+											consumer.pause()
+										}
 									}
 								} catch (error) {
 									console.log("- Error Resuming Consumer : ", error)
 								}
 							})
+						}
+						if (this.#isViewer) {
+							socket.emit("viewer-joined", { roomId, id: usersVariable.userId, username: usersVariable.username })
 						}
 					} catch (error) {
 						console.log("- Error Consuming : ", error)
@@ -36259,13 +36448,25 @@ class MediaSoupClient extends StaticEvent {
 	async getCameraOptions({ userId }) {
 		try {
 			const listCameraContainer = document.getElementById("video-options")
+
 			let videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput")
-			const currentDevice = await this.#mystream.getVideoTracks()[0].getSettings().deviceId
-			this.#videoDeviceId = currentDevice
+
+			// Get current video track's deviceId if available
+			const currentVideoTrack = this.#mystream?.getVideoTracks()[0]
+			const currentDevice = currentVideoTrack?.getSettings()?.deviceId
+
+			// Fallback to first video device if no current track
+			this.#videoDeviceId = currentDevice || videoDevices[0]?.deviceId || ""
+
+			console.log("- Device Id : ", this.#videoDeviceId)
+
 			// possible bug
 			videoDevices.forEach((videoList) => {
 				let currentCameraIcons = '<i class="fa-regular fa-square"></i>'
 				if (videoList.deviceId === currentDevice) {
+					currentCameraIcons = '<i class="fa-regular fa-square-check"></i>'
+				}
+				if (!currentDevice && this.#videoDeviceId == videoList.deviceId) {
 					currentCameraIcons = '<i class="fa-regular fa-square-check"></i>'
 				}
 				const cameraLabel = document.createElement("li")
@@ -36277,6 +36478,9 @@ class MediaSoupClient extends StaticEvent {
 					currentActiveCameraIcon.className = "fa-regular fa-square"
 					this.#videoDeviceId = videoList.deviceId
 					document.getElementById(this.#videoDeviceId).firstChild.firstChild.className = "fa-regular fa-square-check"
+					if (!this.#videoProducer || this.#videoProducer.paused) {
+						return
+					}
 
 					let config =
 						this.#os.toLocaleLowerCase() === "android" || this.#os.toLocaleLowerCase() == "ios"
@@ -36291,6 +36495,7 @@ class MediaSoupClient extends StaticEvent {
 										deviceId: { exact: this.#videoDeviceId },
 									},
 							  }
+
 					const newStream = await navigator.mediaDevices.getUserMedia(config)
 					if (this.#os.toLocaleLowerCase() === "android" || this.#os.toLocaleLowerCase() == "ios") {
 						if (videoList.label.toLowerCase().includes("front")) {
@@ -36444,6 +36649,47 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
+	async turnOnCamera({ userId }) {
+		try {
+			const videoConstraints = {
+				width: { ideal: 1280 },
+				height: { ideal: 720 },
+				frameRate: { ideal: 30, max: 60 },
+				...(this.#videoDeviceId && { deviceId: { exact: this.#videoDeviceId } }),
+			}
+
+			let config = {
+				video: videoConstraints,
+			}
+
+			// alert(JSON.stringify(newStream, null, 2))
+
+			let videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput")
+			if (!this.#videoDeviceId) {
+				this.#videoDeviceId = videoDevices[0].deviceId
+			}
+			if (document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0]) {
+				await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0].stop()
+				await document.getElementById(`v-${userId}`).srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
+			}
+
+			if (this.#mystream.getVideoTracks()[0]) {
+				await this.#mystream.getVideoTracks()[0].stop()
+				await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+			}
+
+			const newStream = await navigator.mediaDevices.getUserMedia(config)
+			await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
+			await this.#mystream.addTrack(await newStream.getVideoTracks()[0])
+
+			await this.#videoProducer.replaceTrack({ track: await newStream.getVideoTracks()[0] })
+		} catch (error) {
+			alert(error)
+			console.log("- Error Get Camera Options : ", error)
+			this.constructor.warning({ message: "Gagal Menghidupkan Kamera!", back: true })
+		}
+	}
+
 	async switchCameraHandphone({ userId }) {
 		try {
 			let videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput")
@@ -36474,8 +36720,10 @@ class MediaSoupClient extends StaticEvent {
 				await document.getElementById(`v-${userId}`).srcObject.removeTrack(await document.getElementById(`v-${userId}`).srcObject.getVideoTracks()[0])
 			}
 
-			await this.#mystream.getVideoTracks()[0].stop()
-			await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+			if (this.#mystream.getVideoTracks()[0]) {
+				await this.#mystream.getVideoTracks()[0].stop()
+				await this.#mystream.removeTrack(await this.#mystream.getVideoTracks()[0])
+			}
 
 			const newStream = await navigator.mediaDevices.getUserMedia(config)
 			await document.getElementById(`v-${userId}`).srcObject.addTrack(newStream.getVideoTracks()[0])
@@ -36496,17 +36744,21 @@ module.exports = {
 
 },{"mediasoup-client":70}],104:[function(require,module,exports){
 const { default: Swal } = require("sweetalert2")
-const { socket } = require("../socket/socket")
+const { getSocket } = require("../socket/socket")
 const { EventListener } = require("./eventListener")
 const { Users } = require("./user")
 const { MediaSoupClient } = require("./mediasoupClient")
 const url = window.location.pathname
 const parts = url.split("/")
 const RecordRTC = require("recordrtc")
+const socket = getSocket(socketBaseUrl, socketPath)
 
 const eventListenerCollection = new EventListener({ micStatus: false, cameraStatus: false, roomId: roomName })
 const usersVariable = new Users()
 const mediasoupClientVariable = new MediaSoupClient()
+const isViewer = JSON.parse(localStorage.getItem("isViewer"))
+const isCameraActive = JSON.parse(localStorage.getItem("isCameraActive"))
+const isMicActive = JSON.parse(localStorage.getItem("isMicActive"))
 usersVariable.faceRecognition = faceRecognition
 
 const getOS = () => {
@@ -36526,8 +36778,29 @@ const getOS = () => {
 	}
 }
 
+const getViewerFeature = () => {
+	try {
+		const videoQualityUpstream = document.getElementById("video-quality-upstream")
+		const muteAllButton = document.getElementById("user-list-footer")
+		const micButton = document.getElementById("mic-button")
+		const cameraButton = document.getElementById("camera-button")
+		const recordContainer = document.getElementById("record-container")
+		const screenSharingButton = document.getElementById("screen-sharing-button")
+		const recordButton = document.getElementById("record-button")
+		videoQualityUpstream.remove()
+		muteAllButton.remove()
+		micButton.remove()
+		cameraButton.remove()
+		recordContainer.remove()
+		screenSharingButton.remove()
+		recordButton.remove()
+	} catch (error) {
+		console.log("- error get viewer feature : ", error)
+	}
+}
+
 const os = getOS()
-console.log("- OS : ", os)
+console.log(os)
 
 mediasoupClientVariable.os = os
 usersVariable.os = os
@@ -36643,12 +36916,15 @@ getResponsive()
 
 const connectSocket = async () => {
 	try {
+		mediasoupClientVariable.isViewer = isViewer
+		mediasoupClientVariable.audioPrams.appData.isActive = isMicActive
+		mediasoupClientVariable.videoParams.appData.isActive = isCameraActive
+		console.log(mediasoupClientVariable.videoParams)
 		socket.connect()
 		socket.emit(
 			"joining-room",
-			{ position: "room", token },
-			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
-				console.log(socket.id)
+			{ position: "room", token, isViewer },
+			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username, isViewer }) => {
 				try {
 					if (status) {
 						let filteredRtpCapabilities = { ...rtpCapabilities }
@@ -36667,18 +36943,76 @@ const connectSocket = async () => {
 						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 						await mediasoupClientVariable.createDevice()
 						await mediasoupClientVariable.setEncoding()
+
+						if (mediasoupClientVariable.isViewer) {
+							usersVariable.users = 0
+							await usersVariable.addAllUser({
+								userId,
+								username,
+								authority,
+								socketId: socket.id,
+								kind: "audio",
+								track: null,
+								focus: false,
+								socket,
+								isViewer,
+								appData: {
+									label: "audio",
+									isActive: false,
+									kind: "audio",
+									roomId: roomId,
+									socketId: socket.id,
+									userId,
+									picture,
+								},
+							})
+							await usersVariable.addAllUser({
+								userId,
+								username,
+								authority,
+								socketId: socket.id,
+								kind: "video",
+								track: null,
+								focus: false,
+								socket,
+								isViewer,
+								appData: {
+									label: "video",
+									isActive: false,
+									kind: "audio",
+									roomId: roomId,
+									socketId: socket.id,
+									userId,
+									picture,
+								},
+							})
+							await mediasoupClientVariable.createConsumerTransport({ socket, roomId, userId })
+							await mediasoupClientVariable.getProducers({ socket, roomId, userId, usersVariable })
+							document.getElementById("loading-id").className = "loading-hide"
+							socket.emit("viewer-joined", { roomId: roomName, id: userId, username })
+							return
+						}
+
+						const { hasCamera, hasMicrophone } = await mediasoupClientVariable.checkMediaDevices()
+
 						await mediasoupClientVariable.getMyStream({
 							faceRecognition,
 							picture: `${baseUrl}/photo/${picture}.png`,
 							userId,
 							username,
 						})
-						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
-						await mediasoupClientVariable.getCameraOptions({ userId: userId })
-						await mediasoupClientVariable.getMicOptions({ usersVariable })
+
+						if (mediasoupClientVariable.availableDevices.camera) {
+							await mediasoupClientVariable.getCameraOptions({ userId: userId })
+						}
+						if (mediasoupClientVariable.availableDevices.microphone) {
+							await mediasoupClientVariable.getMicOptions({ usersVariable })
+						}
+
+						mediasoupClientVariable.myStream.getAudioTracks()[0].enabled = isMicActive
 
 						let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
-						let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
+						let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0] ? mediasoupClientVariable.myStream.getVideoTracks()[0] : null
 						if (authority == 1 || authority == 2) {
 							usersVariable.screenSharingPermission = true
 						} else {
@@ -36693,9 +37027,10 @@ const connectSocket = async () => {
 							track: audioTrack,
 							focus: true,
 							socket,
+							isViewer,
 							appData: {
 								label: "audio",
-								isActive: true,
+								isActive: mediasoupClientVariable.audioPrams.appData.isActive,
 								kind: "audio",
 								roomId: roomId,
 								socketId: socket.id,
@@ -36712,9 +37047,10 @@ const connectSocket = async () => {
 							track: videoTrack,
 							focus: true,
 							socket,
+							isViewer,
 							appData: {
 								label: "video",
-								isActive: true,
+								isActive: mediasoupClientVariable.videoParams.appData.isActive,
 								kind: "audio",
 								roomId: roomId,
 								socketId: socket.id,
@@ -36791,6 +37127,17 @@ socket.on("user-list", async ({ type, userId, isActive }) => {
 	}
 })
 
+socket.on("viewer-joined-feedback", async ({ id, socketId, username }) => {
+	try {
+		await Users.methodAddViewerList({ id, username })
+		if (socketId != socket.id && mediasoupClientVariable.isViewer) {
+			await socket.emit("viewer-joined-feedback", { id: usersVariable.userId, username: usersVariable.username, socketId })
+		}
+	} catch (error) {
+		console.log("- Error viewer joined feedback : ", error)
+	}
+})
+
 socket.on("user-logout", ({ userId }) => {
 	try {
 		eventListenerCollection.methodAddRaiseHandUser({ id: userId, status: false })
@@ -36834,7 +37181,7 @@ socket.on("message", async ({ userId, message, username, picture }) => {
 	}
 })
 
-socket.on("new-producer", async ({ producerId, userId, socketId }) => {
+socket.on("new-producer", async ({ producerId, userId, socketId, producerPaused }) => {
 	try {
 		await mediasoupClientVariable.signalNewConsumerTransport({
 			remoteProducerId: producerId,
@@ -36843,6 +37190,7 @@ socket.on("new-producer", async ({ producerId, userId, socketId }) => {
 			socketId,
 			roomId: roomName,
 			usersVariable: usersVariable,
+			producerPaused,
 		})
 	} catch (error) {
 		console.log("- Error SOCKET New Producer : ", error)
@@ -36868,6 +37216,7 @@ socket.on("close-consumer", async ({ consumerId, appData }) => {
 socket.on("producer-pause", async ({ pause, producerId, userId }) => {
 	try {
 		const userConsumer = mediasoupClientVariable.consumers.find((c) => c.consumer.producerId == producerId)
+
 		if (!pause) {
 			userConsumer.consumer.resume()
 		}
@@ -37021,6 +37370,10 @@ socket.on("kick-user", async ({ message }) => {
 let microphoneButton = document.getElementById("mic-icon")
 microphoneButton.addEventListener("click", async () => {
 	try {
+		if (!mediasoupClientVariable.availableDevices.microphone) {
+			Users.warning({ message: "Microphone tidak tersedia" })
+			return
+		}
 		if (usersVariable.muteAllStatus && usersVariable.authority == 3) {
 			Users.warning({ message: "Microphone dikunci oleh Admin" })
 			return
@@ -37052,13 +37405,35 @@ microphoneButton.addEventListener("click", async () => {
 
 // Camera Button
 let cameraButton = document.getElementById("camera-icon")
-cameraButton.addEventListener("click", () => {
+cameraButton.addEventListener("click", async (e) => {
 	try {
+		console.log("CLICKED")
 		// eventListenerCollection.changeCameraButton()
 		// Users.warning({ message: "Kamera tidak boleh dimatikan!" })
+		if (!mediasoupClientVariable.availableDevices.camera) {
+			Users.warning({ message: "Camera tidak tersedia" })
+			return
+		}
+
+		if (!mediasoupClientVariable.videoProducer) {
+			mediasoupClientVariable.videoParams.appData.isActive = true
+			await mediasoupClientVariable.getMyStream({ faceRecognition, picture, userId: usersVariable.userId, username: usersVariable.username })
+			await mediasoupClientVariable.connectSendTransport({ socket, picture, userId: usersVariable.userId })
+			await usersVariable.addVideoSecondMethod({
+				userId: usersVariable.userId,
+				track: mediasoupClientVariable.myStream.getVideoTracks()[0],
+				username: usersVariable.username,
+				picture: picture,
+				isActive: true,
+			})
+			MediaSoupClient.changeVideo({ userId: usersVariable.userId, isActive: true, isCurrentUser: true })
+			return
+		}
+
 		const videoProducerStatus = mediasoupClientVariable.videoProducer.paused
 
 		if (videoProducerStatus) {
+			await mediasoupClientVariable.turnOnCamera({ userId: usersVariable.userId })
 			if (os.toLocaleLowerCase() == "android" || os.toLocaleLowerCase() == "ios") {
 				document.getElementById("switch-camera-mobile").classList.remove("d-none")
 			}
@@ -37066,7 +37441,7 @@ cameraButton.addEventListener("click", () => {
 				mediasoupClientVariable.videoProducer.resume()
 			})
 		} else {
-
+			await mediasoupClientVariable.myStream.getVideoTracks()[0].stop()
 			if (os.toLocaleLowerCase() == "android" || os.toLocaleLowerCase() == "ios") {
 				document.getElementById("switch-camera-mobile").classList.add("d-none")
 			}
@@ -37169,6 +37544,7 @@ screenSharingButton.addEventListener("click", async () => {
 				track: videoTrack,
 				focus: true,
 				socket,
+				isViewer: false,
 				appData: {
 					label: "screensharing_video",
 					isActive: true,
@@ -37689,34 +38065,6 @@ window.addEventListener("beforeunload", function (event) {
 	} catch (error) {}
 })
 
-// const pauseVideo = document.getElementById("pause-video")
-// let isVideoPaused = false
-// pauseVideo.addEventListener("click", () => {
-// 	try {
-// 		if (isVideoPaused) {
-// 			isVideoPaused = false
-// 			usersVariable.allUsers.forEach((u) => {
-// 				u.consumer.forEach((c) => {
-// 					if (c.id && c.appData.label == "video") {
-// 						socket.emit("consumer-resume", { serverConsumerId: c.id })
-// 					}
-// 				})
-// 			})
-// 		} else {
-// 			isVideoPaused = true
-// 			usersVariable.allUsers.forEach((u) => {
-// 				u.consumer.forEach((c) => {
-// 					if (c.id && c.appData.label == "video") {
-// 						socket.emit("consumer-pause", { serverConsumerId: c.id })
-// 					}
-// 				})
-// 			})
-// 		}
-// 	} catch (error) {
-// 		console.log("- Error Pause Video : ", error)
-// 	}
-// })
-
 if (os.toLowerCase() == "android" || os.toLowerCase() == "ios") {
 	let touchStartVideoCollection = 0
 	let touchEndVideoCollection = 0
@@ -37819,6 +38167,10 @@ if (os.toLowerCase() == "android" || os.toLowerCase() == "ios") {
 	})
 }
 
+if (isViewer) {
+	getViewerFeature()
+}
+
 },{"../socket/socket":106,"./eventListener":102,"./mediasoupClient":103,"./user":105,"recordrtc":80,"sweetalert2":100}],105:[function(require,module,exports){
 class StaticEvent {
 	static getInitialsAndColor(name) {
@@ -37885,6 +38237,39 @@ class StaticEvent {
 			document.getElementById("users-list-container").appendChild(userListElement)
 		} catch (error) {
 			console.log("- Error Add User : ", error)
+		}
+	}
+
+	static methodAddViewerList({ id, username }) {
+		try {
+			if (!document.getElementById(`ul-${id}`)) {
+				const alphabetUsername = this.getInitialsAndColor(username)
+				let viewerListElement = document.createElement("div")
+
+				// let authorityElement = ``
+				// const kickTitle = localStorage.getItem("language")
+
+				viewerListElement.className = "user-list-content"
+				viewerListElement.id = `ul-${id}`
+				viewerListElement.innerHTML = `
+									<div class="user-list-profile">
+										<span id="color-${id}" style="color: ${alphabetUsername.color};" class="user-list-picture">${alphabetUsername.initials}</span>
+										<span class="user-list-username">${username}</span>
+									</div>
+									<div class="user-list-icons">
+									</div>
+								`
+				document.getElementById("viewer-list-container").appendChild(viewerListElement)
+			}
+		} catch (error) {
+			console.log("- Error Add User : ", error)
+		}
+	}
+
+	static getViewerFeatere() {
+		try {
+		} catch (error) {
+			console.log("- Error Viewer Feature : ", error)
 		}
 	}
 
@@ -38155,7 +38540,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async increaseTotalDisplayedVodeo() {
+	async increaseTotalDisplayedVideo() {
 		this.#totalDisplayedVideo++
 	}
 
@@ -38309,7 +38694,7 @@ class Users extends StaticEvent {
 				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
-				await this.increaseTotalDisplayedVodeo()
+				await this.increaseTotalDisplayedVideo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
 						await this.startFR({ picture: `${baseUrl}/photo/${picture}.png`, id: userId, name: username })
@@ -38332,7 +38717,7 @@ class Users extends StaticEvent {
 		}
 	}
 
-	async addVideoSecondMethod({ userId, track, username, picture }) {
+	async addVideoSecondMethod({ userId, track = null, username, picture, isActive = true }) {
 		try {
 			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
 			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
@@ -38340,7 +38725,6 @@ class Users extends StaticEvent {
 			}
 
 			const checkUserElement = document.getElementById(`vc-${userId}`)
-			console.log(` Check Element : `, checkUserElement, " - User Id : ", userId)
 			if (!checkUserElement) {
 				const alphabetName = await this.constructor.getInitialsAndColor(username)
 				let faceRecognition = `<div class="face-recognition" id="face-recognition-${userId}"></div>`
@@ -38375,7 +38759,11 @@ class Users extends StaticEvent {
 				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
 				userVideoElement.appendChild(microphoneElement)
 
-				await this.increaseTotalDisplayedVodeo()
+				if (!track) {
+					document.getElementById(`turn-off-${userId}`).classList.remove("d-none")
+				}
+
+				await this.increaseTotalDisplayedVideo()
 				if (!userId.startsWith("ssv_")) {
 					if (this.#faceRecognition) {
 						await this.startFR({ picture: `${baseUrl.origin}/photo/${picture}.png`, id: userId, name: username })
@@ -38384,6 +38772,10 @@ class Users extends StaticEvent {
 			}
 			if (track) {
 				await this.insertVideo({ track, id: userId })
+			}
+
+			if (isActive && track) {
+				document.getElementById(`turn-off-${userId}`).classList.add("d-none")
 			}
 
 			await this.updateVideoCurrentClass()
@@ -38501,6 +38893,11 @@ class Users extends StaticEvent {
 				throw new Error("Provided track is not a video track")
 			}
 
+			// const pictureVideo = document.getElementById(`turn-off-${id}`)
+			// if (pictureVideo) {
+			// 	pictureVideo.classList.add("d-none")
+			// }
+
 			const videoElement = document.getElementById("v-" + id)
 			if (videoElement?.srcObject?.getVideoTracks()[0]) {
 				return
@@ -38596,11 +38993,14 @@ class Users extends StaticEvent {
 			const checkUserElement = document.getElementById(`vc-${userId}`)
 
 			if (checkUserElement) {
-				const tracks = await document.getElementById(`v-${userId}`).srcObject.getTracks()
+				const tracks = await document.getElementById(`v-${userId}`)?.srcObject?.getTracks()
 
-				tracks.forEach((track) => {
-					track.stop()
-				})
+				if (tracks) {
+					tracks.forEach((track) => {
+						track.stop()
+					})
+				}
+
 				checkUserElement.remove()
 				await this.updateVideoCurrentClass()
 				await this.updateVideoPreviousClass()
@@ -38759,17 +39159,30 @@ class Users extends StaticEvent {
 		focus = false,
 		socket,
 		index = null,
+		isViewer = false,
 		appData = null,
 	}) {
 		try {
 			let triggerPush = true
+			if (isViewer) {
+				this.constructor.methodAddViewerList({ id: userId, username })
+				return
+			}
 			if (!this.#allUsers.some((u) => u.userId == userId)) {
-				this.#allUsers.push({ userId, authority, socketId, consumer: [{ kind, id: consumerId, track, appData, focus }], username, frInterval: null })
+				this.#allUsers.push({
+					userId,
+					isViewer,
+					authority,
+					socketId,
+					consumer: [{ kind, id: consumerId, track, appData, focus }],
+					username,
+					frInterval: null,
+				})
 				if (consumerId != null) {
 					await this.increaseUsers()
 				}
 				if (kind == "video") {
-					await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture })
+					await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture, isActive: appData.isActive })
 				}
 				// await this.addVideo({ username, userId, track: null, index, picture: appData.picture })
 
@@ -38841,6 +39254,7 @@ class Users extends StaticEvent {
 						console.log("- Error Option User List Container : ", error)
 					}
 				})
+				await this.addVideoSecondMethod({ username, userId, track: null, index, picture: appData.picture, isActive: appData.isActive })
 				triggerPush = false
 			}
 			if (kind == "audio" && consumerId == null && appData.label == "audio") {
@@ -38857,7 +39271,7 @@ class Users extends StaticEvent {
 				await this.createAudioVisualizer({ id: userId, track })
 			}
 			if (kind == "video" && appData.label == "video") {
-				await this.addVideoSecondMethod({ username, userId, track, index, picture: appData.picture })
+				await this.addVideoSecondMethod({ username, userId, track, index, picture: appData.picture, isActive: appData.isActive })
 			}
 
 			if (appData && appData.label == "screensharing_audio") {
@@ -38897,7 +39311,7 @@ class Users extends StaticEvent {
 
 			this.#allUsers = this.#allUsers.filter((u) => u.userId != userId)
 
-			this.#users = this.#allUsers.length
+			this.#users = this.#allUsers.filter((u) => !u.isViewer).length
 
 			if (changeFocus && this.#allUsers.length > 0) {
 				this.#allUsers[0].consumer.forEach((c) => {
@@ -39248,6 +39662,9 @@ class Users extends StaticEvent {
 				const promises = this.#allUsers.map(async (u, index) => {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
+					if (u.isViewer) {
+						return
+					}
 					let tracks = u.consumer.filter((t) => t.kind == "video")
 					let audioTracks = u.consumer.find((t) => t.kind == "audio" && t.appData.label == "audio")
 
@@ -39260,7 +39677,6 @@ class Users extends StaticEvent {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
-											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
@@ -40354,7 +40770,6 @@ class Users extends StaticEvent {
 			}
 
 			if (this.#speechToText.recognition) {
-				console.warn("Speech recognition is already running.")
 				return
 			}
 
@@ -40400,13 +40815,11 @@ class Users extends StaticEvent {
 			}
 
 			this.#speechToText.recognition.onerror = (event) => {
-				console.error("SpeechRecognition Error: ", event)
 				if (event.error === "network" || event.error === "no-speech") {
 					if (this.#speechToText.recognition) {
 						setTimeout(() => {
 							if (!this.#speechToText.recognition.running) {
 								this.#speechToText.recognition.start()
-								console.log("Restarting Speech Recognition...")
 							}
 						}, 1000)
 					}
@@ -40414,16 +40827,13 @@ class Users extends StaticEvent {
 			}
 
 			this.#speechToText.recognition.onend = () => {
-				console.warn("Speech Recognition Ended.")
 				setTimeout(() => {
 					if (this.#speechToText.recognition && !this.#speechToText.recognition.running) {
 						this.#speechToText.recognition.start()
-						console.log("Restarting Speech Recognition...")
 					}
 				}, 1000)
 			}
 
-			console.log("Starting Speech Recognition...")
 			await this.#speechToText.recognition.start()
 		} catch (error) {
 			console.error("- Error Start Speech Recognition: ", error)
@@ -40436,9 +40846,12 @@ module.exports = { Users }
 },{}],106:[function(require,module,exports){
 const { io } = require("socket.io-client")
 
-const socket = io("https://modoto.net", { path: "/telepati/socket", autoConnect: false })
+// const socket = io("https://modoto.net", { path: "/telepati/socket", autoConnect: false })
 // const socket = io("https://localhost:9100", { path: "/telepati/socket", autoConnect: false })
+const getSocket = (baseUrl, path) => {
+	return io(baseUrl, { path: path, autoConnect: false })
+}
 
-module.exports = { socket }
+module.exports = { getSocket }
 
 },{"socket.io-client":86}]},{},[104]);

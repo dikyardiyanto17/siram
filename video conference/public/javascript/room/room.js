@@ -1,15 +1,19 @@
 const { default: Swal } = require("sweetalert2")
-const { socket } = require("../socket/socket")
+const { getSocket } = require("../socket/socket")
 const { EventListener } = require("./eventListener")
 const { Users } = require("./user")
 const { MediaSoupClient } = require("./mediasoupClient")
 const url = window.location.pathname
 const parts = url.split("/")
 const RecordRTC = require("recordrtc")
+const socket = getSocket(socketBaseUrl, socketPath)
 
 const eventListenerCollection = new EventListener({ micStatus: false, cameraStatus: false, roomId: roomName })
 const usersVariable = new Users()
 const mediasoupClientVariable = new MediaSoupClient()
+const isViewer = JSON.parse(localStorage.getItem("isViewer"))
+const isCameraActive = JSON.parse(localStorage.getItem("isCameraActive"))
+const isMicActive = JSON.parse(localStorage.getItem("isMicActive"))
 usersVariable.faceRecognition = faceRecognition
 
 const getOS = () => {
@@ -29,8 +33,29 @@ const getOS = () => {
 	}
 }
 
+const getViewerFeature = () => {
+	try {
+		const videoQualityUpstream = document.getElementById("video-quality-upstream")
+		const muteAllButton = document.getElementById("user-list-footer")
+		const micButton = document.getElementById("mic-button")
+		const cameraButton = document.getElementById("camera-button")
+		const recordContainer = document.getElementById("record-container")
+		const screenSharingButton = document.getElementById("screen-sharing-button")
+		const recordButton = document.getElementById("record-button")
+		videoQualityUpstream.remove()
+		muteAllButton.remove()
+		micButton.remove()
+		cameraButton.remove()
+		recordContainer.remove()
+		screenSharingButton.remove()
+		recordButton.remove()
+	} catch (error) {
+		console.log("- error get viewer feature : ", error)
+	}
+}
+
 const os = getOS()
-console.log("- OS : ", os)
+console.log(os)
 
 mediasoupClientVariable.os = os
 usersVariable.os = os
@@ -146,12 +171,15 @@ getResponsive()
 
 const connectSocket = async () => {
 	try {
+		mediasoupClientVariable.isViewer = isViewer
+		mediasoupClientVariable.audioPrams.appData.isActive = isMicActive
+		mediasoupClientVariable.videoParams.appData.isActive = isCameraActive
+		console.log(mediasoupClientVariable.videoParams)
 		socket.connect()
 		socket.emit(
 			"joining-room",
-			{ position: "room", token },
-			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username }) => {
-				console.log(socket.id)
+			{ position: "room", token, isViewer },
+			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username, isViewer }) => {
 				try {
 					if (status) {
 						let filteredRtpCapabilities = { ...rtpCapabilities }
@@ -170,18 +198,76 @@ const connectSocket = async () => {
 						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
 						await mediasoupClientVariable.createDevice()
 						await mediasoupClientVariable.setEncoding()
+
+						if (mediasoupClientVariable.isViewer) {
+							usersVariable.users = 0
+							await usersVariable.addAllUser({
+								userId,
+								username,
+								authority,
+								socketId: socket.id,
+								kind: "audio",
+								track: null,
+								focus: false,
+								socket,
+								isViewer,
+								appData: {
+									label: "audio",
+									isActive: false,
+									kind: "audio",
+									roomId: roomId,
+									socketId: socket.id,
+									userId,
+									picture,
+								},
+							})
+							await usersVariable.addAllUser({
+								userId,
+								username,
+								authority,
+								socketId: socket.id,
+								kind: "video",
+								track: null,
+								focus: false,
+								socket,
+								isViewer,
+								appData: {
+									label: "video",
+									isActive: false,
+									kind: "audio",
+									roomId: roomId,
+									socketId: socket.id,
+									userId,
+									picture,
+								},
+							})
+							await mediasoupClientVariable.createConsumerTransport({ socket, roomId, userId })
+							await mediasoupClientVariable.getProducers({ socket, roomId, userId, usersVariable })
+							document.getElementById("loading-id").className = "loading-hide"
+							socket.emit("viewer-joined", { roomId: roomName, id: userId, username })
+							return
+						}
+
+						const { hasCamera, hasMicrophone } = await mediasoupClientVariable.checkMediaDevices()
+
 						await mediasoupClientVariable.getMyStream({
 							faceRecognition,
 							picture: `${baseUrl}/photo/${picture}.png`,
 							userId,
 							username,
 						})
-						// await mediasoupClientVariable.getMyStream({ faceRecognition, picture: `${window.location.origin}/photo/${picture}.png`, userId, username })
-						await mediasoupClientVariable.getCameraOptions({ userId: userId })
-						await mediasoupClientVariable.getMicOptions({ usersVariable })
+
+						if (mediasoupClientVariable.availableDevices.camera) {
+							await mediasoupClientVariable.getCameraOptions({ userId: userId })
+						}
+						if (mediasoupClientVariable.availableDevices.microphone) {
+							await mediasoupClientVariable.getMicOptions({ usersVariable })
+						}
+
+						mediasoupClientVariable.myStream.getAudioTracks()[0].enabled = isMicActive
 
 						let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
-						let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0]
+						let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0] ? mediasoupClientVariable.myStream.getVideoTracks()[0] : null
 						if (authority == 1 || authority == 2) {
 							usersVariable.screenSharingPermission = true
 						} else {
@@ -196,9 +282,10 @@ const connectSocket = async () => {
 							track: audioTrack,
 							focus: true,
 							socket,
+							isViewer,
 							appData: {
 								label: "audio",
-								isActive: true,
+								isActive: mediasoupClientVariable.audioPrams.appData.isActive,
 								kind: "audio",
 								roomId: roomId,
 								socketId: socket.id,
@@ -215,9 +302,10 @@ const connectSocket = async () => {
 							track: videoTrack,
 							focus: true,
 							socket,
+							isViewer,
 							appData: {
 								label: "video",
-								isActive: true,
+								isActive: mediasoupClientVariable.videoParams.appData.isActive,
 								kind: "audio",
 								roomId: roomId,
 								socketId: socket.id,
@@ -294,6 +382,17 @@ socket.on("user-list", async ({ type, userId, isActive }) => {
 	}
 })
 
+socket.on("viewer-joined-feedback", async ({ id, socketId, username }) => {
+	try {
+		await Users.methodAddViewerList({ id, username })
+		if (socketId != socket.id && mediasoupClientVariable.isViewer) {
+			await socket.emit("viewer-joined-feedback", { id: usersVariable.userId, username: usersVariable.username, socketId })
+		}
+	} catch (error) {
+		console.log("- Error viewer joined feedback : ", error)
+	}
+})
+
 socket.on("user-logout", ({ userId }) => {
 	try {
 		eventListenerCollection.methodAddRaiseHandUser({ id: userId, status: false })
@@ -337,7 +436,7 @@ socket.on("message", async ({ userId, message, username, picture }) => {
 	}
 })
 
-socket.on("new-producer", async ({ producerId, userId, socketId }) => {
+socket.on("new-producer", async ({ producerId, userId, socketId, producerPaused }) => {
 	try {
 		await mediasoupClientVariable.signalNewConsumerTransport({
 			remoteProducerId: producerId,
@@ -346,6 +445,7 @@ socket.on("new-producer", async ({ producerId, userId, socketId }) => {
 			socketId,
 			roomId: roomName,
 			usersVariable: usersVariable,
+			producerPaused,
 		})
 	} catch (error) {
 		console.log("- Error SOCKET New Producer : ", error)
@@ -371,6 +471,7 @@ socket.on("close-consumer", async ({ consumerId, appData }) => {
 socket.on("producer-pause", async ({ pause, producerId, userId }) => {
 	try {
 		const userConsumer = mediasoupClientVariable.consumers.find((c) => c.consumer.producerId == producerId)
+
 		if (!pause) {
 			userConsumer.consumer.resume()
 		}
@@ -524,6 +625,10 @@ socket.on("kick-user", async ({ message }) => {
 let microphoneButton = document.getElementById("mic-icon")
 microphoneButton.addEventListener("click", async () => {
 	try {
+		if (!mediasoupClientVariable.availableDevices.microphone) {
+			Users.warning({ message: "Microphone tidak tersedia" })
+			return
+		}
 		if (usersVariable.muteAllStatus && usersVariable.authority == 3) {
 			Users.warning({ message: "Microphone dikunci oleh Admin" })
 			return
@@ -555,13 +660,35 @@ microphoneButton.addEventListener("click", async () => {
 
 // Camera Button
 let cameraButton = document.getElementById("camera-icon")
-cameraButton.addEventListener("click", () => {
+cameraButton.addEventListener("click", async (e) => {
 	try {
+		console.log("CLICKED")
 		// eventListenerCollection.changeCameraButton()
 		// Users.warning({ message: "Kamera tidak boleh dimatikan!" })
+		if (!mediasoupClientVariable.availableDevices.camera) {
+			Users.warning({ message: "Camera tidak tersedia" })
+			return
+		}
+
+		if (!mediasoupClientVariable.videoProducer) {
+			mediasoupClientVariable.videoParams.appData.isActive = true
+			await mediasoupClientVariable.getMyStream({ faceRecognition, picture, userId: usersVariable.userId, username: usersVariable.username })
+			await mediasoupClientVariable.connectSendTransport({ socket, picture, userId: usersVariable.userId })
+			await usersVariable.addVideoSecondMethod({
+				userId: usersVariable.userId,
+				track: mediasoupClientVariable.myStream.getVideoTracks()[0],
+				username: usersVariable.username,
+				picture: picture,
+				isActive: true,
+			})
+			MediaSoupClient.changeVideo({ userId: usersVariable.userId, isActive: true, isCurrentUser: true })
+			return
+		}
+
 		const videoProducerStatus = mediasoupClientVariable.videoProducer.paused
 
 		if (videoProducerStatus) {
+			await mediasoupClientVariable.turnOnCamera({ userId: usersVariable.userId })
 			if (os.toLocaleLowerCase() == "android" || os.toLocaleLowerCase() == "ios") {
 				document.getElementById("switch-camera-mobile").classList.remove("d-none")
 			}
@@ -569,7 +696,7 @@ cameraButton.addEventListener("click", () => {
 				mediasoupClientVariable.videoProducer.resume()
 			})
 		} else {
-
+			await mediasoupClientVariable.myStream.getVideoTracks()[0].stop()
 			if (os.toLocaleLowerCase() == "android" || os.toLocaleLowerCase() == "ios") {
 				document.getElementById("switch-camera-mobile").classList.add("d-none")
 			}
@@ -672,6 +799,7 @@ screenSharingButton.addEventListener("click", async () => {
 				track: videoTrack,
 				focus: true,
 				socket,
+				isViewer: false,
 				appData: {
 					label: "screensharing_video",
 					isActive: true,
@@ -1192,34 +1320,6 @@ window.addEventListener("beforeunload", function (event) {
 	} catch (error) {}
 })
 
-// const pauseVideo = document.getElementById("pause-video")
-// let isVideoPaused = false
-// pauseVideo.addEventListener("click", () => {
-// 	try {
-// 		if (isVideoPaused) {
-// 			isVideoPaused = false
-// 			usersVariable.allUsers.forEach((u) => {
-// 				u.consumer.forEach((c) => {
-// 					if (c.id && c.appData.label == "video") {
-// 						socket.emit("consumer-resume", { serverConsumerId: c.id })
-// 					}
-// 				})
-// 			})
-// 		} else {
-// 			isVideoPaused = true
-// 			usersVariable.allUsers.forEach((u) => {
-// 				u.consumer.forEach((c) => {
-// 					if (c.id && c.appData.label == "video") {
-// 						socket.emit("consumer-pause", { serverConsumerId: c.id })
-// 					}
-// 				})
-// 			})
-// 		}
-// 	} catch (error) {
-// 		console.log("- Error Pause Video : ", error)
-// 	}
-// })
-
 if (os.toLowerCase() == "android" || os.toLowerCase() == "ios") {
 	let touchStartVideoCollection = 0
 	let touchEndVideoCollection = 0
@@ -1320,4 +1420,8 @@ if (os.toLowerCase() == "android" || os.toLowerCase() == "ios") {
 			console.log("- Error Mute Speaker:", error)
 		}
 	})
+}
+
+if (isViewer) {
+	getViewerFeature()
 }

@@ -31,13 +31,14 @@
         <div class="layout-modal" id="layout-modal">
             <div class="layout-modal-header">
                 <span class="layout-modal-title" id="change-layout">Layout</span>
-                <img src="[/= baseUrl /]/assets/icons/close_button_layout.svg" alt="close_button" id="close-button-layout"
-                    style="cursor: pointer;">
+                <img src="[/= baseUrl /]/assets/icons/close_button_layout.svg" alt="close_button"
+                    id="close-button-layout" style="cursor: pointer;">
             </div>
             <div class="layout-modal-content-1">
                 <div id="layout-1" class="layout-option-container" data-option="1">
                     <section class="layout-option-title">
-                        <img class="radio" src="[/= baseUrl /]/assets/icons/radio_button_active.svg" alt="radio_button_icon">
+                        <img class="radio" src="[/= baseUrl /]/assets/icons/radio_button_active.svg"
+                            alt="radio_button_icon">
                         <span id="tiled">Tiled</span>
                     </section>
                     <section class="layout-option-icon">
@@ -74,7 +75,8 @@
                         <span>1</span>
                     </div> -->
                     <div class="layout-option" data-option="6">
-                        <img class="mini-radio" src="[/= baseUrl /]/assets/icons/mini_radio_active.svg" alt="mini_radio" />
+                        <img class="mini-radio" src="[/= baseUrl /]/assets/icons/mini_radio_active.svg"
+                            alt="mini_radio" />
                         <span>6</span>
                     </div>
                     <div class="layout-option" data-option="9">
@@ -97,7 +99,7 @@
             <div class="video-quality-header">
                 <span id="video-quality-title">Kualitas Video</span>
             </div>
-            <div class="video-quality-upstream">
+            <div class="video-quality-upstream" id="video-quality-upstream">
                 <span>Upload Stream</span>
                 <div class="upstream-quality">
                     <div class="upstream-option" data-option="0">
@@ -105,7 +107,8 @@
                         <span>Low</span>
                     </div>
                     <div class="upstream-option" data-option="1">
-                        <img class="mini-radio" src="[/= baseUrl /]/assets/icons/mini_radio_active.svg" alt="mini_radio" />
+                        <img class="mini-radio" src="[/= baseUrl /]/assets/icons/mini_radio_active.svg"
+                            alt="mini_radio" />
                         <span>Medium</span>
                     </div>
                     <div class="upstream-option" data-option="2">
@@ -126,7 +129,8 @@
                         <span>Low</span>
                     </div>
                     <div class="downstream-option" data-option="1">
-                        <img class="mini-radio" src="[/= baseUrl /]/assets/icons/mini_radio_active.svg" alt="mini_radio" />
+                        <img class="mini-radio" src="[/= baseUrl /]/assets/icons/mini_radio_active.svg"
+                            alt="mini_radio" />
                         <span>Medium</span>
                     </div>
                     <div class="downstream-option" data-option="2">
@@ -147,7 +151,8 @@
                     <img src="[/= baseUrl /]/assets/icons/mute_speaker_mobile.svg" alt="mute-speaker-mobile" srcset="">
                 </button>
                 <button id="switch-camera-mobile" class="switch-camera-mobile">
-                    <img src="[/= baseUrl /]/assets/icons/switch_camera_mobile.svg" alt="switch-camera-mobile" srcset="">
+                    <img src="[/= baseUrl /]/assets/icons/switch_camera_mobile.svg" alt="switch-camera-mobile"
+                        srcset="">
                 </button>
             </div>
         </section>
@@ -191,7 +196,8 @@
                     <div class="user-list-header">
                         <div class="user-list-header-title">
                             <span id="participants-title">Participants (<span id="user-list-total">1</span>)</span>
-                            <i id="close-side-bar"><img src="[/= baseUrl /]/assets/icons/close_button.svg" alt="close"></i>
+                            <i id="close-side-bar"><img src="[/= baseUrl /]/assets/icons/close_button.svg"
+                                    alt="close"></i>
                         </div>
                         <div class="user-list-header-search">
                             <div class="search-user">
@@ -235,8 +241,13 @@
                         </div>
                         <div class="users-list-container" id="users-list-container">
                         </div>
+                        <div id="viewer-list-container" class="viewer-list-container">
+                            <div class="raise-hand-list-header">
+                                <span id="viewer-list-box">Viewer</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="user-list-footer">
+                    <div class="user-list-footer" id="user-list-footer">
                         <!-- <button id="share-link-button" class="share-link-button">
                             <div id="clipboard-success"><span id="copied">Copied</span></div>
                             <span id="share-link-title">Share Link</span>
@@ -247,7 +258,8 @@
                 <section class="chat-container d-none" id="chat-container">
                     <div class="chat-header">
                         <span id="chat-title">Chat</span>
-                        <i id="close-side-bar-chat"><img src="[/= baseUrl /]/assets/icons/close_button.svg" alt="close"></i>
+                        <i id="close-side-bar-chat"><img src="[/= baseUrl /]/assets/icons/close_button.svg"
+                                alt="close"></i>
                     </div>
                     <div class="chat-content" id="chat-content">
                     </div>
@@ -267,8 +279,8 @@
                     <button class="button-container" id="mic-button">
                         <div class="tooltip-container" id="microphone-tooltip">Microphone</div>
                         <img id="mic-icon" class="icons" src="[/= baseUrl /]/assets/icons/mic.svg" alt="mic-icons">
-                        <img src="[/= baseUrl /]/assets/icons/arrow_up.svg" alt="arrow-up" id="microphone-devices-option"
-                            class="microphone-devices-option">
+                        <img src="[/= baseUrl /]/assets/icons/arrow_up.svg" alt="arrow-up"
+                            id="microphone-devices-option" class="microphone-devices-option">
                         <ul id="mic-options" class="d-none">
                             <li id="audio-input"><span class="mic-options-icons"><i
                                         class="fa-solid fa-microphone-lines"></i></span><span
@@ -278,7 +290,8 @@
                         </ul>
                     </button>
                     <button class="button-container" id="camera-button">
-                        <img id="camera-icon" class="icons" src="[/= baseUrl /]/assets/icons/camera.svg" alt="camera-icons">
+                        <img id="camera-icon" class="icons" src="[/= baseUrl /]/assets/icons/camera.svg"
+                            alt="camera-icons">
                         <img src="[/= baseUrl /]/assets/icons/arrow_up.svg" alt="arrow-up" id="camera-devices-option"
                             class="camera-devices-option">
                         <div class="tooltip-container" id="camera-tooltip">Camera</div>
@@ -291,10 +304,11 @@
                     <div class="record-container d-none" id="record-container">
                         <span id="timer-title">Recording :</span>&nbsp;<span
                             id="timer-span">00:00:00</span>&nbsp;&nbsp;&nbsp;<img id="pause-record"
-                            class="record-icons d-none" src="[/= baseUrl /]/assets/icons/pause_record.svg" alt="pause_button" /><img
-                            id="resume-record" class="record-icons d-none" src="[/= baseUrl /]/assets/icons/resume_record.svg"
-                            alt="pause_button" />&nbsp;&nbsp;<img id="stop-record" class="record-icons"
-                            src="[/= baseUrl /]/assets/icons/stop_record.svg" alt="stop_button" />
+                            class="record-icons d-none" src="[/= baseUrl /]/assets/icons/pause_record.svg"
+                            alt="pause_button" /><img id="resume-record" class="record-icons d-none"
+                            src="[/= baseUrl /]/assets/icons/resume_record.svg" alt="pause_button" />&nbsp;&nbsp;<img
+                            id="stop-record" class="record-icons" src="[/= baseUrl /]/assets/icons/stop_record.svg"
+                            alt="stop_button" />
                     </div>
                 </section>
                 <section class="middle-button-collection">
@@ -314,7 +328,8 @@
                     </button>
                     <button class="button-container" id="screen-sharing-button">
                         <div class="tooltip-container" id="screen-sharing-tooltip-title">Screen Share</div>
-                        <img class="icons" src="[/= baseUrl /]/assets/icons/screen_sharing.svg" alt="screen-sharing-icons">
+                        <img class="icons" src="[/= baseUrl /]/assets/icons/screen_sharing.svg"
+                            alt="screen-sharing-icons">
                     </button>
                     <button class="button-container" id="cc-button">
                         <div class="tooltip-container">Caption</div>
@@ -330,8 +345,9 @@
                         <div class="tooltip-container">Menu</div>
                         <img class="icons" src="[/= baseUrl /]/assets/icons/option.svg" alt="option-icons">
                         <div class="option-container" id="option-container">
-                            <p id="menu-option-title"><span>Menu</span> <img src="[/= baseUrl /]/assets/icons/close_button_layout.svg"
-                                    alt="close_button" id="close-button-option-list" style="cursor: pointer;"></p>
+                            <p id="menu-option-title"><span>Menu</span> <img
+                                    src="[/= baseUrl /]/assets/icons/close_button_layout.svg" alt="close_button"
+                                    id="close-button-option-list" style="cursor: pointer;"></p>
                             <div class="option-list" id="record-button">
                                 <img src="[/= baseUrl /]/assets/icons/record.svg" alt="record-icon">
                                 <span id="start-record">Start Record</span>
@@ -361,7 +377,11 @@
         </section>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <script src="[/= baseUrl /]/javascript/url/url.js"></script>
+    <script>
+        const baseUrl = [/- JSON.stringify(baseUrl) /]
+        const socketPath = [/- JSON.stringify(socketPath) /]
+        const socketBaseUrl = [/- JSON.stringify(socketBaseUrl) /]
+    </script>
     <script src="[/= baseUrl /]/assets/plugins/face-api/face-api.min.js"></script>
     <script>
         const roomName = [/- JSON.stringify(roomId) /]
@@ -373,7 +393,6 @@
         const videoType = [/- JSON.stringify(video_type) /]
         const token = [/- JSON.stringify(token) /]
         const userToken = [/- JSON.stringify(user_token) /]
-        console.log("- Video Codec : ", videoType)
     </script>
     <script src="[/= baseUrl /]/javascript/room/roombundle.js"></script>
     <script src="[/= baseUrl /]/javascript/room/language.js"></script>

@@ -1,314 +1,297 @@
 const { default: Swal } = require("sweetalert2")
-const { socket } = require("../socket/socket")
+const { getSocket } = require("../socket/socket")
 
-const loader = document.getElementById("loading")
-const localVideo = document.getElementById("local-video")
-const imageOutput = document.getElementById("image--output")
-const canvasElement = document.getElementById("canvas-element")
-const progressBar = document.getElementById("progress-bar")
-const proccessIcon = document.getElementById("proccess-icon")
-const proccessMessage = document.getElementById("proccess-message")
-const tryAgainContainer = document.getElementById("try-again-container-id")
-const tryAgainButton = document.getElementById("try-again-id")
-const waitingModal = document.getElementById("waiting-modal-container")
-const modalTitle = document.getElementById("modal-title")
-let image_data_url
-let base64Photo = `${baseUrl}/photo/${userPhoto}.png`
-let descriptors = { desc1: null, desc2: null }
-let intervalFR
-let result = false
-const loading = 10
-const loadingStep = 10
+const viewerCheckbox = document.getElementById("viewer-checkbox")
+const micCheckbox = document.getElementById("mic-checkbox")
+const cameraCheckbox = document.getElementById("camera-checkbox")
+const socket = getSocket(socketBaseUrl, socketPath)
 
-Promise.all([
-	faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
-	faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
-	faceapi.nets.faceLandmark68Net.loadFromUri("../../assets/plugins/face-api/models"),
-	faceapi.nets.tinyFaceDetector.loadFromUri("../../assets/plugins/face-api/models"),
-	faceapi.loadFaceRecognitionModel("../../assets/plugins/face-api/models"),
-]).then((_) => {
-	loader.className = "loading-hide"
-})
+const availableDevice = {
+	camera: true,
+	microphone: true,
+}
+
+const userSettings = {
+	isCameraActive: false,
+	isMicActive: false,
+	isViewer: false,
+}
+
+const checkMediaDevices = async () => {
+	if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+		console.warn("MediaDevices API not supported.")
+		return { hasCamera: false, hasMic: false }
+	}
+
+	try {
+		const devices = await navigator.mediaDevices.enumerateDevices()
+
+		const hasCamera = devices.some((device) => device.kind === "videoinput")
+		const hasMic = devices.some((device) => device.kind === "audioinput")
+
+		if (!hasCamera && !hasMic) {
+			await Swal.fire({
+				title: "Device not found!",
+				text: "Device is not available or detected!",
+				icon: "info",
+			})
+		} else if (!hasCamera) {
+			await Swal.fire({
+				title: "Device not found!",
+				text: "Camera is not available or detected!",
+				icon: "info",
+			})
+		} else if (!hasMic) {
+			await Swal.fire({
+				title: "Device not found!",
+				text: "Microphone is not available or detected!",
+				icon: "info",
+			})
+		}
+		availableDevice.camera = hasCamera
+		availableDevice.microphone = hasMic
+		return { hasCamera, hasMic }
+	} catch (err) {
+		console.error("Error accessing media devices:", err)
+		return { hasCamera: false, hasMic: false }
+	}
+}
 
 const joiningRoom = async ({ roomId, password }) => {
 	try {
 		await socket.connect()
-		await socket.emit("joining-room", { position: "lobby", token }, ({ status, roomName, meetingDate, meeting_type }) => {
-			console.log(status, roomName, meeting_type)
-			if (status) {
-				window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
-			} else {
-				if (meeting_type == 2) {
-					Swal.fire({
-						title: "Invalid Room",
-						text: "Pastikan ID Room dan Password benar!",
-						icon: "error",
-					})
-					return
+		await socket.emit(
+			"joining-room",
+			{ position: "lobby", token: localStorage.getItem("room_token") },
+			({ status, roomName, meetingDate, meeting_type }) => {
+				console.log(status, roomName, meeting_type)
+				if (status) {
+					window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
+				} else {
+					if (meeting_type == 2) {
+						Swal.fire({
+							title: "Invalid Room",
+							text: "Pastikan ID Room dan Password benar!",
+							icon: "error",
+						})
+						return
+					}
+					if (!meetingDate || !roomName || roomName.trim() == "") {
+						Swal.fire({
+							title: "Invalid Room",
+							text: "Pastikan ID Room dan Password benar!",
+							icon: "error",
+						})
+						return
+					}
+					let hours = new Date(meetingDate).getHours()
+					let minutes = new Date(meetingDate).getMinutes()
+					hours = hours < 10 ? "0" + hours : hours
+					minutes = minutes < 10 ? "0" + minutes : minutes
+					const timeString = `${hours}.${minutes}`
+					modalTitle.innerHTML = roomName
+					document.getElementById("start_date_modal").innerHTML = timeString
+					waitingModal.classList.remove("d-none")
 				}
-				if (!meetingDate || !roomName || roomName.trim() == "") {
-					Swal.fire({
-						title: "Invalid Room",
-						text: "Pastikan ID Room dan Password benar!",
-						icon: "error",
-					})
-					return
-				}
-				let hours = new Date(meetingDate).getHours()
-				let minutes = new Date(meetingDate).getMinutes()
-				hours = hours < 10 ? "0" + hours : hours
-				minutes = minutes < 10 ? "0" + minutes : minutes
-				const timeString = `${hours}.${minutes}`
-				modalTitle.innerHTML = roomName
-				document.getElementById("start_date_modal").innerHTML = timeString
-				waitingModal.classList.remove("d-none")
 			}
-		})
+		)
 	} catch (error) {
 		console.log("- Error Joining Room : ", error)
 	}
 }
 
+checkMediaDevices()
+cameraCheckbox?.addEventListener("input", async (e) => {
+	if (!availableDevice.camera) {
+		Swal.fire({
+			title: "Device not found!",
+			text: "Camera device is not available!",
+			icon: "error",
+		})
+		return
+	}
+
+	const videoPictureContainer = document.getElementById("video-picture-container")
+	const video = document.getElementById("video-demo")
+
+	if (cameraCheckbox.checked) {
+		// Hide picture container
+		if (!videoPictureContainer.classList.contains("d-none")) {
+			videoPictureContainer.classList.add("d-none")
+		}
+
+		// Start video stream
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({
+				video: {
+					width: { ideal: 1280 },
+					height: { ideal: 720 },
+					frameRate: { ideal: 30 },
+				},
+				audio: false,
+			})
+			video.srcObject = stream
+			video.play()
+		} catch (err) {
+			console.error("Failed to get video:", err)
+			Swal.fire({
+				title: "Error!",
+				text: "Unable to access the camera.",
+				icon: "error",
+			})
+		}
+	} else {
+		// Show picture container
+		videoPictureContainer.classList.remove("d-none")
+
+		// Stop video stream
+		if (video.srcObject) {
+			video.srcObject.getTracks().forEach((track) => track.stop())
+			video.srcObject = null
+		}
+	}
+})
+
+const lobbyForm = {
+	participant_id: "",
+	full_name: "",
+}
+
+document.addEventListener("DOMContentLoaded", (e) => {
+	document.getElementById("loading-id").className = "loading-hide"
+})
+
+if (!localStorage.getItem("language")) {
+	localStorage.setItem("language", "en")
+} else {
+	const language = localStorage.getItem("language")
+	if (language !== "en" && language !== "id") {
+		localStorage.setItem("language", "en")
+	}
+}
+
+const changeLanguage = ({ language }) => {
+	try {
+		const nameInput = document.getElementById("full_name")
+		const submitButton = document.getElementById("submit-button")
+
+		if (language == "en") {
+			nameInput.placeholder = "Name..."
+			submitButton.innerHTML = "Continue"
+		} else if (language == "id") {
+			nameInput.placeholder = "Nama..."
+			submitButton.innerHTML = "Lanjutkan"
+		} else {
+			throw { name: "error", message: "language id is not valid" }
+		}
+	} catch (error) {
+		console.log("- Error Change Languange", error)
+	}
+}
+
+changeLanguage({ language: localStorage.getItem("language") })
+
+const urlParam = new URL(window.location.href)
+const params = new URLSearchParams(urlParam.search)
+
+const rid = params.get("rid")
+const pw = params.get("pw")
+
+const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) => {
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	let randomId = ""
+
+	for (let i = 0; i < length; i++) {
+		if (i > 0 && i % separatorInterval === 0) {
+			randomId += separator
+		}
+
+		const randomIndex = Math.floor(Math.random() * characters.length)
+		randomId += characters.charAt(randomIndex)
+	}
+
+	return randomId
+}
+
+document.getElementById("participant_id").value = generateRandomId()
+
 const warning = ({ message }) => {
 	try {
 		document.getElementById("warning-container").style.top = "50px"
 		document.getElementById("warning-message").innerHTML = message
-
 		setTimeout(() => {
 			document.getElementById("warning-container").style.top = "-100%"
 			setTimeout(() => {
 				document.getElementById("warning-message").innerHTML = ""
-			}, 500)
+			}, 1000)
 		}, 3000)
 	} catch (error) {
 		console.log("- Error Warning Message : ", error)
 	}
 }
 
-const comparePicture = async ({ picture1, picture2 }) => {
+const lobbyFormElement = document.getElementById("lobby-form-container")
+lobbyFormElement.addEventListener("submit", async (event) => {
 	try {
-		console.log(picture1)
-		console.log(picture2)
-		loader.removeAttribute("class")
-		const input1 = await faceapi.fetchImage(picture1)
-		const input2 = await faceapi.fetchImage(picture2)
-		descriptors.desc1 = await faceapi.computeFaceDescriptor(input1)
-		descriptors.desc2 = await faceapi.computeFaceDescriptor(input2)
-		const distance = faceapi.utils.round(faceapi.euclideanDistance(descriptors.desc1, descriptors.desc2))
-		loader.className = "loading-hide"
-		document.getElementById("face-recognition-canvas-id").remove()
-		console.log("- Distance : ", distance)
-		if (distance <= 0.4) {
-			result = true
-			proccessIcon.src = `/assets/icons/success.svg`
-			proccessMessage.innerHTML = "Verifikasi berhasil"
-			if (!tryAgainContainer.classList.contains("d-none")) {
-				tryAgainContainer.classList.add("d-none")
-			}
-			await joiningRoom({ password, roomId })
-		} else {
-			result = false
-			proccessIcon.src = `/assets/icons/denied.svg`
-			proccessMessage.innerHTML = "Wajah tidak dikenali"
-			tryAgainContainer.classList.remove("d-none")
-			await warning({ message: `Verifikasi wajah gagal, Kemiripan wajah : ${100 - distance * 100} %` })
-			await stopFR()
+		event.preventDefault()
+		userSettings.isCameraActive = cameraCheckbox?.checked || false
+		userSettings.isMicActive = micCheckbox?.checked || false
+		userSettings.isViewer = viewerCheckbox?.checke || false
+		localStorage.setItem("isCameraActive", cameraCheckbox?.checked || false)
+		localStorage.setItem("isMicActive", micCheckbox?.checked || false)
+		localStorage.setItem("isViewer", viewerCheckbox?.checked || false)
+		lobbyForm.full_name = document.getElementById("full_name").value
+		lobbyForm.participant_id = document.getElementById("participant_id").value
+
+		if (!lobbyForm.full_name || lobbyForm.full_name.trim() == "") {
+			throw { message: "Nama Lengkap Wajib Di isi" }
 		}
-	} catch (error) {
-		console.log("- Error Comparing Picture : ", error)
-	}
-}
 
-const convertToBase64 = (arrayBuffer) => {
-	let binary = ""
-	const bytes = new Uint8Array(arrayBuffer)
-	const len = bytes.length
-	for (let i = 0; i < len; i++) {
-		binary += String.fromCharCode(bytes[i])
-	}
-	return atob(btoa(binary))
-}
-
-const getCameraReady = async () => {
-	try {
-		// base64Photo = await convertToBase64(userPhoto.data)
-
-		const config = {
-			video: true,
+		if (!lobbyForm.participant_id || lobbyForm.participant_id.trim() == "") {
+			throw { message: "Id Peserta Wajib Di isi" }
 		}
-		const stream = await navigator.mediaDevices.getUserMedia(config)
-		localVideo.srcObject = stream
-	} catch (error) {
-		console.log("- Error Getting Camera : ", error)
-		if (error.name === "NotAllowedError") {
-			await warning({ message: "Permintaan izin kamera di tolak!" })
-		}
-	}
-}
 
-const createFaceBox = async ({ width, height }) => {
-	try {
-		const canvas = document.getElementById("face-matcher-box")
+		localStorage.setItem("full_name", full_name)
+		localStorage.setItem("participant_id", full_name)
 
-		canvas.style.position = "absolute"
-		canvas.height = height
-		canvas.width = width
-
-		const ctx = canvas.getContext("2d")
-
-		const boxHeight = 200
-		const boxWidth = 170
-
-		const xPosition = (width - boxWidth) / 2
-		const yPosition = (height - boxHeight) / 2
-
-		ctx.strokeStyle = "white"
-		ctx.strokeRect(xPosition, yPosition, boxWidth, boxHeight)
-
-		ctx.fillStyle = "rgba(0, 0, 0, 0.3)"
-		ctx.fillRect(xPosition, yPosition, boxWidth, boxHeight)
-
-		return { boxHeight, boxWidth, xPosition, yPosition }
-	} catch (error) {
-		console.log("- Error Creating Box Canvas : ", error)
-	}
-}
-
-const startFR = async () => {
-	try {
-		if (document.getElementById("face-recognition-canvas-id")) {
-			return
-		}
-		const video = document.getElementById("local-video")
-		const parentElement = video.parentElement
-
-		const parentWidth = parentElement.offsetWidth
-		const parentHeight = parentElement.offsetHeight
-		const canvas = faceapi.createCanvasFromMedia(video)
-		canvas.id = "face-recognition-canvas-id"
-		document.getElementById("face-recognition-id").appendChild(canvas)
-		const displaySize = { width: parentWidth, height: parentHeight }
-		faceapi.matchDimensions(canvas, displaySize)
-		const boxCoordination = await createFaceBox({
-			width: canvas.clientWidth,
-			height: canvas.clientHeight,
+		const response = await fetch(`${baseUrl}/custom_api/login`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ ...lobbyForm, isViewer: viewerCheckbox.checked }),
 		})
-		let isValidPosition = []
-		intervalFR = setInterval(async () => {
-			const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options())
-			const resizedDetections = faceapi.resizeResults(detections, displaySize)
-			canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
-			faceapi.draw.drawDetections(canvas, resizedDetections)
+		if (response.ok) {
+			const { status, message, token } = await response.json()
+			if (status) {
+				const responseVideoConference = await fetch(`${baseUrl}/api/login`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ ...lobbyForm, isViewer: viewerCheckbox.checked }),
+				})
 
-			let xCalculation = boxCoordination.xPosition - resizedDetections[0]?.box?.x
-			let yCalculation = boxCoordination.yPosition - resizedDetections[0]?.box?.y
-			let widthCalculation = boxCoordination.boxWidth - resizedDetections[0]?.box?.width
-			let heightCalculation = boxCoordination.boxHeight - resizedDetections[0]?.box?.height
-			if (isValidPosition.length >= loading && !image_data_url) {
-				await capturePicture()
-				progressBar.value = 100
-				// isValidPosition = []
-				await clearInterval(intervalFR)
-				intervalFR = null
-			}
-
-			// console.log(Math.abs(xCalculation), Math.abs(yCalculation), Math.abs(widthCalculation), Math.abs(heightCalculation), resizedDetections[0].score)
-
-			if (
-				!image_data_url &&
-				isValidPosition.length < loading &&
-				Math.abs(xCalculation) <= 50 &&
-				Math.abs(yCalculation) <= 50 &&
-				Math.abs(widthCalculation) <= 200 &&
-				Math.abs(heightCalculation) <= 200 &&
-				resizedDetections[0].score >= 0.9
-			) {
-				progressBar.value = isValidPosition.length * loadingStep
-				proccessIcon.src = `/assets/icons/warn.svg`
-				proccessMessage.innerHTML = "Mohon posisi wajah disesuaikan dengan frame."
-				isValidPosition.push(true)
-			} else if (image_data_url) {
-				if (result) {
-					proccessIcon.src = `/assets/icons/success.svg`
-					proccessMessage.innerHTML = "Verifikasi berhasil"
-				} else {
-					proccessIcon.src = `/assets/icons/denied.svg`
-					proccessMessage.innerHTML = "Verifikasi Gagal"
+				if (responseVideoConference.ok) {
+					const data = await responseVideoConference.json()
+					if (data.status) {
+						await joiningRoom({ roomId: localStorage.getItem("room_id"), password: localStorage.getItem("password") })
+					} else {
+						throw { message: "lobby failed" }
+					}
 				}
 			} else {
-				isValidPosition = []
-				progressBar.value = 0
+				throw { message: "Peserta Tidak ditemukan" }
 			}
-		}, 300)
-	} catch (error) {
-		console.log("- Error Starting Face Recognition : ", error)
-	}
-}
-
-const tryAgain = () => {
-	try {
-		if (!imageOutput.classList.contains("d-none")) {
-			imageOutput.classList.add("d-none")
+		} else {
+			throw { message: "Peserta Tidak ditemukan" }
 		}
-
-		localVideo.classList.remove("d-none")
-
-		document.getElementById("face-matcher-box").classList.remove("d-none")
-		document.getElementById("face-recognition-id").classList.remove("d-none")
-		image_data_url = null
 	} catch (error) {
-		console.log("- Error Try Again : ", error)
+		console.log("- Error Submmit Login : ", error)
+		await warning({ message: error.message || "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
 	}
-}
-
-const stopFR = async () => {
-	try {
-		if (intervalFR) {
-			await clearInterval(intervalFR)
-			intervalFR = null
-		}
-		const tracks = await localVideo.srcObject.getTracks()
-
-		tracks.forEach((track) => {
-			try {
-				track.stop()
-			} catch (error) {
-				console.log("- Error Stopping tracks : ", error)
-			}
-		})
-
-		localVideo.srcObject = null
-
-		await tryAgain()
-	} catch (error) {
-		console.log("- Error Stop FR : ", error)
-	}
-}
-
-const capturePicture = async () => {
-	try {
-		canvasElement.width = localVideo.videoWidth
-		canvasElement.height = localVideo.videoHeight
-		canvasElement.getContext("2d").drawImage(localVideo, 0, 0)
-		image_data_url = canvasElement.toDataURL("image/png")
-		imageOutput.src = image_data_url
-		imageOutput.classList.remove("d-none")
-
-		localVideo.classList.add("d-none")
-		document.getElementById("face-matcher-box").classList.add("d-none")
-		document.getElementById("face-recognition-id").classList.add("d-none")
-
-		await comparePicture({ picture1: base64Photo, picture2: image_data_url })
-	} catch (error) {
-		console.error("Error capturing picture:", error)
-	}
-}
-
-tryAgainButton.addEventListener("click", getCameraReady)
-localVideo?.addEventListener("play", startFR)
-// localVideo?.addEventListener("ended", stopFR)
-
-getCameraReady()
+})
 
 socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	try {

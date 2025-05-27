@@ -1,8 +1,9 @@
 const { default: Swal } = require("sweetalert2")
-const { socket } = require("../socket/socket")
+const { getSocket } = require("../socket/socket")
 const url = window.location
 // const baseUrl = baseUrl
 
+const socket = getSocket(socketBaseUrl, socketPath)
 const urlParam = new URL(window.location.href)
 const params = new URLSearchParams(urlParam.search)
 
@@ -138,7 +139,6 @@ const generateRandomId = (length = 12, separator = "-", separatorInterval = 4) =
 
 autoGenerateButton.addEventListener("click", async () => {
 	try {
-		console.log("WHAT")
 		const randomId = await generateRandomId()
 		const randomPassword = await generateRandomId()
 		document.getElementById("room_id").value = randomId
@@ -183,14 +183,15 @@ joinSubmit.addEventListener("click", async (e) => {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
 		})
 
 		if (responseDatabaseRoom.ok) {
 			const dataResponseDatabaseRoom = await responseDatabaseRoom.json()
 			if (dataResponseDatabaseRoom.status) {
-				localStorage.setItem("room_id", e.target.value)
+				localStorage.setItem("password", document.getElementById("password").value)
+				localStorage.setItem("room_id", document.getElementById("room_id").value)
+				localStorage.setItem("room_token", dataResponseDatabaseRoom.token)
 				await joiningRoom({
 					roomId: dataResponseDatabaseRoom.room_id,
 					password: dataResponseDatabaseRoom.password,
@@ -239,11 +240,45 @@ socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	}
 })
 
-const joiningRoom = async ({ roomId, password, token }) => {
+// const joiningRoom = async ({ roomId, password, token, isViewer, isCameraActive, isMicActive }) => {
+// 	try {
+// 		socket.emit("joining-room", { position: "home", token, isViewer }, ({ status, roomName, meetingDate, meeting_type }) => {
+// 			if (status) {
+// 				window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
+// 			} else {
+// 				if (meeting_type == 1) {
+// 					window.location.href = `${baseUrl}/lobby`
+// 					return
+// 				}
+// 				if (!meetingDate || !roomName || roomName.trim() == "") {
+// 					Swal.fire({
+// 						title: "Invalid Room",
+// 						text: "Pastikan ID Room dan Password benar!",
+// 						icon: "error",
+// 					})
+// 					return
+// 				}
+// 				let hours = new Date(meetingDate).getHours()
+// 				let minutes = new Date(meetingDate).getMinutes()
+// 				hours = hours < 10 ? "0" + hours : hours
+// 				minutes = minutes < 10 ? "0" + minutes : minutes
+// 				const timeString = `${hours}.${minutes}`
+// 				setFormStyle({ status: false })
+// 				modalTitle.innerHTML = roomName
+// 				document.getElementById("start_date_modal").innerHTML = timeString
+// 				waitingModal.classList.remove("d-none")
+// 			}
+// 		})
+// 	} catch (error) {
+// 		console.log("- Error Joining Room : ", error)
+// 	}
+// }
+
+const joiningRoom = async ({ roomId, password, token, isCameraActive, isMicActive }) => {
 	try {
 		socket.emit("joining-room", { position: "home", token }, ({ status, roomName, meetingDate, meeting_type }) => {
 			if (status) {
-				window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
+				window.location.href = baseUrl + "/lobby"
 			} else {
 				if (meeting_type == 1) {
 					window.location.href = `${baseUrl}/lobby`

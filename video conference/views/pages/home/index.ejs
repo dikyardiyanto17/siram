@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="[/= baseUrl /]/assets/css/home.css">
     <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <title>Telepati</title>
+    <title>[/= appName /]</title>
 </head>
 
 <body>
@@ -67,10 +67,12 @@
         </div>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <script src="[/= baseUrl /]/javascript/url/url.js"></script>
     <script>
-        const token = [/- JSON.stringify(token) /]
-        const picture = [/- JSON.stringify(picture) /]
+        const baseUrl = [/- JSON.stringify(baseUrl) /]
+        const socketPath = [/- JSON.stringify(socketPath) /]
+        const socketBaseUrl = [/- JSON.stringify(socketBaseUrl) /]
+        const viewerEnabled = [/- JSON.stringify(viewerEnabled) /]
+        const initialSetting = [/- JSON.stringify(initialSetting) /]
     </script>
     <script src="[/= baseUrl /]/javascript/home/homebundle.js"></script>
 </body>
