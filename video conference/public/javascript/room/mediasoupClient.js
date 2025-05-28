@@ -93,6 +93,7 @@ class StaticEvent {
 }
 
 class MediaSoupClient extends StaticEvent {
+	#lockRoom = false
 	#availableDevices = {
 		camera: true,
 		microphone: true,
@@ -176,6 +177,14 @@ class MediaSoupClient extends StaticEvent {
 		this.#screenSharingMode = false
 		this.#screenSharingStatus = false
 		this.#screenSharingButton = document.getElementById("screen-sharing-button")
+	}
+
+	get lockRoom() {
+		return this.#lockRoom
+	}
+
+	set lockRoom(condition) {
+		this.#lockRoom = condition
 	}
 
 	get isViewer() {

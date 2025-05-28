@@ -34913,18 +34913,34 @@ class EventListener {
 		}
 	}
 
+	async getInitialsAndColor(name) {
+		// Extract initials and limit to 2 characters
+		const initials = name
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase())
+			.join("")
+			.slice(0, 2) // Ensure only 2 characters
+
+		const randomColor = `#${Math.floor(Math.random() * 16777215)
+			.toString(16)
+			.padStart(6, "0")}`
+
+		return { initials, color: randomColor }
+	}
+
 	// Method Join
 	async methodAddWaitingUser({ id, username, socket, picture }) {
 		try {
 			const redDotUserList = document.getElementById("red-dot-user-list")
+			const alphabetUsername = await this.getInitialsAndColor(username)
+
 			redDotUserList.classList.remove("d-none")
 			let userWaitingListElement = document.createElement("div")
 			userWaitingListElement.className = "user-list-content"
 			userWaitingListElement.id = `wait-${id}`
 			userWaitingListElement.innerHTML = `
 									<div class="user-list-profile">
-										<img  src="${baseUrl}/photo/${picture}.png" alt="user-list-picture"
-											class="user-list-picture" />
+										<span id="color-wait-${id}" style="color: ${alphabetUsername.color};" class="user-list-picture">${alphabetUsername.initials}</span>
 										<span class="user-list-username">${username}</span>
 									</div>
 									<div class="user-list-icons">
@@ -35370,6 +35386,7 @@ class StaticEvent {
 }
 
 class MediaSoupClient extends StaticEvent {
+	#lockRoom = false
 	#availableDevices = {
 		camera: true,
 		microphone: true,
@@ -35453,6 +35470,14 @@ class MediaSoupClient extends StaticEvent {
 		this.#screenSharingMode = false
 		this.#screenSharingStatus = false
 		this.#screenSharingButton = document.getElementById("screen-sharing-button")
+	}
+
+	get lockRoom() {
+		return this.#lockRoom
+	}
+
+	set lockRoom(condition) {
+		this.#lockRoom = condition
 	}
 
 	get isViewer() {
@@ -36781,7 +36806,7 @@ const getOS = () => {
 const getViewerFeature = () => {
 	try {
 		const videoQualityUpstream = document.getElementById("video-quality-upstream")
-		const muteAllButton = document.getElementById("user-list-footer")
+		const muteAllButton = document.getElementById("mute-all-button")
 		const micButton = document.getElementById("mic-button")
 		const cameraButton = document.getElementById("camera-button")
 		const recordContainer = document.getElementById("record-container")
@@ -36936,6 +36961,7 @@ const connectSocket = async () => {
 						usersVariable.authority = authority
 						if (authority == 3) {
 							document.getElementById("mute-all-button").remove()
+							document.getElementById("lock-room-button").remove()
 						}
 						const devices = await navigator.mediaDevices.enumerateDevices()
 						usersVariable.picture = picture
@@ -37613,6 +37639,33 @@ muteAllButton?.addEventListener("click", async () => {
 		})
 	} catch (error) {
 		console.log("- Error Mute All : ", error)
+	}
+})
+
+// Lock Room
+let lockRoomButton = document.getElementById("lock-room-button")
+lockRoomButton.addEventListener("click", async () => {
+	try {
+		const lockIcon = document.getElementById("check-lock-room")
+		if (mediasoupClientVariable.lockRoom) {
+			socket.emit("lock-room", { userId: usersVariable.userId, roomId: roomName, lock: false }, ({ status }) => {
+				if (status) {
+					mediasoupClientVariable.lockRoom = false
+					if (!lockIcon.classList.contains("d-none")) {
+						lockIcon.classList.add("d-none")
+					}
+				}
+			})
+		} else {
+			socket.emit("lock-room", { userId: usersVariable.userId, roomId: roomName, lock: true }, ({ status }) => {
+				if (status) {
+					mediasoupClientVariable.lockRoom = true
+					lockIcon.classList.remove("d-none")
+				}
+			})
+		}
+	} catch (error) {
+		console.log("- Error Lock Room : ", error)
 	}
 })
 

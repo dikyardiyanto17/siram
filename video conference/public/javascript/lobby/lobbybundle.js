@@ -11965,10 +11965,11 @@ const { default: Swal } = require("sweetalert2")
 const { getSocket } = require("../socket/socket")
 
 const viewerCheckbox = document.getElementById("viewer-checkbox")
-const micCheckbox = document.getElementById("mic-checkbox")
-const cameraCheckbox = document.getElementById("camera-checkbox")
+const micButton = document.getElementById("mic-button")
+const cameraButton = document.getElementById("camera-button")
+const waitingModal = document.getElementById("waiting-modal-container")
+const modalTitle = document.getElementById("modal-title")
 const socket = getSocket(socketBaseUrl, socketPath)
-
 const availableDevice = {
 	camera: true,
 	microphone: true,
@@ -11979,6 +11980,22 @@ const userSettings = {
 	isMicActive: false,
 	isViewer: false,
 }
+micButton.addEventListener("click", (e) => {
+	try {
+		const micIcon = document.getElementById("mic-icon")
+		const iconSrc = micIcon.src.split("/").pop() // e.g., 'mic_muted.svg'
+
+		if (iconSrc === "mic_muted.svg") {
+			userSettings.isMicActive = true
+			micIcon.src = `${baseUrl}/assets/icons/mic.svg`
+		} else {
+			userSettings.isMicActive = false
+			micIcon.src = `${baseUrl}/assets/icons/mic_muted.svg`
+		}
+	} catch (error) {
+		console.log("- Error Mic Button:", error)
+	}
+})
 
 const checkMediaDevices = async () => {
 	if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
@@ -12027,33 +12044,9 @@ const joiningRoom = async ({ roomId, password }) => {
 			"joining-room",
 			{ position: "lobby", token: localStorage.getItem("room_token") },
 			({ status, roomName, meetingDate, meeting_type }) => {
-				console.log(status, roomName, meeting_type)
 				if (status) {
 					window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
 				} else {
-					if (meeting_type == 2) {
-						Swal.fire({
-							title: "Invalid Room",
-							text: "Pastikan ID Room dan Password benar!",
-							icon: "error",
-						})
-						return
-					}
-					if (!meetingDate || !roomName || roomName.trim() == "") {
-						Swal.fire({
-							title: "Invalid Room",
-							text: "Pastikan ID Room dan Password benar!",
-							icon: "error",
-						})
-						return
-					}
-					let hours = new Date(meetingDate).getHours()
-					let minutes = new Date(meetingDate).getMinutes()
-					hours = hours < 10 ? "0" + hours : hours
-					minutes = minutes < 10 ? "0" + minutes : minutes
-					const timeString = `${hours}.${minutes}`
-					modalTitle.innerHTML = roomName
-					document.getElementById("start_date_modal").innerHTML = timeString
 					waitingModal.classList.remove("d-none")
 				}
 			}
@@ -12064,7 +12057,7 @@ const joiningRoom = async ({ roomId, password }) => {
 }
 
 checkMediaDevices()
-cameraCheckbox?.addEventListener("input", async (e) => {
+cameraButton?.addEventListener("click", async (e) => {
 	if (!availableDevice.camera) {
 		Swal.fire({
 			title: "Device not found!",
@@ -12076,8 +12069,10 @@ cameraCheckbox?.addEventListener("input", async (e) => {
 
 	const videoPictureContainer = document.getElementById("video-picture-container")
 	const video = document.getElementById("video-demo")
+	const cameraIcon = document.getElementById("camera-icon")
+	const iconSrc = cameraIcon.src.split("/").pop()
 
-	if (cameraCheckbox.checked) {
+	if (iconSrc == "camera_off.svg") {
 		// Hide picture container
 		if (!videoPictureContainer.classList.contains("d-none")) {
 			videoPictureContainer.classList.add("d-none")
@@ -12094,6 +12089,8 @@ cameraCheckbox?.addEventListener("input", async (e) => {
 				audio: false,
 			})
 			video.srcObject = stream
+			userSettings.isCameraActive = true
+			cameraIcon.src = `${baseUrl}/assets/icons/camera.svg`
 			video.play()
 		} catch (err) {
 			console.error("Failed to get video:", err)
@@ -12107,6 +12104,8 @@ cameraCheckbox?.addEventListener("input", async (e) => {
 		// Show picture container
 		videoPictureContainer.classList.remove("d-none")
 
+		userSettings.isCameraActive = false
+		cameraIcon.src = `${baseUrl}/assets/icons/camera_off.svg`
 		// Stop video stream
 		if (video.srcObject) {
 			video.srcObject.getTracks().forEach((track) => track.stop())
@@ -12203,11 +12202,9 @@ const lobbyFormElement = document.getElementById("lobby-form-container")
 lobbyFormElement.addEventListener("submit", async (event) => {
 	try {
 		event.preventDefault()
-		userSettings.isCameraActive = cameraCheckbox?.checked || false
-		userSettings.isMicActive = micCheckbox?.checked || false
-		userSettings.isViewer = viewerCheckbox?.checke || false
-		localStorage.setItem("isCameraActive", cameraCheckbox?.checked || false)
-		localStorage.setItem("isMicActive", micCheckbox?.checked || false)
+		userSettings.isViewer = viewerCheckbox?.checked || false
+		localStorage.setItem("isCameraActive", userSettings.isCameraActive)
+		localStorage.setItem("isMicActive", userSettings.isMicActive)
 		localStorage.setItem("isViewer", viewerCheckbox?.checked || false)
 		lobbyForm.full_name = document.getElementById("full_name").value
 		lobbyForm.participant_id = document.getElementById("participant_id").value

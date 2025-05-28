@@ -12,11 +12,23 @@ class LiveMeeting {
 		this.#users = newUser
 	}
 
-	async addUser({ participantId, roomId, socketId, authority, verified = false, joined = false, waiting = true, username, picture }) {
+	async addUser({ participantId, roomId, socketId, authority, verified = false, joined = false, waiting = true, username, picture, meetingType }) {
 		try {
 			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
 			if (!user) {
-				this.#users.push({ participantId, roomId, socketId, verified, joined, authority, waiting, username, processDeleteUser: false, picture })
+				this.#users.push({
+					participantId,
+					roomId,
+					socketId,
+					verified,
+					joined,
+					authority,
+					waiting,
+					username,
+					processDeleteUser: false,
+					picture,
+					meetingType,
+				})
 			}
 		} catch (error) {
 			console.log("- Error Add User : ", error)
@@ -81,6 +93,7 @@ class LiveMeeting {
 
 	async checkUser({ participantId, roomId }) {
 		try {
+			console.log(this.#users)
 			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
 			if (user) {
 				return true
@@ -133,6 +146,19 @@ class LiveMeeting {
 			if (user) {
 				return user
 			}
+			return null
+		} catch (error) {
+			console.log("- Error Find User : ", error)
+		}
+	}
+
+	async findRoom({ roomId }) {
+		try {
+			const room = await this.#users.find((u) => u.roomId == roomId)
+			if (room) {
+				return room
+			}
+			return null
 		} catch (error) {
 			console.log("- Error Find User : ", error)
 		}
@@ -220,6 +246,30 @@ class LiveMeeting {
 			})
 		} catch (error) {
 			console.log("- Error get user room : ", error)
+		}
+	}
+
+	async checkMeetType({ roomId }) {
+		try {
+			const user = this.#users.find((u) => u.roomId == roomId)
+			if (user) {
+				return user.meetingType
+			}
+			return 2
+		} catch (error) {
+			console.log("- Error Check Meet Type : ", error)
+		}
+	}
+
+	async changeMeetType({ roomId, meetingType }) {
+		try {
+			this.#users.forEach((u) => {
+				if (u.roomId == roomId) {
+					u.meetingType = meetingType
+				}
+			})
+		} catch (error) {
+			console.log("- Error Change Meet Type : ", roomId)
 		}
 	}
 }

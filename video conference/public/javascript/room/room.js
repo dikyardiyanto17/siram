@@ -36,7 +36,7 @@ const getOS = () => {
 const getViewerFeature = () => {
 	try {
 		const videoQualityUpstream = document.getElementById("video-quality-upstream")
-		const muteAllButton = document.getElementById("user-list-footer")
+		const muteAllButton = document.getElementById("mute-all-button")
 		const micButton = document.getElementById("mic-button")
 		const cameraButton = document.getElementById("camera-button")
 		const recordContainer = document.getElementById("record-container")
@@ -191,6 +191,7 @@ const connectSocket = async () => {
 						usersVariable.authority = authority
 						if (authority == 3) {
 							document.getElementById("mute-all-button").remove()
+							document.getElementById("lock-room-button").remove()
 						}
 						const devices = await navigator.mediaDevices.enumerateDevices()
 						usersVariable.picture = picture
@@ -868,6 +869,33 @@ muteAllButton?.addEventListener("click", async () => {
 		})
 	} catch (error) {
 		console.log("- Error Mute All : ", error)
+	}
+})
+
+// Lock Room
+let lockRoomButton = document.getElementById("lock-room-button")
+lockRoomButton.addEventListener("click", async () => {
+	try {
+		const lockIcon = document.getElementById("check-lock-room")
+		if (mediasoupClientVariable.lockRoom) {
+			socket.emit("lock-room", { userId: usersVariable.userId, roomId: roomName, lock: false }, ({ status }) => {
+				if (status) {
+					mediasoupClientVariable.lockRoom = false
+					if (!lockIcon.classList.contains("d-none")) {
+						lockIcon.classList.add("d-none")
+					}
+				}
+			})
+		} else {
+			socket.emit("lock-room", { userId: usersVariable.userId, roomId: roomName, lock: true }, ({ status }) => {
+				if (status) {
+					mediasoupClientVariable.lockRoom = true
+					lockIcon.classList.remove("d-none")
+				}
+			})
+		}
+	} catch (error) {
+		console.log("- Error Lock Room : ", error)
 	}
 })
 

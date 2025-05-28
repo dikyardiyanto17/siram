@@ -791,18 +791,34 @@ class EventListener {
 		}
 	}
 
+	async getInitialsAndColor(name) {
+		// Extract initials and limit to 2 characters
+		const initials = name
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase())
+			.join("")
+			.slice(0, 2) // Ensure only 2 characters
+
+		const randomColor = `#${Math.floor(Math.random() * 16777215)
+			.toString(16)
+			.padStart(6, "0")}`
+
+		return { initials, color: randomColor }
+	}
+
 	// Method Join
 	async methodAddWaitingUser({ id, username, socket, picture }) {
 		try {
 			const redDotUserList = document.getElementById("red-dot-user-list")
+			const alphabetUsername = await this.getInitialsAndColor(username)
+
 			redDotUserList.classList.remove("d-none")
 			let userWaitingListElement = document.createElement("div")
 			userWaitingListElement.className = "user-list-content"
 			userWaitingListElement.id = `wait-${id}`
 			userWaitingListElement.innerHTML = `
 									<div class="user-list-profile">
-										<img  src="${baseUrl}/photo/${picture}.png" alt="user-list-picture"
-											class="user-list-picture" />
+										<span id="color-wait-${id}" style="color: ${alphabetUsername.color};" class="user-list-picture">${alphabetUsername.initials}</span>
 										<span class="user-list-username">${username}</span>
 									</div>
 									<div class="user-list-icons">
