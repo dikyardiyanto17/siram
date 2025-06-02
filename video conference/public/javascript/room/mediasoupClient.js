@@ -915,6 +915,7 @@ class MediaSoupClient extends StaticEvent {
 						if (params.kind == "video" && !params.producerPaused) {
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
+									await this.constructor.changeVideo({ userId, isActive: true, isCurrentUser: false })
 									if (status && message != "producer-paused") {
 										if (consumer.paused) {
 											consumer.resume()

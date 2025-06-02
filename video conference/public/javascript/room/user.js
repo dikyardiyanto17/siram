@@ -51,7 +51,7 @@ class StaticEvent {
 									${authorityElement}
                                     <img id="mic-ul-${id}" src="${baseUrl}/assets/icons/user_list_mic_active.svg" alt="user-list-icon"
                                         class="user-list-icon">
-                                    <img id="camera-ul-${id}" src="${baseUrl}/assets/icons/user_list_camera_active.svg" alt="user-list-icon"
+                                    <img id="camera-ul-${id}" src="${baseUrl}/assets/icons/user_list_camera.svg" alt="user-list-icon"
                                         class="user-list-icon">
                                     <img style="cursor: pointer;" id="ul-o-${id}" src="${baseUrl}/assets/icons/user_list_option.svg" alt="user-list-icon"
                                         class="user-list-icon">
