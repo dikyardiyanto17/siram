@@ -80,7 +80,7 @@ const joiningRoom = async ({ roomId, password }) => {
 		await socket.emit(
 			"joining-room",
 			{ position: "lobby", token: localStorage.getItem("room_token") },
-			({ status, roomName, meetingDate, meeting_type }) => {
+			({ status, roomName }) => {
 				if (status) {
 					window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
 				} else {

@@ -1,4 +1,4 @@
-const { saveSession } = require("../helper")
+const { saveSession } = require("../helper/index.js")
 
 class LiveMeeting {
 	#users = []
@@ -93,7 +93,6 @@ class LiveMeeting {
 
 	async checkUser({ participantId, roomId }) {
 		try {
-			console.log(this.#users)
 			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
 			if (user) {
 				return true

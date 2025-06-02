@@ -128,19 +128,19 @@ io.on("connection", async (socket) => {
 				created_at,
 				updated_at,
 				video_type,
+				meeting_type,
 			} = decodedRoom
 
 			if (position == "room" && !userSession.roomToken) {
 				callback({ status: false, message: "Invalid Token" })
 				throw { name: "Invalid", message: "Invalid Token" }
 			}
-			const room = await liveMeeting.findRoom({ roomId: room_id })
-			let meeting_type = decodedRoom.meeting_type
 			// if (room) {
 			// 	meeting_type = room.meetingType
 			// }
 
 			if (position == "home") {
+				const room = await liveMeeting.findRoom({ roomId: room_id })
 				if (!userSession.meeting) {
 					userSession.meeting = {
 						firstTimeJoin: true,
@@ -163,13 +163,12 @@ io.on("connection", async (socket) => {
 			}
 
 			const decodedUser = await decodeToken(userSession.token)
-			if (!decodedRoom || !decodedUser) {
+			if (!decodedUser) {
 				callback({ status: false, message: "Invalid Token" })
 				throw { name: "Invalid", message: "Invalid Token" }
 			}
-			const { participant_id, full_name, user_id, role, exception, status, photo, photo_path, nik, nrp } = decodedUser.user
-			let authority = decodedUser.user.authority
-			const user = await liveMeeting.findUser({ roomId: room_id, userId: participant_id })
+
+			const { participant_id, full_name, user_id, role, exception, status, photo, photo_path, nik, nrp, authority } = decodedUser.user
 
 			// if (user) {
 			// 	authority = user.authority
@@ -202,25 +201,28 @@ io.on("connection", async (socket) => {
 					username: full_name,
 					picture: photo_path,
 					isViewer,
-					meetingType: room ? room.meetingType : meeting_type,
+					meetingType: isRoomExisted ? 2 : meeting_type,
 				})
 
+				const user = await liveMeeting.findUser({ roomId: room_id, userId: participant_id })
+				const room = await liveMeeting.findRoom({ roomId: room_id })
 				// Check user authority
 				// If user is admin (1 or 2), it will auto enter the room without waiting, otherwise wait in home or lobby
-				if ((isRoomExisted ? 3 : 1) == 1 || (isRoomExisted ? 3 : 1) == 2) {
+				if (user.authority == 1 || user.authority == 2) {
 					// Change status USER to verified is true and and not waiting (false)
 					await liveMeeting.changeVerifiedList({ participantId: participant_id, roomId: room_id, status: true })
 					await liveMeeting.changeWaitingList({ participantId: participant_id, status: false, roomId: room_id })
 
 					// Send signal to user if the permit is granted
 					callback({ status: true, roomName: room_name, meetingDate: start_date, meeting_type: room ? room.meetingType : meeting_type })
-				} else if ((isRoomExisted ? 3 : 1) == 3) {
+				} else if (user.authority == 3) {
 					// Normal user
 					// Check if user already did joined the room
-					const checkUserDidJoined = await liveMeeting.findUser({ roomId: room_id, userId: participant_id })
-					const { verified } = checkUserDidJoined
+					const { verified } = user
 
-					if ((room ? room.meetingType : meeting_type) == 2) {
+					if (room.meetingType == 2) {
+						await liveMeeting.changeVerifiedList({ participantId: participant_id, roomId: room_id, status: true })
+						await liveMeeting.changeWaitingList({ participantId: participant_id, status: false, roomId: room_id })
 						callback({ status: true, roomName: room_name, meetingDate: start_date, meeting_type: room ? room.meetingType : meeting_type })
 						return
 					}
@@ -249,6 +251,8 @@ io.on("connection", async (socket) => {
 				// User joining in the ROOM page
 
 				// Check if user is saved or not in not js variabel
+				const user = await liveMeeting.findUser({ roomId: room_id, userId: participant_id })
+				const room = await liveMeeting.findRoom({ roomId: room_id })
 				const checkUser = await liveMeeting.checkUser({ participantId: participant_id, roomId: room_id })
 				if (!checkUser) {
 					callback({ status: false, roomName: room_name, meetingDate: start_date, meeting_type: room ? room.meetingType : meeting_type })
@@ -266,17 +270,17 @@ io.on("connection", async (socket) => {
 				const rtpCapabilities = router.rtpCapabilities
 
 				// If USER is admin, get the waiting list
-				if ((user ? user.authority : authority) == 1 || (user ? user.authority : authority) == 2) {
+				if (user.authority == 1 || user.authority == 2) {
 					const waitingList = await liveMeeting.getWaitingList({ roomId: room_id })
 					callback({
 						status: true,
 						roomId: room_id,
 						userId: participant_id,
-						authority: user ? user.authority : authority,
+						authority: user.authority,
 						rtpCapabilities,
 						waitingList,
 						username: full_name,
-						meeting_type: room ? room.meetingType : meeting_type,
+						meeting_type: room.meetingType,
 						isViewer,
 					})
 					return
@@ -286,10 +290,10 @@ io.on("connection", async (socket) => {
 					status: true,
 					roomId: room_id,
 					userId: participant_id,
-					authority: user ? user.authority : authority,
+					authority: user.authority,
 					rtpCapabilities,
 					username: full_name,
-					meeting_type: room ? room.meetingType : meeting_type,
+					meeting_type: room.meetingType,
 					isViewer,
 				})
 			} else {
@@ -651,7 +655,7 @@ io.on("connection", async (socket) => {
 
 // for monitoring purpose
 
-app.get("/rooms", async (req, res, next) => {
+app.get(`${url}/rooms`, async (req, res, next) => {
 	try {
 		const { roomId } = req.session
 		const rooms = await liveMeeting.users.filter((u) => u.roomId == roomId)
@@ -661,7 +665,7 @@ app.get("/rooms", async (req, res, next) => {
 	}
 })
 
-app.get("/users", async (req, res, next) => {
+app.get(`${url}/users`, async (req, res, next) => {
 	try {
 		res.send({ users: liveMeeting.users, total: liveMeeting.users.length })
 	} catch (error) {
@@ -669,7 +673,7 @@ app.get("/users", async (req, res, next) => {
 	}
 })
 
-app.get("/waiting-list", async (req, res, next) => {
+app.get(`${url}/waiting-list`, async (req, res, next) => {
 	try {
 		const waitingList = await liveMeeting.users.filter((u) => u.waiting)
 		res.send({ waitingList: waitingList, total: waitingList.length })
@@ -678,7 +682,7 @@ app.get("/waiting-list", async (req, res, next) => {
 	}
 })
 
-app.get("/mediasoup/workers", async (req, res, next) => {
+app.get(`${url}/mediasoup/workers`, async (req, res, next) => {
 	try {
 		res.send({ workers: mediasoupVariable.workers, total: mediasoupVariable.workers.length })
 	} catch (error) {
@@ -686,7 +690,7 @@ app.get("/mediasoup/workers", async (req, res, next) => {
 	}
 })
 
-app.get("/mediasoup/routers", async (req, res, next) => {
+app.get(`${url}/mediasoup/routers`, async (req, res, next) => {
 	try {
 		res.send({ routers: mediasoupVariable.routers, total: mediasoupVariable.routers.length })
 	} catch (error) {
@@ -694,7 +698,7 @@ app.get("/mediasoup/routers", async (req, res, next) => {
 	}
 })
 
-app.get("/mediasoup/transports", async (req, res, next) => {
+app.get(`${url}/mediasoup/transports`, async (req, res, next) => {
 	try {
 		res.send({ transports: mediasoupVariable.transports, total: mediasoupVariable.transports.length })
 	} catch (error) {
@@ -702,7 +706,7 @@ app.get("/mediasoup/transports", async (req, res, next) => {
 	}
 })
 
-app.get("/mediasoup/producers", async (req, res, next) => {
+app.get(`${url}/mediasoup/producers`, async (req, res, next) => {
 	try {
 		res.send({
 			producers: mediasoupVariable.producers.map((p) => ({
@@ -718,7 +722,7 @@ app.get("/mediasoup/producers", async (req, res, next) => {
 	}
 })
 
-app.get("/mediasoup/consumers", async (req, res, next) => {
+app.get(`${url}/mediasoup/consumers`, async (req, res, next) => {
 	try {
 		res.send({
 			consumers: mediasoupVariable.consumers.map((c) => ({
@@ -734,7 +738,7 @@ app.get("/mediasoup/consumers", async (req, res, next) => {
 	}
 })
 
-app.get("/mediasoup/restart", async (req, res, next) => {
+app.get(`${url}/mediasoup/restart`, async (req, res, next) => {
 	try {
 		// console.log("- Users : ", liveMeeting.users)
 		// console.log("- Mediasoup Worker : ", mediasoupVariable.workers)
@@ -790,5 +794,4 @@ app.get("/mediasoup/restart", async (req, res, next) => {
 })
 
 app.use(url, router)
-
 app.use(errorHandler)

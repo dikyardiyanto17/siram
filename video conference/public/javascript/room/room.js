@@ -174,13 +174,13 @@ const connectSocket = async () => {
 		mediasoupClientVariable.isViewer = isViewer
 		mediasoupClientVariable.audioPrams.appData.isActive = isMicActive
 		mediasoupClientVariable.videoParams.appData.isActive = isCameraActive
-		console.log(mediasoupClientVariable.videoParams)
-		socket.connect()
-		socket.emit(
+		await socket.connect()
+		await socket.emit(
 			"joining-room",
 			{ position: "room", token, isViewer },
-			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username, isViewer }) => {
+			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username, isViewer, meeting_type }) => {
 				try {
+					console.log("- Meeting Type : ", meeting_type)
 					if (status) {
 						let filteredRtpCapabilities = { ...rtpCapabilities }
 						filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
@@ -189,6 +189,10 @@ const connectSocket = async () => {
 						usersVariable.username = username
 						usersVariable.userId = userId
 						usersVariable.authority = authority
+						if (authority == 1 && meeting_type == 1) {
+							const lockIcon = document.getElementById("check-lock-room")
+							lockIcon.classList.remove("d-none")
+						}
 						if (authority == 3) {
 							document.getElementById("mute-all-button").remove()
 							document.getElementById("lock-room-button").remove()
@@ -327,6 +331,7 @@ const connectSocket = async () => {
 					}
 				} catch (error) {
 					console.log("- Error Join Room : ", error)
+					alert(error)
 					this.constructor.warning({ message: `Internal Server Error!\n${error}`, back: true })
 				}
 			}
