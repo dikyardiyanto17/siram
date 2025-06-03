@@ -59,6 +59,9 @@ class EventListener {
 	#userListWaitingContainer
 	#userListWaiting
 
+	// #waitingNotificationListContainer
+	#waitingNotificationListUserContainer
+
 	// #raiseHandListCOntainer
 	#raiseHandListContainer
 	#raiseHandList
@@ -149,6 +152,7 @@ class EventListener {
 		this.#userListWaiting = document.getElementById("waiting-list-users")
 		this.#raiseHandListContainer = document.getElementById("raise-hand-list-container")
 		this.#raiseHandList = document.getElementById("raise-hand-list")
+		this.#waitingNotificationListUserContainer = document.getElementById("waiting-notification")
 
 		// Mute All
 		this.#muteAllButton = document.getElementById("mute-all-button")
@@ -828,42 +832,39 @@ class EventListener {
 										id="reject-${id}" />
 									</div>
 								`
+
+			let userWaitingNotificationListElement = document.createElement("div")
+			userWaitingNotificationListElement.className = `waiting-notification-list`
+			userWaitingNotificationListElement.id = `waiting-notification-list-${id}`
+			userWaitingNotificationListElement.innerHTML = `
+					<span>${username}</span>
+					<div class="waiting-notification-list-icons" id="waiting-notification-list-icons">
+                        <img style="cursor: pointer;" src="${baseUrl}/assets/icons/accept.svg" alt="user-list-icon"
+                            class="user-list-icon" id="waiting-list-notification-accept-${id}" />
+                        <img style="cursor: pointer;" src="${baseUrl}/assets/icons/reject.svg" alt="user-list-icon"
+                            class="user-list-icon" id="waiting-list-notification-reject-${id}" />
+                    </div>
+			`
+
 			this.#userListWaiting.appendChild(userWaitingListElement)
+			this.#waitingNotificationListUserContainer.appendChild(userWaitingNotificationListElement)
+
 			const currentUserWaitingAcceptElement = document.getElementById(`accept-${id}`)
-			const acceptMouseOver = () => {
+			const handleMouseOver = (event) => {
 				try {
-					currentUserWaitingAcceptElement.src = `${baseUrl}/assets/icons/accept_active.svg`
+					event.target.src = event.target.src.replace(".svg", "_active.svg")
 				} catch (error) {
-					console.log("- Error Mouse Over Accept : ", error)
-				}
-			}
-			const acceptMouseLeave = () => {
-				try {
-					currentUserWaitingAcceptElement.src = `${baseUrl}/assets/icons/accept.svg`
-				} catch (error) {
-					console.log("- Error Mouse Over Accept : ", error)
+					console.log("- Error Mouse Over:", error)
 				}
 			}
 
-			const rejectMouseOver = () => {
+			const handleMouseLeave = (event) => {
 				try {
-					currentUserWaitingRejectElement.src = `${baseUrl}/assets/icons/reject_active.svg`
+					event.target.src = event.target.src.replace("_active.svg", ".svg")
 				} catch (error) {
-					console.log("- Error Mouse Over Reject : ", error)
+					console.log("- Error Mouse Leave:", error)
 				}
 			}
-			const rejectMouseLeave = () => {
-				try {
-					currentUserWaitingRejectElement.src = `${baseUrl}/assets/icons/reject.svg`
-				} catch (error) {
-					console.log("- Error Mouse Over Accept : ", error)
-				}
-			}
-			currentUserWaitingAcceptElement.addEventListener("mouseover", acceptMouseOver)
-			currentUserWaitingAcceptElement.addEventListener("mouseleave", acceptMouseLeave)
-			const currentUserWaitingRejectElement = document.getElementById(`reject-${id}`)
-			currentUserWaitingRejectElement.addEventListener("mouseover", rejectMouseOver)
-			currentUserWaitingRejectElement.addEventListener("mouseleave", rejectMouseLeave)
 
 			const acceptEvent = () => {
 				try {
@@ -887,22 +888,49 @@ class EventListener {
 				}
 			}
 
+			currentUserWaitingAcceptElement.addEventListener("mouseover", handleMouseOver)
+			currentUserWaitingAcceptElement.addEventListener("mouseleave", handleMouseLeave)
+			const currentUserWaitingRejectElement = document.getElementById(`reject-${id}`)
+			currentUserWaitingRejectElement.addEventListener("mouseover", handleMouseOver)
+			currentUserWaitingRejectElement.addEventListener("mouseleave", handleMouseLeave)
+
 			currentUserWaitingAcceptElement.addEventListener("click", acceptEvent)
 
 			currentUserWaitingRejectElement.addEventListener("click", rejectEvent)
+
+			const currentUserWaitingNotificationAcceptElement = document.getElementById(`waiting-list-notification-accept-${id}`)
+			const currentUserWaitingNotificationRejectElement = document.getElementById(`waiting-list-notification-reject-${id}`)
+
+			currentUserWaitingNotificationAcceptElement.addEventListener("mouseover", handleMouseOver)
+			currentUserWaitingNotificationAcceptElement.addEventListener("mouseleave", handleMouseLeave)
+
+			currentUserWaitingNotificationRejectElement.addEventListener("mouseover", handleMouseOver)
+			currentUserWaitingNotificationRejectElement.addEventListener("mouseleave", handleMouseLeave)
+
+			currentUserWaitingNotificationAcceptElement.addEventListener("click", acceptEvent)
+			currentUserWaitingNotificationRejectElement.addEventListener("click", rejectEvent)
+
 			const removeEventListener = () => {
 				try {
-					currentUserWaitingAcceptElement.removeEventListener("mouseover", acceptMouseOver)
-					currentUserWaitingAcceptElement.removeEventListener("mouseleave", acceptMouseLeave)
-					currentUserWaitingRejectElement.removeEventListener("mouseover", rejectMouseOver)
-					currentUserWaitingRejectElement.removeEventListener("mouseleave", rejectMouseLeave)
+					currentUserWaitingAcceptElement.removeEventListener("mouseover", handleMouseOver)
+					currentUserWaitingAcceptElement.removeEventListener("mouseleave", handleMouseLeave)
+					currentUserWaitingRejectElement.removeEventListener("mouseover", handleMouseOver)
+					currentUserWaitingRejectElement.removeEventListener("mouseleave", handleMouseLeave)
+					currentUserWaitingNotificationAcceptElement.removeEventListener("mouseover", handleMouseOver)
+					currentUserWaitingNotificationAcceptElement.removeEventListener("mouseleave", handleMouseLeave)
+					currentUserWaitingNotificationRejectElement.removeEventListener("mouseover", handleMouseOver)
+					currentUserWaitingNotificationRejectElement.removeEventListener("mouseleave", handleMouseLeave)
 					currentUserWaitingAcceptElement.removeEventListener("click", acceptEvent)
 					currentUserWaitingRejectElement.removeEventListener("click", rejectEvent)
+					currentUserWaitingNotificationAcceptElement.removeEventListener("click", acceptEvent)
+					currentUserWaitingNotificationRejectElement.removeEventListener("click", rejectEvent)
 					userWaitingListElement.remove()
+					userWaitingNotificationListElement.remove()
 				} catch (error) {
 					console.log("- Error Remove Listener : ", error)
 				}
 			}
+
 			await this.checkWaitingList()
 		} catch (error) {
 			console.log("- Error Add Waiting List User : ", error)
@@ -960,9 +988,14 @@ class EventListener {
 	async removeWaitingList({ id }) {
 		try {
 			const waitedUser = document.getElementById(`wait-${id}`)
+			const waitedNotification = document.getElementById(`waiting-notification-list-${id}`)
 
 			if (waitedUser) {
 				waitedUser.remove()
+			}
+
+			if (waitedNotification) {
+				waitedNotification.remove()
 			}
 
 			await this.checkWaitingList()

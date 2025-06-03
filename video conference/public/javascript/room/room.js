@@ -533,7 +533,6 @@ socket.on("force-stop-screensharing", async ({ message }) => {
 
 socket.on("admin-response", async ({ type, id, roomId }) => {
 	try {
-		console.log("ADMIN RESPONSE : ", id)
 		if (type == "waiting-list") {
 			eventListenerCollection.removeWaitingList({ id })
 		} else if (type == "screen-sharing-permission") {
