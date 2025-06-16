@@ -229,11 +229,18 @@ const warning = ({ message }) => {
 	}
 }
 
-if (localStorage.getItem("full_name")) {
-	console.log(localStorage.getItem("full_name"))
-	document.getElementById("full_name").value = localStorage.getItem("full_name")
-	lobbyForm.full_name = localStorage.getItem("full_name")
+const fullName = localStorage.getItem("full_name");
+
+if (fullName && fullName !== "[object HTMLInputElement]") {
+    const input = document.getElementById("full_name");
+	input.value = fullName;
+	lobbyForm.full_name = fullName;
+} else {
+    localStorage.removeItem("full_name");
 }
+
+
+
 
 const lobbyFormElement = document.getElementById("lobby-form-container")
 lobbyFormElement.addEventListener("submit", async (event) => {

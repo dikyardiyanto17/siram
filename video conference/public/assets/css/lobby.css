@@ -277,11 +277,33 @@ input:checked+.slider:before {
 @media (max-width: 768px) {
     .full-container {
         height: 100dvh;
+        width: 100dvw;
         background-image: url("/assets/pictures/homeBg_mobile.png");
+        padding: 30px;
     }
 
     .lobby-form-container {
         width: 90%;
+    }
+
+    .lobby-container {
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    #video-container {
+        width: 100%;
+    }
+
+    .left-side-content {
+        height: 50%;
+        width: 100%;
+    }
+
+    .right-side-content {
+        height: 50%;
+        width: 100%;
+        display: flex;
     }
 }
 
