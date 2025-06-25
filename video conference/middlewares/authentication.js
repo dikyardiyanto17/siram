@@ -6,8 +6,6 @@ const authenthication = async (req, res, next) => {
 		const { token, roomToken, meeting } = req.session
 		const path = req.path
 
-		console.log(path)
-
 		if ((path.startsWith("/room/") && !token) || !roomToken || !meeting) {
 			const { rid, pw } = req.query
 			if (rid && rid.trim() !== "" && pw && pw.trim() !== "") {

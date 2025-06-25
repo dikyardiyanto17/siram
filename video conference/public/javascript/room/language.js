@@ -17,8 +17,6 @@ const changeLanguage = ({ language }) => {
 		const alertVideoLayout = document.getElementById("alert-video-layout")
 		const videoQualityTitle = document.getElementById("video-quality-title")
 		const participantTitle = document.getElementById("participants-title")
-		const participantIconsTitle = document.getElementById("participants-icons-title")
-		const chatIconsTitle = document.getElementById("chat-icons-title")
 		const participantsInput = document.getElementById("search-participant")
 		const raiseHandBox = document.getElementById("raise-hand-box")
 		const waitingListBox = document.getElementById("waiting-list-box")
@@ -41,6 +39,7 @@ const changeLanguage = ({ language }) => {
 		const videoQualityMenu = document.getElementById("video-quality-menu")
 		const layoutMenu = document.getElementById("layout-menu")
 		const settingMenu = document.getElementById("setting-menu")
+		const lockRoomTitle = document.getElementById("lock-room-button-title")
 
 		if (language == "en") {
 			changeLayout.innerHTML = "Layout"
@@ -73,8 +72,7 @@ const changeLanguage = ({ language }) => {
 			layoutMenu.innerHTML = "Layout"
 			settingMenu.innerHTML = "Setting"
 			shareLinkTooltip.innerHTML = "Share Link"
-			participantIconsTitle.innerHTML = "Participants"
-			chatIconsTitle.innerHTML = "Chat"
+			lockRoomTitle.innerHTML = "Lock Room"
 		} else if (language == "id") {
 			changeLayout.innerHTML = "Ubah Susunan"
 			tiled.innerHTML = "Petak"
@@ -106,8 +104,7 @@ const changeLanguage = ({ language }) => {
 			layoutMenu.innerHTML = "Ubah Susunan"
 			settingMenu.innerHTML = "Pengaturan"
 			shareLinkTooltip.innerHTML = "Bagikan Link"
-			participantIconsTitle.innerHTML = "Peserta"
-			chatIconsTitle.innerHTML = "Pesan"
+			lockRoomTitle.innerHTML = "Kunci Ruangan"
 		} else {
 			throw { name: "error", message: "language id is not valid" }
 		}

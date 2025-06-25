@@ -40451,7 +40451,7 @@ class Users extends StaticEvent {
 
 				this.#allUsers.forEach((u) => {
 					u.consumer.forEach((c) => {
-						if (c.track.kind == "audio") {
+						if (c.track && c.track?.kind == "audio" ) {
 							allAudio.push(c.track)
 						}
 					})
