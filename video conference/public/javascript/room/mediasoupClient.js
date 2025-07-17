@@ -826,7 +826,6 @@ class MediaSoupClient extends StaticEvent {
 				async ({ params }) => {
 					try {
 						const { appData } = params
-						console.log("- Params : ", params)
 						const streamId = params.kind == "audio" ? `audio-${params.userId}` : `video-${params.userId}`
 						const consumer = await this.#consumerTransport.consume({
 							id: params.id,
@@ -913,9 +912,11 @@ class MediaSoupClient extends StaticEvent {
 
 						let checkVideo = await usersVariable.checkVideo({ userId })
 						if (params.kind == "video" && !params.producerPaused) {
+							// const consumers = usersVariable.allUsers.find((x) => x.userId == userId)
+							// const consumerTrack = consumers.consumer.find((x) => x.id == params.serverConsumerId)
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
-									await this.constructor.changeVideo({ userId, isActive: true, isCurrentUser: false })
+									await this.constructor.changeVideo({ userId: appData && appData?.label == "screensharing_video" ? `ssv_${userId}` : userId, isActive: true, isCurrentUser: false })
 									if (status && message != "producer-paused") {
 										if (consumer.paused) {
 											consumer.resume()
@@ -1300,47 +1301,6 @@ class MediaSoupClient extends StaticEvent {
 					}
 				})
 			})
-			// audioDevicesOutput.forEach((audioDevices, index) => {
-			// 	let currentAudio = '<i class="fa-regular fa-square"></i>'
-			// 	if (index === 0) {
-			// 		currentAudio = `<i class="fa-regular fa-square-check"></i>`
-			// 		this.#speakerDeviceId = audioDevices.deviceId
-			// 	}
-			// 	let newElement = document.createElement("li")
-			// 	newElement.id = audioDevices.deviceId + "-audio-output"
-			// 	newElement.innerHTML = `<span class="mic-options-icons">${currentAudio}</span><span>${audioDevices.label}</span>`
-			// 	micOptionsContainer.appendChild(newElement)
-			// 	newElement.addEventListener("click", (e) => {
-			// 		e.stopPropagation()
-			// 		const iconSpeaker = document.getElementById(`${this.#speakerDeviceId}-audio-output`).firstChild.firstChild
-			// 		iconSpeaker.className = "fa-regular fa-square"
-			// 		this.#speakerDeviceId = audioDevices.deviceId
-			// 		const currentSpeaker = document.getElementById(`${this.#speakerDeviceId}-audio-output`).firstChild.firstChild
-			// 		currentSpeaker.className = "fa-regular fa-square-check"
-			// 		usersVariable.allUsers.forEach((u) => {
-			// 			let theAudio = document.getElementById(`a-${u.userId}`)
-
-			// 			console.log(theAudio)
-			// 			if (theAudio && typeof theAudio.sinkId !== "undefined") {
-			// 				console.log("- Sink Id Is Exist")
-			// 				theAudio
-			// 					.setSinkId(audioDevices.deviceId)
-			// 					.then(() => {
-			// 						console.log(`Success, audio output device attached: ${audioDevices.deviceId}`)
-			// 					})
-			// 					.catch((error) => {
-			// 						let errorMessage = error
-			// 						if (error.name === "SecurityError") {
-			// 							errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`
-			// 						}
-			// 						console.error(errorMessage)
-			// 					})
-			// 			} else {
-			// 				console.warn("Browser does not support output device selection.")
-			// 			}
-			// 		})
-			// 	})
-			// })
 		} catch (error) {
 			console.log("- Error Getting Mic Options : ", error)
 			this.constructor.warning({ message: "Gagal mendapatkan pilihan microphone yang tersedia!", back: true })

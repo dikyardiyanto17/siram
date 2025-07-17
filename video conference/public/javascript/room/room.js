@@ -667,7 +667,6 @@ microphoneButton.addEventListener("click", async () => {
 let cameraButton = document.getElementById("camera-icon")
 cameraButton.addEventListener("click", async (e) => {
 	try {
-		console.log("CLICKED")
 		// eventListenerCollection.changeCameraButton()
 		// Users.warning({ message: "Kamera tidak boleh dimatikan!" })
 		if (!mediasoupClientVariable.availableDevices.camera) {

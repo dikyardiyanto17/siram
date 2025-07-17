@@ -434,7 +434,6 @@ class Users extends StaticEvent {
 
 	async changeCurrentPage() {
 		try {
-			console.log("- Current Page : ", this.#currentPage)
 			// document.getElementById("previous-number").innerHTML = this.#currentPage <= 1 ? 1 : this.#currentPage - 1 == 0 ? 1 : this.#currentPage - 1
 			document.getElementById("previous-number").innerHTML = Math.max(1, this.#currentPage - 1)
 			document.getElementById("next-number").innerHTML = this.#currentPage == this.#totalPage ? this.#totalPage : this.#currentPage + 1
@@ -911,11 +910,14 @@ class Users extends StaticEvent {
 	async selectVideoLayout({ container, socket }) {
 		try {
 			if (container.dataset.option == 1 && this.#screenSharingMode) {
+				if (this.#users == 1) {
+					await document.getElementById("layout-2").click()
+				}
 				this.constructor.warning({
 					message:
 						localStorage.getItem("language") == "id"
-							? "Tidak bisa memilih layout pada saat berbagi layar"
-							: "Cannot change the selected layout in screen sharing mode",
+							? "Tidak bisa memilih layout petak pada saat berbagi layar"
+							: "Cannot change the tiles layout in screen sharing mode",
 				})
 				return
 			}
@@ -1000,7 +1002,16 @@ class Users extends StaticEvent {
 					isViewer,
 					authority,
 					socketId,
-					consumer: [{ kind, id: consumerId, track, appData, focus }],
+					consumer: [
+						{ kind, id: consumerId, track, appData, focus },
+						{
+							kind: kind == "audio" ? "video" : "audio",
+							id: "",
+							track: null,
+							appData: { label: kind == "audio" ? "video" : "audio", isActive: false, picture: "" },
+							focus: false,
+						},
+					],
 					username,
 					frInterval: null,
 				})
@@ -1088,10 +1099,23 @@ class Users extends StaticEvent {
 				await this.createAudioVisualizer({ id: userId, track })
 			}
 
+			// if (triggerPush) {
+			// 	const user = this.#allUsers.find((u) => u.userId == userId)
+			// 	user.consumer.push({ kind, id: consumerId, track, appData, focus })
+			// }
+
 			if (triggerPush) {
-				const user = this.#allUsers.find((u) => u.userId == userId)
-				user.consumer.push({ kind, id: consumerId, track, appData, focus })
+				const user = this.#allUsers.find((u) => u.userId === userId)
+				if (user) {
+					if (appData && (appData.label == "screensharing_audio" || (appData && appData.label == "screensharing_video"))) {
+						user.consumer.push({ kind, id: consumerId, track, appData, focus })
+					} else {
+						user.consumer = user.consumer.filter((c) => c.kind !== kind)
+						user.consumer.push({ kind, id: consumerId, track, appData, focus })
+					}
+				}
 			}
+
 			if (kind == "audio" && consumerId && appData.label == "audio") {
 				await this.createAudio({ id: userId, track })
 				await this.createAudioVisualizer({ id: userId, track })
@@ -1310,7 +1334,7 @@ class Users extends StaticEvent {
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status) {
@@ -1322,7 +1346,7 @@ class Users extends StaticEvent {
 								})
 							}
 						} else {
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status) {
@@ -1358,7 +1382,7 @@ class Users extends StaticEvent {
 								username: u.username,
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status) {
@@ -1402,7 +1426,7 @@ class Users extends StaticEvent {
 								username: u.username,
 							})
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status) {
@@ -1417,7 +1441,7 @@ class Users extends StaticEvent {
 							customIndex++
 							await this.addVideo({ username: u.username, userId: u.userId, track: track.track, picture: track?.appData?.picture })
 							await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status) {
@@ -1458,7 +1482,6 @@ class Users extends StaticEvent {
 			if (this.#videoContainerFocus.children.length > 0) {
 				this.#videoContainer.prepend(this.#videoContainerFocus.children[0])
 			}
-			// console.log("\n- Current Layout : ", this.#currentLayout, "\n- Current Page : ", this.#currentPage, "\n- Total Page : ", this.#totalPage)
 			if (this.#currentLayout == 1) {
 				this.#videoContainer.classList.remove("d-none")
 				if (!this.#videoContainerFocus.classList.contains("d-none")) {
@@ -1499,7 +1522,7 @@ class Users extends StaticEvent {
 						customIndex++
 						if (customIndex >= min && customIndex <= max) {
 							await this.showHideVideo({ id: u.userId, status: true })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
@@ -1512,7 +1535,7 @@ class Users extends StaticEvent {
 							}
 						} else {
 							await this.showHideVideo({ id: u.userId, status: false })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status) {
@@ -1555,7 +1578,7 @@ class Users extends StaticEvent {
 								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							}
 
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
@@ -1589,7 +1612,7 @@ class Users extends StaticEvent {
 				await this.updateVideoContainer()
 				this.#videoContainerFocus.classList.remove("d-none")
 				this.#videoContainer.classList.remove("d-none")
-
+				
 				this.#allUsers.forEach(async (u) => {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
@@ -1599,6 +1622,8 @@ class Users extends StaticEvent {
 						if (!track.focus) {
 							customIndex++
 						}
+
+						// Focused View
 						if (track.focus) {
 							const isMove = await this.addFocusVideoSecondMethod({
 								track: track.track,
@@ -1608,11 +1633,10 @@ class Users extends StaticEvent {
 							if (!isMove) {
 								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							}
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
-											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
@@ -1621,17 +1645,17 @@ class Users extends StaticEvent {
 								})
 							}
 						} else if (customIndex >= min && customIndex <= max) {
+							// Show video like side bar
 							const videoELement = document.getElementById(`vc-${u.userId}`)
 							if (videoELement && videoELement.parentElement && videoELement.parentElement.id == "video-container-focus") {
 								this.#videoContainer.prepend(videoELement)
 							}
 
 							await this.showHideVideo({ id: u.userId, status: true })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
-											console.log("- Track : ", track)
 											track.resume()
 										}
 									} catch (error) {
@@ -1721,7 +1745,7 @@ class Users extends StaticEvent {
 						customIndex++
 						if (customIndex >= min && customIndex <= max) {
 							await this.showHideVideo({ id: u.userId, status: true })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
@@ -1735,7 +1759,7 @@ class Users extends StaticEvent {
 							}
 						} else {
 							await this.showHideVideo({ id: u.userId, status: false })
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status) {
@@ -1778,7 +1802,7 @@ class Users extends StaticEvent {
 								await this.createAudioVisualizer({ id: u.userId, track: audioTracks?.track })
 							}
 
-							if (track.id != null) {
+							if (track && track?.id) {
 								socket.emit("consumer-resume", { serverConsumerId: track.id }, async ({ status, message }) => {
 									try {
 										if (status && message != "producer-paused") {
@@ -2177,16 +2201,18 @@ class Users extends StaticEvent {
 						displaySurface: "monitor",
 						chromeMediaSource: "desktop",
 					},
+					audio: true,
 				})
 
 				let screenSharingStream = new MediaStream()
-				videoStream.getVideoTracks().forEach((track) => screenSharingStream.addTrack(track))
+				videoStream.getTracks().forEach((track) => screenSharingStream.addTrack(track))
+
 
 				let allAudio = []
 
 				this.#allUsers.forEach((u) => {
 					u.consumer.forEach((c) => {
-						if (c.track && c.track?.kind == "audio" ) {
+						if (c.track && c.track?.kind == "audio") {
 							allAudio.push(c.track)
 						}
 					})
@@ -2205,6 +2231,8 @@ class Users extends StaticEvent {
 				this.#record.recordedMedia = new RecordRTC(this.#record.recordedStream, {
 					type: "video",
 					getNativeBlob: true,
+					// videoBitsPerSecond: 250000,
+					videoBitsPerSecond: 2500000,
 					timeSlice: 5000,
 					ondataavailable: (blob) => {
 						// socket.send({ type: 'collecting', data: blob })
@@ -2361,60 +2389,6 @@ class Users extends StaticEvent {
 
 		return new faceapi.LabeledFaceDescriptors(name, descriptions)
 	}
-
-	// async startFR({ picture, name, id }) {
-	// 	try {
-	// 		if (document.getElementById(`cfr-${id}`)) {
-	// 			document.getElementById(`cfr-${id}`).remove()
-	// 		}
-	// 		const user = await this.#allUsers.find((u) => u.userId == id)
-	// 		const video = document.getElementById(`v-${id}`)
-	// 		// if (!video) {
-	// 		// 	await this.startFR({ picture, name, id })
-	// 		// }
-	// 		if (video) {
-	// 			video.addEventListener("play", async () => {
-	// 				const labeledFaceDescriptors = await this.getLabeledFaceDescriptions({ picture, name })
-	// 				let faceContainer = document.getElementById(`face-recognition-${id}`)
-	// 				// const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors)
-	// 				const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.45)
-	// 				const canvas = faceapi.createCanvasFromMedia(video)
-	// 				canvas.id = `cfr-${id}`
-	// 				faceContainer.appendChild(canvas)
-
-	// 				const displaySize = { width: video.videoWidth, height: video.videoHeight }
-	// 				// faceContainer.style.width = `${video.clientWidth}px`
-	// 				faceapi.matchDimensions(canvas, displaySize)
-	// 				user.frInterval = setInterval(async () => {
-	// 					const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors()
-	// 					const resizedDetections = faceapi.resizeResults(detections, displaySize)
-	// 					canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
-	// 					const results = resizedDetections.map((d) => {
-	// 						return faceMatcher.findBestMatch(d.descriptor)
-	// 					})
-	// 					results.forEach((result, i) => {
-	// 						const box = resizedDetections[i].detection.box
-	// 						const drawBox = new faceapi.draw.DrawBox(box, {
-	// 							label: result,
-	// 							boxColor: result._distance <= 0.45 ? "blue" : "red",
-	// 							// drawLabelOptions: { fontSize: isCurrentUser ? 11 : 8 },
-	// 							// lineWidth: isCurrentUser ? 1 : 0.2,
-	// 							drawLabelOptions: { fontSize: 8 },
-	// 							lineWidth: 0.2,
-	// 						})
-	// 						drawBox.draw(canvas)
-	// 					})
-	// 				}, 100)
-	// 			})
-	// 		}
-	// 	} catch (error) {
-	// 		// if (user?.frInterval) {
-	// 		// 	clearInterval(user.frInterval)
-	// 		// }
-	// 		// document.getElementById(`cfr-${id}`)?.remove()
-	// 		console.log("- Error Starting Face Recognition : ", error)
-	// 	}
-	// }
 
 	async startFR({ picture, name, id }) {
 		try {
@@ -2586,7 +2560,6 @@ class Users extends StaticEvent {
 	async startSpeechToText({ socket, status }) {
 		try {
 			if (!status) {
-				console.log(this.#speechToText.recognition)
 				if (this.#speechToText.recognition) {
 					this.#speechToText.recognition.abort()
 				}
@@ -2662,7 +2635,7 @@ class Users extends StaticEvent {
 
 			await this.#speechToText.recognition.start()
 		} catch (error) {
-			console.error("- Error Start Speech Recognition: ", error)
+			// console.error("- Error Start Speech Recognition: ", error)
 		}
 	}
 }
