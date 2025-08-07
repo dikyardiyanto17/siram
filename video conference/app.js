@@ -1,5 +1,5 @@
 require("dotenv").config()
-const { url, port, isHttps, encodedLimit, expressSessionConfiguration, socketPath } = require("./config/index.js")
+const { url, port, isHttps, encodedLimit, expressSessionConfiguration, socketPath, allowedCors } = require("./config/index.js")
 
 const ejs = require("ejs")
 ejs.delimiter = "/"
@@ -22,7 +22,12 @@ const { decodeToken } = require("./helper/jwt.js")
 const { LiveMeeting } = require("./server_parameter/live_meeting.js")
 const { saveSession } = require("./helper/index.js")
 const configuration = require("./middlewares/configuration.js")
+const cookieParser = require("cookie-parser")
+const cookieSession = require("cookie-session")
+const MongoStore = require("connect-mongo")
+const cookie = require("./middlewares/coookie.js")
 
+// app.use(cookieParser("SECRETT"))
 app.use(cors())
 app.set("view engine", "ejs")
 app.use(express.static(path.join(__dirname, "views")))
@@ -33,14 +38,30 @@ app.use(express.static("public"))
 app.use(url, express.static(path.join(__dirname, "public")))
 
 const sessionMiddleware = session({
-	secret: process.env.EXPRESS_SESSION_SECRET || "ISULOSTNEMUCODSDRTPSESSION",
+	secret: process.env.EXPRESS_SESSION_SECRET || "mysecretdevelopment",
+	// store: MongoStore.create({
+	// 	mongoUrl: process.env.MONGODB_MY_DATABASE,
+	// 	collectionName: "sessions",
+	// }),
 	...expressSessionConfiguration,
 })
+
+// const myCookieSession = cookieSession({
+// 	name: "cookie_sess",
+// 	keys: [process.env.COOKIE_KEY_1 || "dev-cookie-key-1", process.env.COOKIE_KEY_2 || "dev-cookie-key-2"],
+// 	maxAge: 24 * 60 * 60 * 1000, 
+// 	httpOnly: false,
+// 	sameSite: "lax",
+// 	secure: false
+// })
 
 app.set("trust proxy", 1)
 
 app.use(configuration)
+// app.use(myCookieSession)
+// app.use(cookie)
 app.use(sessionMiddleware)
+// app.use(cookieSessionMiddleware)
 
 let mediasoupVariable = new MediaSoup()
 let liveMeeting = new LiveMeeting()

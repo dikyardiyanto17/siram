@@ -1,5 +1,5 @@
 const mediasoup = require("mediasoup")
-const { turnServer, mediaCodecs, maxCores, incomingMaxBitRate, listenInfos } = require("../config/index.js")
+const { turnServer, mediaCodecs, maxCores, incomingMaxBitRate, listenInfos, incomingMinBitRate, outcomingMinBitRate, outcomingMaxBitRate } = require("../config/index.js")
 
 class MediaSoup {
 	// #publicIp = "147.139.177.186" // Wire Guard
@@ -28,8 +28,10 @@ class MediaSoup {
 	#producers = []
 	#consumers = []
 
-	#incomingMinBitRate = incomingMaxBitRate
+	#incomingMinBitRate = incomingMinBitRate
 	#incomingMaxBitRate = incomingMaxBitRate
+	#outcomingMinBitRate = outcomingMinBitRate
+	#outcomingMaxBitRate = outcomingMaxBitRate
 
 	#listenInfo
 
@@ -193,8 +195,8 @@ class MediaSoup {
 				newRouter.observer.on("newtransport", (transport) => {
 					try {
 						console.log("ROUTER (newtransport) => ", transport.id)
-						transport.setMaxIncomingBitrate(1500000)
-						transport.setMaxOutgoingBitrate(1500000)
+						transport.setMaxIncomingBitrate(this.#incomingMinBitRate)
+						transport.setMaxOutgoingBitrate(this.#outcomingMaxBitRate)
 						this.#transports.push({ transport, routerId: newRouter.id })
 					} catch (error) {
 						console.log("- Error Router newtransport : ", error)
@@ -215,7 +217,7 @@ class MediaSoup {
 			let configuration = {
 				webRtcServer: worker.webrtcServer,
 				enableUdp: true,
-				enableTcp: false,
+				enableTcp: true,
 				preferUdp: true,
 				appData: {
 					userId,

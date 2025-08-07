@@ -425,6 +425,7 @@ a {
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.02);
     /* X, Y, Blur, Spread */
     z-index: 1;
+    position: relative;
 }
 
 .picture-container {
@@ -509,6 +510,60 @@ a {
     border-color: #007bff;
 }
 
+.schedule-meeting-btn {
+    padding: 6px;
+    background: transparent;
+    border: 1px solid #2369D1;
+    color: #2369D1;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.schedule-meeting-btn:focus,
+.schedule-meeting-btn:active {
+    outline: none;
+    box-shadow: none;
+}
+
+.schedule-meeting-btn:hover {
+    background: #2369D1;
+    color: white;
+}
+
+.meeting-information-container {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 20px;
+}
+
+.info-meeting-btn {
+    padding: 6px;
+    background: transparent;
+    border: 1px solid #2369D1;
+    color: #2369D1;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.info-meeting-btn:focus,
+.info-meeting-btn:active {
+    outline: none;
+    box-shadow: none;
+}
+
+.info-meeting-btn:hover {
+    background: #2369D1;
+    color: white;
+}
+
 .generate-btn {
     width: 100%;
     padding: 6px;
@@ -583,7 +638,7 @@ a {
     border: 1px solid #ccc;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
-    z-index: 10;
+    z-index: 2;
 }
 
 .dropdown-content .dropdown-item {
@@ -671,9 +726,18 @@ a {
     .picture-container {
         padding: 15px 15px;
     }
-    
+
     .dropdown-content {
         left: -100%;
     }
+
+}
+
+.google-button {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    border-radius: 100px;
+    gap: 10px;
 
 }

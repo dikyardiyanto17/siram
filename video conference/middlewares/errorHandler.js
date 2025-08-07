@@ -1,5 +1,5 @@
 const errorHandler = (err, req, res, next) => {
-	console.log(err.name)
+	console.log(err.name, err)
 	if (err.name == "SequelizeValidationError") {
 		const message = err.errors[0].message
 		res.status(400).json({ status: false, statusCode: 400, name: "Bad request", message })
@@ -17,7 +17,11 @@ const errorHandler = (err, req, res, next) => {
 	else if (err.name == "Not_Found") res.status(404).json({ status: false, statusCode: 404, message: err.message })
 	else if (err.name == "Invalid token") res.status(401).json({ status: false, statusCode: 404, message: err.message })
 	else if (err.name == "previlege") res.status(403).json({ status: false, statusCode: 403, message: err.message })
-	else res.status(500).json({ status: false, statusCode: 500, message: "Internal Server Error", err })
+	else if (err.name == "AxiosError") {
+		const status = err.response.status || 500
+		const msg = err.response.data?.message || "Internal Server Error"
+		res.status(status).json({ status: false, statusCode: 401, message: msg })
+	} else res.status(500).json({ status: false, statusCode: 500, message: "Internal Server Error", err })
 }
 
 module.exports = errorHandler

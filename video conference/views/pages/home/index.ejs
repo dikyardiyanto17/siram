@@ -10,14 +10,141 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="icon" type="image/png" href="[/= baseUrl /]/assets/pictures/favicon.png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="[/= baseUrl /]/assets/css/home.css">
+    <link rel="stylesheet" href="[/= baseUrl /]/assets/css/schedule.css">
     <link href='https://fonts.googleapis.com/css?family=Plus Jakarta Sans' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/daterangepicker-master/daterangepicker.css" />
     <title>[/= appName /]</title>
 </head>
 
 <body>
     <div class="full-container">
+        <div id="warning-modal" class="alert alert-danger warning-modal" role="alert">
+            <span id="warning-message">
+            </span>
+        </div>
+        <div id="create-modal" class="create-meeting-container">
+            <form id="create-meeting-container" class="create-meeting">
+                <div class="create-meeting-header-container">
+                    <div class="create-meeting-header">
+                        <input autocomplete="off" placeholder="Masukkan Judul Meeting" type="text" name="room_name" id="room_name">
+                    </div>
+                </div>
+                <div class="create-meeting-content-container">
+                    <div class="create-meeting-content-card">
+                        <div class="input-meeting">
+                            <span id="start_date_title">Waktu Mulai</span>
+                            <input autocomplete="off" type="datetime" id="start_date" class="start_date" value="" name="start_date">
+                        </div>
+                        <div class="input-meeting">
+                            <span id="end_date_title">Waktu Selesai</span>
+                            <input autocomplete="off" type="datetime" id="end_date" class="end_date" value="" name="end_date" disabled>
+                        </div>
+                        <div class="input-meeting">
+                            <span id="room_id_create_title">Room Id</span>
+                            <input autocomplete="off" type="text" id="room_id_create" class="room_id" value=""
+                                style="background-color: #E9ECEF; cursor: not-allowed;" readonly>
+                        </div>
+                        <div class="input-meeting">
+                            <span id="password_create_title">Password</span>
+                            <input autocomplete="off" style="background-color: #E9ECEF; cursor: not-allowed;" readonly id="password_create"
+                                name="password" type="text" class="password" name="password"
+                                placeholder="Masukkan Password">
+                        </div>
+                        <div class="input-meeting-generate-password">
+                            <input autocomplete="off" style="cursor: pointer;" class="generate-random-pw" type="checkbox"
+                                name="random-password" id="custom-password-checkbox">
+                            <span id="generate-pw-label">Custom Password</span>
+                        </div>
+                        <div class="input-meeting">
+                            <span id="description_title">Deskripsi</span>
+                            <textarea name="description" id="description" placeholder="Deskripsi"></textarea>
+                        </div>
+                        <div class="input-meeting" id="input-meeting-participants">
+                            <span id="participants_title">Peserta Meeting</span>
+                            <div class="participants-box" id="participants-box-id">
+                            </div>
+                            <input autocomplete="off" id="participants" name="participants" type="text" class="participants"
+                                name="participants" placeholder="Pilih peserta">
+                        </div>
+                    </div>
+                </div>
+                <div class="create-meeting-footer-container">
+                    <button type="button" id="close-create-modal-button">Tutup</button>
+                    <button type="submit" id="save-create-modal-button">Buat</button>
+                </div>
+            </form>
+        </div>
+        <div id="meeting-list-modal" class="meeting-list-container">
+            <div class="list-meeting" id="list-meeting-id">
+                <div class="list-meeting-header">
+                    <span id="history-meeting-header-title">Riwayat Meeting</span>
+                    <div class="list-meetings-filter-container">
+                        <div id="list-meetings-filter" class="list-meetings-filter">
+                            <img style="width: 15px;" src="/assets/icons/date-icon.svg" alt="calender" srcset="">&nbsp;&nbsp;<span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-meeting-card-container">
+                    <!-- <div class="card-meetings">
+                        <div class="left-line"></div>
+                        <div>
+                            <h3>MEETING ROOM</h3>
+                        </div>
+                        <div>
+                            <hr>
+                        </div>
+                        <div>
+                            <img style="width: 10px;" src="/assets/icons/date-icon.svg" alt="calender"
+                                srcset="">&nbsp;&nbsp;<span>TANGGAL</span>
+                        </div>
+                        <div><img style="width: 10px;" src="/assets/icons/clock_meeting.svg" alt="clock"
+                                srcset="">&nbsp;&nbsp;<span>START _ END</span>
+                        </div>
+                        <div>
+                            <img style="width: 10px;" src="/assets/icons/note.svg" alt="note" srcset="">&nbsp;&nbsp;
+                            <span>KETERANGAN</span>
+                        </div>
+                        <div>
+                            <img style="width: 10px;" src="/assets/icons/participant_meeting.svg" alt="participant"
+                                srcset="">&nbsp;&nbsp;
+                            <span>TYPE</span>
+                        </div>
+                    </div> -->
+                    <div class="card-meetings">
+                        <div class="left-line"></div>
+                        <div class="card-meeting-date">
+                            <span>8 Januari 11.30 - 12.30</span>&nbsp;&nbsp;
+                            <span class="green">Selesai</span>
+                        </div>
+                        <div>
+                            <span>Meeting Mingguan</span>
+                        </div>
+                        <div>
+                            <hr>
+                        </div>
+                        <div>
+                            <img style="width: 10px;" src="/assets/icons/date-icon.svg" alt="calender"
+                                srcset="">&nbsp;&nbsp;<span>TANGGAL</span>
+                        </div>
+                        <div><img style="width: 10px;" src="/assets/icons/clock_meeting.svg" alt="clock"
+                                srcset="">&nbsp;&nbsp;<span>START _ END</span>
+                        </div>
+                        <div>
+                            <img style="width: 10px;" src="/assets/icons/note.svg" alt="note" srcset="">&nbsp;&nbsp;
+                            <span>KETERANGAN</span>
+                        </div>
+                        <div>
+                            <img style="width: 10px;" src="/assets/icons/participant_meeting.svg" alt="participant"
+                                srcset="">&nbsp;&nbsp;
+                            <span>TYPE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="navbar-container">
             <div class="navbar">
                 <img src="[/= baseUrl /]/assets/pictures/RDS_Logo.png" alt="rdslogo" srcset="">
@@ -38,22 +165,40 @@
                             </div>
                         </div>
                     </div>
+                    [/ if (!isLogin) { /]
+                        <!-- <a href="[/= databaseUrl /]/api/google/create_token" class="btn btn-outline-primary google-button">
+                            <i class="fab fa-google fa-xs"></i><span> Sign in With</span>
+                        </a> -->
+                        <a href="[/= databaseUrl /]/api/google/create_token" class="google-button" style="color: #000000;">
+                            <span> Sign in With</span><img src="[/= baseUrl /]/assets/icons/google_logo.svg" alt="">
+                        </a>
+                    [/ } else { /]
+                        <div class="log-out-container" id="log-out-button">
+                            <span>Log Out</span>
+                            <img src="[/= baseUrl /]/assets/icons/log_out_door.svg" alt="door">
+                        </div>
+                    [/ } /]
 
-                    <div class="log-out-container d-none" id="log-out-button">
-                        <span>Log Out</span><img src="[/= baseUrl /]/assets/icons/log_out_door.svg" alt="door" srcset="">
-                    </div>
                 </div>
             </div>
         </div>
         <div class="main-content">
             <div class="left-box">
                 <div class="login-container">
-                    <div class="text-container">
-                        <p class="text-title" id="language-title"><span>RDS!</span>
-                        </p>
-                    </div>
-                    <input class="input-field" type="text" name="room_id" id="room_id" placeholder="Enter Room Id...">
-                    <input class="input-field" type="text" name="password" id="password"
+
+                    [/ if (isLogin) { /]
+                        <div class="meeting-information-container">
+                            <button class="schedule-meeting-btn" id="schedule-meeting-btn-modal">Schedule Meeting</button>
+                            <button class="info-meeting-btn" id="list-meeting-btn-modal">Your Meetings</button>
+                        </div>
+                    [/ } /]
+                        <div class="text-container">
+                            <p class="text-title" id="language-title"><span>RDS!</span>
+                            </p>
+                        </div>
+
+                    <input autocomplete="off" class="input-field" type="text" name="room_id" id="room_id" placeholder="Enter Room Id...">
+                    <input autocomplete="off" class="input-field" type="text" name="password" id="password"
                         placeholder="Enter Room Password...">
                     <button id="auto-generate" class="generate-btn">Auto Generate</button>
                     <button id="submit-join" class="masuk-btn">Join</button>
@@ -67,12 +212,16 @@
         </div>
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="/assets/plugins/jquery/jquery-3.7.1.min.js"></script>
+    <script src="/assets/plugins/daterangepicker-master/moment.min.js"></script>
+    <script src="/assets/plugins/daterangepicker-master/daterangepicker.js"></script>
     <script>
         const baseUrl = [/- JSON.stringify(baseUrl) /]
         const socketPath = [/- JSON.stringify(socketPath) /]
         const socketBaseUrl = [/- JSON.stringify(socketBaseUrl) /]
         const viewerEnabled = [/- JSON.stringify(viewerEnabled) /]
         const initialSetting = [/- JSON.stringify(initialSetting) /]
+        const isLogin = [/- JSON.stringify(isLogin) /]
     </script>
     <script src="[/= baseUrl /]/javascript/home/homebundle.js"></script>
 </body>

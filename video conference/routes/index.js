@@ -8,7 +8,7 @@ const Update_Photo = require("../controllers/update_photo/index.js")
 const router = express.Router()
 const path = require("path")
 
-router.use("/api/login", require("./api/login/index.js"))
+router.use("/api", require("./api/index.js"))
 router.use("/custom_api", require("./custom_api"))
 
 router.get("/", Home.index)

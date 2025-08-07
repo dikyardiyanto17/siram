@@ -19,10 +19,355 @@ const waitingModal = document.getElementById("waiting-modal-container")
 const roomId = document.getElementById("room_id")
 const autoGenerateButton = document.getElementById("auto-generate")
 
+// modal meeting list
+const listMeetingModalContainer = document.getElementById("meeting-list-modal")
+const listMeetingModalButton = document.getElementById("list-meeting-btn-modal")
+const listMeetingModal = document.getElementById("list-meeting-id")
+
+// modal create
+const scheduleModalButton = document.getElementById("schedule-meeting-btn-modal")
+const scheduleModal = document.getElementById("create-modal")
+const scheduleModalContainer = document.getElementById("create-meeting-container")
+
+const roomNameInput = document.getElementById("room_name")
+const startDateTitle = document.getElementById("start_date_title")
+const endDateTitle = document.getElementById("end_date_title")
+const roomIdTitle = document.getElementById("room_id_create_title")
+const roomIdInputModal = document.getElementById("room_id_create")
+const passwordTitle = document.getElementById("password_create_title")
+const passwordInputModal = document.getElementById("password_create")
+const customPasswordTitle = document.getElementById("generate-pw-label")
+const descriptionTitle = document.getElementById("description_title")
+const descriptionInput = document.getElementById("description")
+const participantTitle = document.getElementById("participants_title")
+const participantInput = document.getElementById("participants")
+const checkBoxInputPassword = document.getElementById("custom-password-checkbox")
+const closeScheduleButton = document.getElementById("close-create-modal-button")
+
 const dropdown = document.querySelector(".dropdown")
 const btn = document.querySelector(".dropdown-btn")
 const selectedFlag = document.getElementById("selected-flag")
 const selectedLanguage = document.getElementById("selected-language")
+let newMeeting = {
+	roomName: "",
+	start_date: undefined,
+	end_date: undefined,
+	roomId: "",
+	password: "",
+	description: "",
+	participants: [],
+	link: "",
+}
+
+const initMeetingDate = () => {
+	try {
+		$(function () {
+			newMeeting.start_date = moment().add(1, "hours").toDate()
+			newMeeting.end_date = moment(newMeeting.start_date).add(11, "minutes").toDate()
+			$('input[name="start_date"]').daterangepicker(
+				{
+					singleDatePicker: true,
+					showDropdowns: true,
+					timePicker: true,
+					timePicker24Hour: true,
+					minDate: moment().add(1, "hours"),
+					maxDate: moment().add(3, "months"),
+					locale: {
+						format: "MM/DD/YYYY HH:mm",
+					},
+					drops: "up",
+					autoApply: true,
+					showDropdowns: false,
+				},
+				function (start, end, label) {
+					let validDate = start.toDate()
+					newMeeting.start_date = validDate
+					document.getElementById("end_date").removeAttribute("disabled")
+
+					const newEndDate = moment(validDate).add(11, "minutes")
+
+					$('input[name="end_date"]').data("daterangepicker").setStartDate(newEndDate)
+					$('input[name="end_date"]').data("daterangepicker").minDate = newEndDate
+
+					newMeeting.end_date = newEndDate.toDate()
+				}
+			)
+		})
+
+		$(function () {
+			$('input[name="end_date"]').daterangepicker(
+				{
+					singleDatePicker: true,
+					showDropdowns: true,
+					timePicker: true,
+					timePicker24Hour: true,
+					minDate: moment().add(1, "hours").add(11, "minutes"),
+					maxDate: moment().add(3, "months"),
+					locale: {
+						format: "MM/DD/YYYY HH:mm",
+					},
+					drops: "up",
+					autoApply: true,
+					showDropdowns: false,
+				},
+				function (start, end, label) {
+					let validDate = start.toDate()
+					newMeeting.end_date = validDate
+				}
+			)
+		})
+	} catch (error) {
+		console.log("- Error : ", error)
+	}
+}
+
+if (isLogin) {
+	initMeetingDate()
+	fetch(`${baseUrl}/api/google`, {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+		},
+	})
+		.then((response) => response.json())
+		.then((result) => {
+			console.log("Google API Response:", result)
+		})
+		.catch((error) => {
+			console.error("Error fetching Google API:", error)
+		})
+}
+
+customPasswordTitle.addEventListener("click", () => {
+	try {
+		document.getElementById("custom-password-checkbox").click()
+	} catch (error) {
+		console.log("- Error Clicking Check Box Input : ", error)
+	}
+})
+
+checkBoxInputPassword.addEventListener("change", async () => {
+	try {
+		if (checkBoxInputPassword.checked) {
+			passwordInputModal.value = ""
+			passwordInputModal.removeAttribute("style")
+			passwordInputModal.removeAttribute("readonly")
+			newMeeting.password = ""
+		} else {
+			passwordInputModal.value = await generateRandomId(12)
+			passwordInputModal.style.backgroundColor = "#E9ECEF"
+			passwordInputModal.style.cursor = "not-allowed"
+			passwordInputModal.setAttribute("readonly", true)
+		}
+	} catch (error) {
+		console.log("- Error Click Checkbox Input Password : ", error)
+	}
+})
+
+$(function () {
+	let start = moment().subtract(0, "days")
+	let end = moment()
+
+	function cb(start, end) {
+		$("#list-meetings-filter span").html(start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY"))
+
+		const startDate = start.format("YYYY-MM-DD")
+		const endDate = end.format("YYYY-MM-DD")
+
+		fetch(`${baseUrl}/api/google?st=${startDate}&et=${endDate}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => response.json())
+			.then((result) => {
+				console.log("Google API Response:", result)
+			})
+			.catch((error) => {
+				console.error("Error fetching Google API:", error)
+			})
+	}
+
+	$("#list-meetings-filter").daterangepicker(
+		{
+			startDate: start,
+			endDate: end,
+			ranges: {
+				"Hari Ini": [moment(), moment()],
+				Kemarin: [moment().subtract(1, "days"), moment().subtract(1, "days")],
+				"7 Hari Terakhir": [moment().subtract(6, "days"), moment()],
+				"30 Hari Terakhir": [moment().subtract(29, "days"), moment()],
+				"Bulan Ini": [moment().startOf("month"), moment().endOf("month")],
+				"Bulan Kemarin": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")],
+			},
+			locale: {
+				customRangeLabel: "Pilih Tanggal",
+			},
+			showCustomRangeLabel: true,
+		},
+		cb
+	)
+
+	cb(start, end)
+})
+
+const createModalEvent = async () => {
+	if (scheduleModal.style.top === "0%") {
+		scheduleModal.style.top = "-100%"
+		roomNameInput.value = ""
+		descriptionInput.value = ""
+		passwordInputModal.value = ""
+		roomIdInputModal.value = ""
+		document.getElementById("participants-box-id").innerHTML = ""
+		await initMeetingDate()
+		newMeeting = {
+			roomName: "",
+			start_date: undefined,
+			end_date: undefined,
+			roomId: "",
+			password: "",
+			description: "",
+			participants: [],
+		}
+	} else {
+		passwordInputModal.value = await generateRandomId()
+		roomIdInputModal.value = await generateRandomId()
+		scheduleModal.style.top = "0%"
+	}
+}
+
+const showListModal = () => {
+	if (listMeetingModalContainer.style.top == "0%") {
+		listMeetingModalContainer.style.top = "-100%"
+	} else {
+		listMeetingModalContainer.style.top = "0%"
+	}
+}
+
+listMeetingModalContainer?.addEventListener("click", (e) => {
+	e.stopPropagation()
+	showListModal()
+})
+
+listMeetingModal?.addEventListener("click", (e) => {
+	e.stopPropagation()
+})
+
+listMeetingModalButton?.addEventListener("click", (e) => {
+	showListModal()
+})
+
+const validateEmail = (email) => {
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+const addChip = (email) => {
+	const chip = document.createElement("span")
+	const participantsBox = document.getElementById("participants-box-id")
+	chip.classList.add("participant-added")
+	chip.innerHTML = `${email} <i class="fa-solid fa-xmark delete-added" id="chip-${email}"></i>`
+	participantsBox.appendChild(chip)
+
+	const deleteChip = document.getElementById(`chip-${email}`)
+
+	const handleDelete = (e) => {
+		e.preventDefault()
+		newMeeting.participants = newMeeting.participants.filter((x) => x !== email)
+
+		deleteChip.removeEventListener("click", handleDelete)
+		chip.remove()
+	}
+	deleteChip.addEventListener("click", handleDelete)
+}
+
+participantInput?.addEventListener("keydown", (e) => {
+	if (e.key === "Enter" && participantInput.value.trim() !== "") {
+		e.preventDefault()
+		const email = participantInput.value.trim()
+
+		if (!validateEmail(email)) {
+			showWarningModal({ message: "Email is not valid!" })
+			return
+		}
+		if (newMeeting.participants.includes(email)) {
+			showWarningModal({ message: "Email is already included!" })
+			return
+		}
+		newMeeting.participants.push(email)
+		addChip(email)
+		participantInput.value = ""
+	}
+})
+
+closeScheduleButton?.addEventListener("click", (e) => {
+	e.stopPropagation()
+	e.preventDefault()
+	createModalEvent()
+})
+
+scheduleModalContainer?.addEventListener("submit", async (e) => {
+	e.preventDefault()
+	e.stopPropagation()
+	try {
+		newMeeting.roomName = roomNameInput.value
+		newMeeting.roomId = roomIdInputModal.value
+		newMeeting.password = passwordInputModal.value
+		newMeeting.description = descriptionInput.value
+		newMeeting.link = `${baseUrl}/?rid=${newMeeting.roomId}&pw=${newMeeting.password}`
+
+		if (
+			!newMeeting.roomName ||
+			!newMeeting.roomId ||
+			!newMeeting.password ||
+			!newMeeting.description ||
+			!newMeeting.start_date ||
+			!newMeeting.end_date ||
+			!Array.isArray(newMeeting.participants) ||
+			newMeeting.participants.length == 0
+		) {
+			await showWarningModal({ message: "Please complete the form!" })
+			return
+		}
+
+		const eventData = { ...newMeeting }
+
+		const response = await fetch(`${baseUrl}/api/google`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(eventData),
+		})
+
+		const result = await response.json()
+
+		if (result.status) {
+			await showWarningModal({ message: result.message || "Failed to create meeting", status: false })
+			await createModalEvent()
+		} else {
+			showWarningModal({ message: result.message || "Failed to create meeting" })
+		}
+	} catch (err) {
+		showWarningModal({ message: "Network or server error" })
+	}
+})
+
+scheduleModalContainer?.addEventListener("click", (e) => {
+	e.stopPropagation()
+})
+
+scheduleModal?.addEventListener("click", (e) => {
+	e.preventDefault()
+	e.stopPropagation()
+	createModalEvent()
+})
+
+scheduleModalButton?.addEventListener("click", (e) => {
+	e.preventDefault()
+	e.stopPropagation()
+	createModalEvent()
+})
 
 dropdown.addEventListener("click", (e) => {
 	e.stopPropagation()
@@ -87,28 +432,76 @@ const changeLanguage = ({ language }) => {
 		const buttonJoin = document.getElementById("submit-join")
 		const autoGenerate = document.getElementById("auto-generate")
 
-		languageTitleElement.classList.remove("skeleton")
+		const listMeetingModalTitle = document.getElementById("history-meeting-header-title")
 
-		if (language == "en") {
-			languageTitleElement.innerHTML = `Welcome to <span>RDS Meet!</span>`
-			roomIdInput.placeholder = "Enter Room ID"
-			passwordInput.placeholder = "Enter Room Password"
-			buttonJoin.innerHTML = "Join"
-			autoGenerate.innerHTML = "Auto Generate"
-		} else if (language == "id") {
-			languageTitleElement.innerHTML = `Selamat Datang di <span>RDS Meet!</span>`
-			roomIdInput.placeholder = "Masukkan Room Id"
-			passwordInput.placeholder = "Masukkan Password"
-			buttonJoin.innerHTML = "Masuk"
-			autoGenerate.innerHTML = "Generate Otomatis"
+		const roomNameInput = document.getElementById("room_name")
+		const startDateTitle = document.getElementById("start_date_title")
+		const endDateTitle = document.getElementById("end_date_title")
+		const roomIdTitle = document.getElementById("room_id_title")
+		const roomIdInputModal = document.getElementById("room_id_modal")
+		const passwordTitle = document.getElementById("password_title")
+		const passwordInputModal = document.getElementById("password_modal")
+		const customPasswordTitle = document.getElementById("custom_password_title")
+		const descriptionTitle = document.getElementById("description_title")
+		const descriptionInput = document.getElementById("description")
+		const participantTitle = document.getElementById("participant_title")
+		const participantInput = document.getElementById("participants")
+
+		const dropdown = document.getElementById("dropdown")
+
+		// Remove skeleton
+		if (languageTitleElement) languageTitleElement.classList.remove("skeleton")
+
+		if (language === "en") {
+			if (languageTitleElement) languageTitleElement.innerHTML = `Welcome to <span>RDS Meet!</span>`
+			if (roomIdInput) roomIdInput.placeholder = "Enter Room ID"
+			if (passwordInput) passwordInput.placeholder = "Enter Room Password"
+			if (buttonJoin) buttonJoin.innerHTML = "Join"
+			if (autoGenerate) autoGenerate.innerHTML = "Auto Generate"
+
+			if (roomNameInput) roomNameInput.placeholder = "Enter Room Name..."
+			if (startDateTitle) startDateTitle.innerHTML = "Start Date"
+			if (endDateTitle) endDateTitle.innerHTML = "End Date"
+			if (roomIdTitle) roomIdTitle.innerHTML = "Room ID"
+			if (roomIdInputModal) roomIdInputModal.placeholder = "Room ID"
+			if (passwordTitle) passwordTitle.innerHTML = "Password"
+			if (passwordInputModal) passwordInputModal.placeholder = "Enter your password..."
+			if (customPasswordTitle) customPasswordTitle.innerHTML = "Custom Password"
+			if (descriptionTitle) descriptionTitle.innerHTML = "Description"
+			if (descriptionInput) descriptionInput.placeholder = "Enter your description..."
+			if (participantTitle) participantTitle.innerHTML = "Participants "
+			if (participantInput) participantInput.placeholder = "Add Participants..."
+
+			if (listMeetingModalTitle) listMeetingModalTitle.innerHTML = "Meetings List"
+		} else if (language === "id") {
+			if (languageTitleElement) languageTitleElement.innerHTML = `Selamat Datang di <span>RDS Meet!</span>`
+			if (roomIdInput) roomIdInput.placeholder = "Masukkan Room Id"
+			if (passwordInput) passwordInput.placeholder = "Masukkan Password"
+			if (buttonJoin) buttonJoin.innerHTML = "Masuk"
+			if (autoGenerate) autoGenerate.innerHTML = "Generate Otomatis"
+
+			if (roomNameInput) roomNameInput.placeholder = "Masukkan nama ruangan..."
+			if (startDateTitle) startDateTitle.innerHTML = "Tanggal Mulai"
+			if (endDateTitle) endDateTitle.innerHTML = "Tanggal Berakhir"
+			if (roomIdTitle) roomIdTitle.innerHTML = "Room ID"
+			if (roomIdInputModal) roomIdInputModal.placeholder = "Room ID"
+			if (passwordTitle) passwordTitle.innerHTML = "Password"
+			if (passwordInputModal) passwordInputModal.placeholder = "Masukkan password..."
+			if (customPasswordTitle) customPasswordTitle.innerHTML = "Buat Password"
+			if (descriptionTitle) descriptionTitle.innerHTML = "Deskripsi"
+			if (descriptionInput) descriptionInput.placeholder = "Masukkan deskripsi..."
+			if (participantTitle) participantTitle.innerHTML = "Peserta ruangan "
+			if (participantInput) participantInput.placeholder = "Tambahkan peserta..."
+			if (listMeetingModalTitle) listMeetingModalTitle.innerHTML = "Riwayat Meeting"
 		} else {
-			throw { name: "error", message: "language id is not valid" }
+			throw new Error("Language ID is not valid")
 		}
-		if (dropdown.classList.contains("open")) {
+
+		if (dropdown && dropdown.classList.contains("open")) {
 			dropdown.classList.remove("open")
 		}
 	} catch (error) {
-		console.log("- Error Change Languange : ", error)
+		console.error("Error changing language:", error)
 	}
 }
 
@@ -359,13 +752,35 @@ const setFormStyle = async ({ status }) => {
 }
 
 const logoutButton = document.getElementById("log-out-button")
-logoutButton.addEventListener("click", async () => {
+logoutButton?.addEventListener("click", async () => {
 	try {
 		const response = await fetch(`${baseUrl}/logout`)
 		if (response.ok) {
-			window.location.href = `${baseUrl}/login`
+			window.location.href = `${baseUrl}/`
 		}
 	} catch (error) {
 		console.log("- Error Log Out Button : ", error)
 	}
 })
+
+const showWarningModal = ({ message, status = true }) => {
+	try {
+		const warningModalElement = document.getElementById("warning-modal")
+		const warningMessageElement = document.getElementById("warning-message")
+
+		warningModalElement.classList.remove("alert-success", "alert-danger")
+		warningModalElement.classList.add(status ? "alert-danger" : "alert-success")
+
+		warningModalElement.style.top = "100px"
+		warningMessageElement.innerHTML = message
+		warningModalElement.style.opacity = 1
+		setTimeout(() => {
+			warningModalElement.style.opacity = 0
+			setTimeout(() => {
+				warningModalElement.style.top = "-50%"
+			}, 1000)
+		}, 3000)
+	} catch (error) {
+		console.log("- Error Show Modal : ", error)
+	}
+}

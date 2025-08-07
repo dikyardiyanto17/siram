@@ -1,36 +1,53 @@
 const portToOpen = [1040] // for mediasoup tcp/udp binding,
 const privateIp = "0.0.0.0"
-// const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
+const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
 // const publicIp = "203.175.10.29" // VPS
-const publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
+// const publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
 module.exports = {
 	appName: "Telepati",
-	// baseUrl: "https://localhost:9100/telepati",
-	baseUrl: "https://modoto.net/telepati",
-	// socketBaseUrl: "https://localhost:9100",
-	socketBaseUrl: "https://modoto.net",
+	baseUrl: "https://localhost:9100/telepati",
+	// baseUrl: "https://modoto.net/telepati",
+	socketBaseUrl: "https://localhost:9100",
+	// socketBaseUrl: "https://modoto.net",
+	databaseUrl: "http://localhost:9101",
 	url: "/telepati",
 	socketPath: "/telepati/socket",
 	port: 9100,
-	isHttps: false,
-	// isHttps: true,
+	// isHttps: false,
+	isHttps: true,
 	maxCores: 2, // How many core you want to provide to mediasoup
-	incomingMinBitRate: 1500000,
-	incomingMaxBitRate: 1500000,
-	listenInfos: portToOpen.flatMap((port) => [
+	incomingMinBitRate: 2_500_000,
+	incomingMaxBitRate: 2_500_000,
+	outcomingMinBitRate: 1_500_000,
+	outcomingMaxBitRate: 1_500_000,
+	// listenInfos: portToOpen.flatMap((port) => [
+	// 	{
+	// 		protocol: "udp",
+	// 		ip: privateIp,
+	// 		announcedIp: publicIp,
+	// 		port,
+	// 	},
+	// 	{
+	// 		protocol: "tcp",
+	// 		ip: privateIp,
+	// 		announcedIp: publicIp,
+	// 		port,
+	// 	},
+	// ]),
+	listenInfos: [
 		{
 			protocol: "udp",
 			ip: privateIp,
-			announcedIp: publicIp,
-			port,
+			announcedAddress: publicIp,
+			portRange: { min: portToOpen[0], max: portToOpen[portToOpen.length - 1] },
 		},
 		{
 			protocol: "tcp",
 			ip: privateIp,
-			announcedIp: publicIp,
-			port,
+			announcedAddress: publicIp,
+			portRange: { min: portToOpen[0], max: portToOpen[portToOpen.length - 1] },
 		},
-	]),
+	],
 	turnServer: [
 		// {
 		// 	urls: "stun:92.127.199.123:3478",
@@ -50,20 +67,42 @@ module.exports = {
 		},
 	],
 	mediaCodecs: [
+		// Audio - OPUS is best for WebRTC
 		{
 			kind: "audio",
 			mimeType: "audio/opus",
 			clockRate: 48000,
 			channels: 2,
 		},
+
+		// VP8 - Primary video codec (broad compatibility)
 		{
 			kind: "video",
 			mimeType: "video/VP8",
 			clockRate: 90000,
 			parameters: {
-				"x-google-start-bitrate": 1000,
+				"x-google-start-bitrate": 800,
+				"x-google-min-bitrate": 300,
+				"x-google-max-bitrate": 1500,
 			},
 		},
+
+		// H264 Baseline - Mobile compatibility (fallback or preferred on mobile)
+		{
+			kind: "video",
+			mimeType: "video/h264",
+			clockRate: 90000,
+			parameters: {
+				"packetization-mode": 1,
+				"profile-level-id": "42e01f",
+				"level-asymmetry-allowed": 1,
+				"x-google-start-bitrate": 800,
+				"x-google-min-bitrate": 300,
+				"x-google-max-bitrate": 1500,
+			},
+		},
+
+		// VP9 - For future SVC or desktop performance (optional)
 		{
 			kind: "video",
 			mimeType: "video/VP9",
@@ -71,8 +110,12 @@ module.exports = {
 			parameters: {
 				"profile-id": 2,
 				"x-google-start-bitrate": 1000,
+				"x-google-min-bitrate": 300,
+				"x-google-max-bitrate": 2500,
 			},
 		},
+
+		// H264 High Profile - High-quality fallback (desktop with hardware support)
 		{
 			kind: "video",
 			mimeType: "video/h264",
@@ -82,32 +125,24 @@ module.exports = {
 				"profile-level-id": "4d0032",
 				"level-asymmetry-allowed": 1,
 				"x-google-start-bitrate": 1000,
-			},
-		},
-		{
-			kind: "video",
-			mimeType: "video/h264",
-			clockRate: 90000,
-			parameters: {
-				"packetization-mode": 1,
-				"profile-level-id": "42e01f",
-				"level-asymmetry-allowed": 1,
-				"x-google-start-bitrate": 1000,
+				"x-google-min-bitrate": 300,
+				"x-google-max-bitrate": 2500,
 			},
 		},
 	],
 	encodedLimit: "50mb",
-	// reminder note for session, use redis instead
 	expressSessionConfiguration: {
-		resave: false,
+		resave: true,
 		saveUninitialized: false,
 		cookie: {
-			// secure: true,
-			secure: false, // it should be true for production
-			sameSite: true,
+			secure: true,
+			// secure: false, // it should be true for production
+			// sameSite: true,
 			maxAge: 2 * 60 * 60 * 1000, // 2 hour in milliseconds
 		},
 	},
 	viewerEnabled: true,
 	initialSetting: true,
+	allowedCors: ["https://localhost:9100", "http://localhost:9101"],
+	googleOauthUrl: "https://www.googleapis.com/oauth2/v2",
 }
