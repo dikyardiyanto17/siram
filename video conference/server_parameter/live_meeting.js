@@ -12,7 +12,47 @@ class LiveMeeting {
 		this.#users = newUser
 	}
 
-	async addUser({ participantId, roomId, socketId, authority, verified = false, joined = false, waiting = true, username, picture, meetingType }) {
+	async isValidRoom({ roomId, password }) {
+		try {
+			// Code 1, room doesnot exist so its new users || room exist and password is correct
+			// Code 2, room exist but password is wrong
+			const room = await this.#users.find((x) => x.roomId == roomId)
+			if (!room || room.password == password) {
+				return 1
+			}
+
+			return 2
+		} catch (error) {
+			console.log(error)
+		}
+	}
+
+	async getRooms() {
+		const grouped = {}
+
+		for (const user of this.#users) {
+			if (!grouped[user.roomId]) {
+				grouped[user.roomId] = []
+			}
+			grouped[user.roomId].push(user)
+		}
+
+		return { rooms: grouped }
+	}
+
+	async addUser({
+		participantId,
+		roomId,
+		socketId,
+		authority,
+		verified = false,
+		joined = false,
+		waiting = true,
+		username,
+		picture,
+		meetingType,
+		password,
+	}) {
 		try {
 			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
 			if (!user) {
@@ -28,6 +68,7 @@ class LiveMeeting {
 					processDeleteUser: false,
 					picture,
 					meetingType,
+					password,
 				})
 			}
 		} catch (error) {
@@ -187,7 +228,7 @@ class LiveMeeting {
 	async deleteUser({ socket, userSession }) {
 		try {
 			const user = this.#users.find((u) => u.socketId == socket.id)
-			if (user.joined && user) {
+			if ( user && user.joined) {
 				userSession.roomId = null
 				userSession.roomName = null
 				userSession.password = null
@@ -207,13 +248,19 @@ class LiveMeeting {
 				user.joined = false
 				setTimeout(() => {
 					if (user.processDeleteUser) {
-						this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
+						// this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
+						// this.#users = this.#users.filter((u) => u.participantId != user.participantId)
+						this.#users = this.#users.filter((u) => !(u.participantId == user.participantId && u.roomId == user.roomId))
+
 					}
 				}, 1000 * 60 * 60)
 				return
 			}
 			if (!user.joined && user.waiting) {
-				this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
+				// this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
+				// this.#users = this.#users.filter((u) => u.participantId != user.participantId)
+				this.#users = this.#users.filter((u) => !(u.participantId == user.participantId && u.roomId == user.roomId))
+
 			}
 		} catch (error) {
 			console.log("- Error Delete User : ", error)
