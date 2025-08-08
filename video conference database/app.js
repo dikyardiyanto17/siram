@@ -7,7 +7,7 @@ const app = express()
 const router = require("./routes/index.js")
 const http = require("http")
 const path = require("path")
-const { encodedLimit, port } = require("./config/index.js")
+const { encodedLimit, port, url } = require("./config/index.js")
 const configuration = require("./middlewares/configuration.js")
 const errorHandler = require("./middlewares/errorHandler.js")
 
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ limit: encodedLimit, extended: true }))
 app.use(express.json({ limit: encodedLimit }))
 
 app.use(express.static("public"))
-app.use(express.static(path.join(__dirname, "public")))
+app.use(url, express.static(path.join(__dirname, "public")))
 
 app.use(configuration)
 
@@ -31,5 +31,5 @@ mongoose.connection.once("open", () => {
 	})
 })
 
-app.use(router)
+app.use(url,router)
 app.use(errorHandler)

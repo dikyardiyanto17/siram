@@ -80,15 +80,42 @@ class Meeting {
 	static async get(req, res, next) {
 		try {
 			const userId = req?.user?._id
+			const userEmail = req?.googleUser?.email
+
 			if (!userId) {
-				return res.status(401).json({ status: false, message: "Unauthorized" })
+				throw { name: "forbidden", message: "Invalid token" }
 			}
 
-			const meeting = await Meetings.find({ createdBy: userId })
+			const { st, et } = req.query
+
+			const startDate = st ? new Date(st) : null
+			const endDate = et ? new Date(et) : null
+
+			if ((st && isNaN(startDate)) || (et && isNaN(endDate))) {
+				throw { name: "badrequest", message: "Tanggal tidak valid" }
+			}
+
+			if (startDate) startDate.setHours(0, 0, 0, 0)
+			if (endDate) endDate.setHours(23, 59, 59, 999)
+
+			let dateFilter = {}
+			if (startDate && endDate) {
+				dateFilter = {
+					$and: [{ startMeeting: { $lte: endDate } }, { endMeeting: { $gte: startDate } }],
+				}
+			}
+
+			const filter = {
+				...dateFilter,
+				$or: [{ createdBy: userId }, { participants: userEmail }],
+			}
+
+			const meetings = await Meetings.find(filter)
+
 			res.status(200).json({
 				status: true,
 				message: "Successfully retrieved meetings",
-				data: meeting,
+				data: meetings,
 			})
 		} catch (error) {
 			next(error)
