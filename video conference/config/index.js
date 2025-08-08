@@ -1,18 +1,19 @@
-const portToOpen = [1040] // for mediasoup tcp/udp binding,
+const portToOpen = [1042, 1043] // for mediasoup tcp/udp binding,
 const privateIp = "0.0.0.0"
-const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
+// const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
 // const publicIp = "203.175.10.29" // VPS
-// const publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
+const publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
 module.exports = {
-	appName: "Telepati",
-	baseUrl: "https://localhost:9100/telepati",
-	// baseUrl: "https://modoto.net/telepati",
-	socketBaseUrl: "https://localhost:9100",
-	// socketBaseUrl: "https://modoto.net",
-	databaseUrl: "http://localhost:9101",
-	url: "/telepati",
-	socketPath: "/telepati/socket",
-	port: 9100,
+	appName: "VMeet",
+	// baseUrl: "https://localhost:9102/vmeet",
+	baseUrl: "https://modoto.net/vmeet",
+	// socketBaseUrl: "https://localhost:9102",
+	socketBaseUrl: "https://modoto.net",
+	// databaseUrl: "http://localhost:9103/vmeet-db",
+	databaseUrl: "https://modoto.net/vmeet-db",
+	url: "/vmeet",
+	socketPath: "/vmeet/socket",
+	port: 9102,
 	// isHttps: false,
 	isHttps: true,
 	maxCores: 2, // How many core you want to provide to mediasoup
@@ -135,8 +136,8 @@ module.exports = {
 		resave: true,
 		saveUninitialized: false,
 		cookie: {
-			secure: true,
-			// secure: false, // it should be true for production
+			// secure: true,
+			secure: false, // it should be true for production
 			// sameSite: true,
 			maxAge: 2 * 60 * 60 * 1000, // 2 hour in milliseconds
 		},

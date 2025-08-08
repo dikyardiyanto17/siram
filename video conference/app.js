@@ -1,5 +1,5 @@
 require("dotenv").config()
-const { url, port, isHttps, encodedLimit, expressSessionConfiguration, socketPath, allowedCors } = require("./config/index.js")
+const { url, port, isHttps, encodedLimit, expressSessionConfiguration, socketPath } = require("./config/index.js")
 
 const ejs = require("ejs")
 ejs.delimiter = "/"
@@ -22,12 +22,7 @@ const { decodeToken } = require("./helper/jwt.js")
 const { LiveMeeting } = require("./server_parameter/live_meeting.js")
 const { saveSession } = require("./helper/index.js")
 const configuration = require("./middlewares/configuration.js")
-const cookieParser = require("cookie-parser")
-const cookieSession = require("cookie-session")
-const MongoStore = require("connect-mongo")
-const cookie = require("./middlewares/coookie.js")
 
-// app.use(cookieParser("SECRETT"))
 app.use(cors())
 app.set("view engine", "ejs")
 app.use(express.static(path.join(__dirname, "views")))
@@ -38,11 +33,7 @@ app.use(express.static("public"))
 app.use(url, express.static(path.join(__dirname, "public")))
 
 const sessionMiddleware = session({
-	secret: process.env.EXPRESS_SESSION_SECRET || "mysecretdevelopment",
-	// store: MongoStore.create({
-	// 	mongoUrl: process.env.MONGODB_MY_DATABASE,
-	// 	collectionName: "sessions",
-	// }),
+	secret: process.env.EXPRESS_SESSION_SECRET || "ISULOSTNEMUCODSDRTPSESSION",
 	...expressSessionConfiguration,
 })
 
@@ -152,6 +143,13 @@ io.on("connection", async (socket) => {
 				meeting_type,
 			} = decodedRoom
 
+			const roomCode = await liveMeeting.isValidRoom({ roomId: room_id, password })
+
+			if (roomCode == 2) {
+				callback({ status: false, message: "Invalid Credential" })
+				throw { name: "Invalid", message: "Invalid Credential" }
+			}
+
 			if (position == "room" && !userSession.roomToken) {
 				callback({ status: false, message: "Invalid Token" })
 				throw { name: "Invalid", message: "Invalid Token" }
@@ -223,6 +221,7 @@ io.on("connection", async (socket) => {
 					picture: photo_path,
 					isViewer,
 					meetingType: isRoomExisted ? 2 : meeting_type,
+					password,
 				})
 
 				const user = await liveMeeting.findUser({ roomId: room_id, userId: participant_id })
@@ -678,8 +677,7 @@ io.on("connection", async (socket) => {
 
 app.get(`${url}/rooms`, async (req, res, next) => {
 	try {
-		const { roomId } = req.session
-		const rooms = await liveMeeting.users.filter((u) => u.roomId == roomId)
+		const rooms = await liveMeeting.getRooms()
 		res.send({ rooms: rooms, total: rooms.length })
 	} catch (error) {
 		console.log("- Error get Room")

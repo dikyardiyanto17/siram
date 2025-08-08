@@ -47,7 +47,7 @@ class GoogleApi {
 			})
 
 			if (request && request.status) {
-				res.status(200).json({ status: true, message: request.data.message, data: { ...request.data.data } })
+				res.status(200).json({ status: true, message: request.data.message, data: [ ...request.data.data ] })
 			}
 		} catch (error) {
 			next(error)

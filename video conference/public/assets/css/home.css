@@ -442,7 +442,7 @@ a {
     margin-bottom: 20px;
 }
 
-.option-container {
+.option-container, .user-profile {
     display: flex;
     align-items: center;
 }
@@ -457,7 +457,7 @@ a {
     margin-right: 7px;
 }
 
-#language-select {
+#language-select, .user-profile {
     appearance: none;
     /* Remove default styling */
     border: 1px solid #F2F2F2;
@@ -510,59 +510,6 @@ a {
     border-color: #007bff;
 }
 
-.schedule-meeting-btn {
-    padding: 6px;
-    background: transparent;
-    border: 1px solid #2369D1;
-    color: #2369D1;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-
-.schedule-meeting-btn:focus,
-.schedule-meeting-btn:active {
-    outline: none;
-    box-shadow: none;
-}
-
-.schedule-meeting-btn:hover {
-    background: #2369D1;
-    color: white;
-}
-
-.meeting-information-container {
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 20px;
-}
-
-.info-meeting-btn {
-    padding: 6px;
-    background: transparent;
-    border: 1px solid #2369D1;
-    color: #2369D1;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-
-.info-meeting-btn:focus,
-.info-meeting-btn:active {
-    outline: none;
-    box-shadow: none;
-}
-
-.info-meeting-btn:hover {
-    background: #2369D1;
-    color: white;
-}
 
 .generate-btn {
     width: 100%;
@@ -716,11 +663,16 @@ a {
     .login-container {
         width: 90%;
         height: 95%;
-        padding: 30px 30px;
+        padding: 10px;
+        justify-content: center;
     }
 
     .login-container>* {
-        margin-bottom: 15px;
+        margin-bottom: 5px;
+    }
+
+    .text-container>p {
+        margin-bottom: 0px;
     }
 
     .picture-container {
@@ -731,13 +683,8 @@ a {
         left: -100%;
     }
 
+    #user-name {
+        display: none;
+    }
 }
 
-.google-button {
-    display: flex;
-    align-items: center;
-    font-size: 15px;
-    border-radius: 100px;
-    gap: 10px;
-
-}

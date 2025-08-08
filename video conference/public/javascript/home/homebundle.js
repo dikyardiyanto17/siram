@@ -12006,6 +12006,7 @@ const participantTitle = document.getElementById("participants_title")
 const participantInput = document.getElementById("participants")
 const checkBoxInputPassword = document.getElementById("custom-password-checkbox")
 const closeScheduleButton = document.getElementById("close-create-modal-button")
+const closeListMeetingButton = document.getElementById("meeting-list-close-icon")
 
 const dropdown = document.querySelector(".dropdown")
 const btn = document.querySelector(".dropdown-btn")
@@ -12084,24 +12085,190 @@ const initMeetingDate = () => {
 	}
 }
 
-if (isLogin) {
-	initMeetingDate()
-	fetch(`${baseUrl}/api/google`, {
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	})
-		.then((response) => response.json())
-		.then((result) => {
-			console.log("Google API Response:", result)
+const displayMeeting = ({ data }) => {
+	try {
+		const meetingListContainerElement = document.getElementById("list-meeting-card-container-id")
+		const language = localStorage.getItem("language")
+
+		if (!meetingListContainerElement) return
+
+		meetingListContainerElement.innerHTML = ""
+
+		if (data.length <= 0) {
+			meetingListContainerElement.innerHTML = `<div class="no-meeting"><img src="${baseUrl}/assets/icons/file_not_found.svg" alt="not-found" /><span>${
+				language == "en" ? "Oops! There is no meeting in this period!" : "Oops! Belum ada catatan meeting di periode ini"
+			}</span></div>`
+			return
+		}
+
+		data.forEach((meeting) => {
+			const now = new Date()
+			const end = new Date(meeting.endMeeting)
+			const start = new Date(meeting.startMeeting)
+
+			const isFinished = end < now
+			const statusClass = isFinished ? "green" : "orange"
+			const bgClass = isFinished ? "bg-green" : "bg-orange"
+			const statusLabel = isFinished ? (language == "en" ? "Completed" : "Selesai") : language == "en" ? "Upcoming" : "Mendatang"
+
+			const timeZone = "Asia/Bangkok"
+			const timeZoneLabel = "WIB"
+
+			const formattedDate = new Intl.DateTimeFormat("id-ID", {
+				day: "numeric",
+				month: "long",
+				year: "numeric",
+				timeZone,
+			}).format(start)
+
+			const formattedStartTime = new Intl.DateTimeFormat("id-ID", {
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: false,
+				timeZone,
+			}).format(start)
+
+			const formattedEndTime = new Intl.DateTimeFormat("id-ID", {
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: false,
+				timeZone,
+			}).format(end)
+
+			const participantsHTML = meeting.participants.map((email) => `<span class="participant-added">${email}</span>`).join("")
+
+			const meetingHTML = `
+                <div class="card-meetings" id="meeting-card-${meeting._id}">
+                    <div class="left-line ${bgClass}"></div>
+						<div class="card-meeting-date">
+							<img src="${baseUrl}/assets/icons/${isFinished ? "checklist" : "waiting"}.svg" class="icons-list" alt="status">
+							<span>${formattedDate} ${formattedStartTime} - ${formattedEndTime} (${timeZoneLabel})</span>&nbsp;&nbsp;
+							<span class="${statusClass}">${statusLabel}</span>
+						</div>
+
+                    <div>
+                        <span class="meeting-list-title">${meeting.title}</span>
+                    </div>
+                    <div>
+                        <img style="width: 10px;" src="${baseUrl}/assets/icons/info-meeting-list.svg" alt="info">
+                        &nbsp;&nbsp;<span>${meeting.description}</span>
+                    </div>
+                    <div>
+                        <img style="width: 10px;" src="${baseUrl}/assets/icons/participants-meeting-list.svg" alt="participants">
+                        &nbsp;&nbsp;<span>${meeting.participants.length} Participant${meeting.participants.length > 1 ? "s" : ""}</span>
+                    </div>
+					<div id="pariticipant-${meeting._id}" class="participants-expandable">
+						${participantsHTML}
+					</div>
+                    <div class="meeting-list-link">
+                        <span>Link </span>&nbsp;<span class="blue" id="link-${meeting._id}">${meeting.link}</span>
+                    </div>
+                </div>
+            `
+
+			meetingListContainerElement.insertAdjacentHTML("beforeend", meetingHTML)
+			const linkElement = document.getElementById(`link-${meeting._id}`)
+			if (linkElement) {
+				linkElement.style.cursor = "pointer"
+
+				linkElement.addEventListener("click", (e) => {
+					e.stopPropagation()
+					navigator.clipboard.writeText(meeting.link).then(() => {
+						const copiedText = document.createElement("div")
+						copiedText.textContent = "Copied!"
+						copiedText.className = "copied-tooltip"
+						linkElement.parentElement.appendChild(copiedText)
+
+						const rect = linkElement.getBoundingClientRect()
+						copiedText.style.left = `${linkElement.offsetLeft}px`
+						copiedText.style.top = `${linkElement.offsetTop - 24}px`
+
+						setTimeout(() => {
+							copiedText.remove()
+						}, 1000)
+					})
+				})
+			}
+
+			const cardElement = document.getElementById(`meeting-card-${meeting._id}`)
+			const participantSection = document.getElementById(`pariticipant-${meeting._id}`)
+
+			cardElement.addEventListener("click", (e) => {
+				if (e.target.id == `link-${meeting._id}`) return
+
+				const isExpanded = participantSection.classList.contains("expanded")
+
+				if (isExpanded) {
+					participantSection.classList.remove("expanded")
+				} else {
+					participantSection.classList.add("expanded")
+				}
+			})
 		})
-		.catch((error) => {
-			console.error("Error fetching Google API:", error)
-		})
+	} catch (error) {
+		console.error("- Error Displaying Meeting:", error)
+	}
 }
 
-customPasswordTitle.addEventListener("click", () => {
+const initMeetingList = () => {
+	try {
+		let start = moment().subtract(0, "days")
+		let end = moment()
+
+		function cb(start, end) {
+			$("#list-meetings-filter span").html(start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY"))
+
+			const startDate = start.format("YYYY-MM-DD")
+			const endDate = end.format("YYYY-MM-DD")
+
+			fetch(`${baseUrl}/api/google?st=${startDate}&et=${endDate}`, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			})
+				.then((response) => response.json())
+				.then((result) => {
+					displayMeeting({ data: result.data })
+					console.log("Google API Response:", result)
+				})
+				.catch((error) => {
+					console.error("Error fetching Google API:", error)
+				})
+		}
+
+		$("#list-meetings-filter").daterangepicker(
+			{
+				startDate: start,
+				endDate: end,
+				ranges: {
+					"Hari Ini": [moment(), moment()],
+					Kemarin: [moment().subtract(1, "days"), moment().subtract(1, "days")],
+					"7 Hari Terakhir": [moment().subtract(6, "days"), moment()],
+					"30 Hari Terakhir": [moment().subtract(29, "days"), moment()],
+					"Bulan Ini": [moment().startOf("month"), moment().endOf("month")],
+					"Bulan Kemarin": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")],
+				},
+				locale: {
+					customRangeLabel: "Pilih Tanggal",
+				},
+				showCustomRangeLabel: true,
+			},
+			cb
+		)
+
+		cb(start, end)
+	} catch (error) {
+		console.log("- Error Date Range Picker : ", error)
+	}
+}
+
+if (isLogin) {
+	initMeetingList()
+	initMeetingDate()
+}
+
+customPasswordTitle?.addEventListener("click", () => {
 	try {
 		document.getElementById("custom-password-checkbox").click()
 	} catch (error) {
@@ -12109,7 +12276,7 @@ customPasswordTitle.addEventListener("click", () => {
 	}
 })
 
-checkBoxInputPassword.addEventListener("change", async () => {
+checkBoxInputPassword?.addEventListener("change", async () => {
 	try {
 		if (checkBoxInputPassword.checked) {
 			passwordInputModal.value = ""
@@ -12125,54 +12292,6 @@ checkBoxInputPassword.addEventListener("change", async () => {
 	} catch (error) {
 		console.log("- Error Click Checkbox Input Password : ", error)
 	}
-})
-
-$(function () {
-	let start = moment().subtract(0, "days")
-	let end = moment()
-
-	function cb(start, end) {
-		$("#list-meetings-filter span").html(start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY"))
-
-		const startDate = start.format("YYYY-MM-DD")
-		const endDate = end.format("YYYY-MM-DD")
-
-		fetch(`${baseUrl}/api/google?st=${startDate}&et=${endDate}`, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		})
-			.then((response) => response.json())
-			.then((result) => {
-				console.log("Google API Response:", result)
-			})
-			.catch((error) => {
-				console.error("Error fetching Google API:", error)
-			})
-	}
-
-	$("#list-meetings-filter").daterangepicker(
-		{
-			startDate: start,
-			endDate: end,
-			ranges: {
-				"Hari Ini": [moment(), moment()],
-				Kemarin: [moment().subtract(1, "days"), moment().subtract(1, "days")],
-				"7 Hari Terakhir": [moment().subtract(6, "days"), moment()],
-				"30 Hari Terakhir": [moment().subtract(29, "days"), moment()],
-				"Bulan Ini": [moment().startOf("month"), moment().endOf("month")],
-				"Bulan Kemarin": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")],
-			},
-			locale: {
-				customRangeLabel: "Pilih Tanggal",
-			},
-			showCustomRangeLabel: true,
-		},
-		cb
-	)
-
-	cb(start, end)
 })
 
 const createModalEvent = async () => {
@@ -12207,6 +12326,11 @@ const showListModal = () => {
 		listMeetingModalContainer.style.top = "0%"
 	}
 }
+
+closeListMeetingButton?.addEventListener("click", (e) => {
+	e.stopPropagation()
+	showListModal()
+})
 
 listMeetingModalContainer?.addEventListener("click", (e) => {
 	e.stopPropagation()
@@ -12410,6 +12534,11 @@ const changeLanguage = ({ language }) => {
 		const participantTitle = document.getElementById("participant_title")
 		const participantInput = document.getElementById("participants")
 
+		const createMeetingButtonTitle = document.getElementById("meeting-create-button-title")
+		const listMeetingButtonTitle = document.getElementById("meeting-list-button-title")
+
+		const googleCalendarInfoTitle = document.getElementById("google-calendar-info-title")
+
 		const dropdown = document.getElementById("dropdown")
 
 		// Remove skeleton
@@ -12436,6 +12565,11 @@ const changeLanguage = ({ language }) => {
 			if (participantInput) participantInput.placeholder = "Add Participants..."
 
 			if (listMeetingModalTitle) listMeetingModalTitle.innerHTML = "Meetings List"
+
+			if (createMeetingButtonTitle) createMeetingButtonTitle.innerHTML = "Create Meeting"
+			if (listMeetingButtonTitle) listMeetingButtonTitle.innerHTML = "Meeting Schedule"
+
+			if (googleCalendarInfoTitle) googleCalendarInfoTitle.innerHTML = "Sign in to create meetings and connect with your Google Calendar"
 		} else if (language === "id") {
 			if (languageTitleElement) languageTitleElement.innerHTML = `Selamat Datang di <span>RDS Meet!</span>`
 			if (roomIdInput) roomIdInput.placeholder = "Masukkan Room Id"
@@ -12456,6 +12590,10 @@ const changeLanguage = ({ language }) => {
 			if (participantTitle) participantTitle.innerHTML = "Peserta ruangan "
 			if (participantInput) participantInput.placeholder = "Tambahkan peserta..."
 			if (listMeetingModalTitle) listMeetingModalTitle.innerHTML = "Riwayat Meeting"
+
+			if (createMeetingButtonTitle) createMeetingButtonTitle.innerHTML = "Buat Meeting"
+			if (listMeetingButtonTitle) listMeetingButtonTitle.innerHTML = "Meeting Schedule"
+			if (googleCalendarInfoTitle) googleCalendarInfoTitle.innerHTML = "Masuk untuk buat meeting dan terhubung dengan Google Calender"
 		} else {
 			throw new Error("Language ID is not valid")
 		}

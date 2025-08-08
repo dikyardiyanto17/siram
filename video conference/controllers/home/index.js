@@ -18,7 +18,7 @@ class Home {
 						const googleInfo = {
 							token: accessToken,
 							email: user.email,
-							name: user.name,
+							name: user.username,
 							picture: user.picture,
 						}
 						req.session.google = { ...googleInfo }
@@ -33,9 +33,12 @@ class Home {
 			} else {
 				const google = req.session?.google || null
 				return res.render("pages/home/index", {
-					authority: 1,
 					baseUrl,
-					isLogin: google ? true : false,
+					authority: 1,
+					isLogin: !!google,
+					...(google
+						? { username: google.name, picture: google.picture }
+						: { username: "Unknown", picture: `${baseUrl}/assets/pictures/avatar.png` }),
 				})
 			}
 		} catch (error) {
