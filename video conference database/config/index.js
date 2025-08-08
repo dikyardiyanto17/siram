@@ -8,7 +8,7 @@ module.exports = {
 	http: true,
 	// googleRedirectApi: "http://localhost:9103/vmeet-db/api/google/auth",
 	// videoConferenceUrl: "https://localhost:9102/vmeet",
-	googleRedirectApi: "http://modoto.net/vmeet-db/api/google/auth",
+	googleRedirectApi: "https://modoto.net/vmeet-db/api/google/auth",
 	videoConferenceUrl: "https://modoto.net/vmeet",
 	// googleRedirectApi: "http://localhost:9101/api/google/auth",
 	// videoConferenceUrl: "https://localhost:9100/telepati",
