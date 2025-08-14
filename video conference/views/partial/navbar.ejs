@@ -1,0 +1,41 @@
+<div class="navbar-container">
+    <div class="navbar">
+        <a href="[/= baseUrl /]">
+            <img src="[/= baseUrl /]/assets/pictures/vmeet_logo_4.png" alt="rdslogo" srcset="">
+        </a>
+        <div class="option-container">
+
+            <div id="language-option" class="dropdown">
+                <button class="dropdown-btn">
+                    <img id="selected-flag" src="[/= baseUrl /]/assets/icons/us_flag.svg" alt="us_flag">
+                    <span id="selected-language">EN</span>
+                </button>
+                <div class="dropdown-content">
+                    <div class="dropdown-item" data-value="id" data-lang="Indonesian" id="indonesian-language">
+                        <img src="[/= baseUrl /]/assets/icons/indonesia_flag.svg" alt="Indonesia Flag">
+                        <span>Indonesian</span>
+                    </div>
+                    <div class="dropdown-item" data-value="en" data-lang="English" id="english-language">
+                        <img src="[/= baseUrl /]/assets/icons/us_flag.svg" alt="US Flag">
+                        <span>English</span>
+                    </div>
+                </div>
+            </div>
+            [/ if (!isLogin) { /]
+            <a href="[/= databaseUrl /]/api/google/create_token" class="google-button" style="color: #000000;">
+                <span> Sign in With</span><img src="[/= baseUrl /]/assets/icons/google_logo.svg" alt="">
+            </a>
+            [/ } else { /]
+            <div id="user-profile" class="user-profile">
+                <img src="[/= picture /]" referrerPolicy="no-referrer" alt="user-profile">
+                <span id="user-name">[/= username /]</span>
+            </div>
+            <div class="log-out-container" id="log-out-button">
+                <span>Log Out</span>
+                <img src="[/= baseUrl /]/assets/icons/log_out_door.svg" alt="door">
+            </div>
+            [/ } /]
+
+        </div>
+    </div>
+</div>

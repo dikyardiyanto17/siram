@@ -12545,7 +12545,7 @@ const changeLanguage = ({ language }) => {
 		if (languageTitleElement) languageTitleElement.classList.remove("skeleton")
 
 		if (language === "en") {
-			if (languageTitleElement) languageTitleElement.innerHTML = `Welcome to <span>RDS Meet!</span>`
+			if (languageTitleElement) languageTitleElement.innerHTML = `Welcome to <span>Vmeet!</span>`
 			if (roomIdInput) roomIdInput.placeholder = "Enter Room ID"
 			if (passwordInput) passwordInput.placeholder = "Enter Room Password"
 			if (buttonJoin) buttonJoin.innerHTML = "Join"
@@ -12571,7 +12571,7 @@ const changeLanguage = ({ language }) => {
 
 			if (googleCalendarInfoTitle) googleCalendarInfoTitle.innerHTML = "Sign in to create meetings and connect with your Google Calendar"
 		} else if (language === "id") {
-			if (languageTitleElement) languageTitleElement.innerHTML = `Selamat Datang di <span>RDS Meet!</span>`
+			if (languageTitleElement) languageTitleElement.innerHTML = `Selamat Datang di <span>VMeet!</span>`
 			if (roomIdInput) roomIdInput.placeholder = "Masukkan Room Id"
 			if (passwordInput) passwordInput.placeholder = "Masukkan Password"
 			if (buttonJoin) buttonJoin.innerHTML = "Masuk"

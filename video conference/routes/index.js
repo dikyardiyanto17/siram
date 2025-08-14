@@ -7,11 +7,13 @@ const Lobby = require("../controllers/lobby/index.js")
 const Update_Photo = require("../controllers/update_photo/index.js")
 const router = express.Router()
 const path = require("path")
+const PrivacyPolicy = require("../controllers/privacy_policy/index.js")
 
 router.use("/api", require("./api/index.js"))
 router.use("/custom_api", require("./custom_api"))
 
 router.get("/", Home.index)
+router.get("/privacy-policy", PrivacyPolicy.index)
 router.get("/logout", Login.logout)
 router.get("/lobby", Lobby.index)
 router.use("/photo", express.static(path.join(__dirname, "../photo")))

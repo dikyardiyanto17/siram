@@ -962,14 +962,18 @@ tbody tr {
     fill: #ffffff;
 }
 
-.google-calender-info-containeer {
+.google-calender-info-container, .privacy-policy-info-container {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.google-calender-info-containeer span {
+.privacy-policy-info-container {
+    justify-content: center;
+}
+
+.google-calender-info-container span, .privacy-policy-info-container span {
     color: #666666;
     font-size: 13px;
     text-align: center;

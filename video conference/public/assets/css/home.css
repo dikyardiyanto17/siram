@@ -399,8 +399,14 @@ a {
     /* X, Y, Blur, Spread */
 }
 
-.navbar>img {
+.navbar>a {
     height: 100%;
+}
+
+.navbar>a>img {
+    height: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
 }
 
 .left-box,
@@ -442,7 +448,8 @@ a {
     margin-bottom: 20px;
 }
 
-.option-container, .user-profile {
+.option-container,
+.user-profile {
     display: flex;
     align-items: center;
 }
@@ -457,7 +464,8 @@ a {
     margin-right: 7px;
 }
 
-#language-select, .user-profile {
+#language-select,
+.user-profile {
     appearance: none;
     /* Remove default styling */
     border: 1px solid #F2F2F2;
@@ -616,8 +624,12 @@ a {
         height: 100dvh;
     }
 
-    .navbar>img {
-        height: 50%;
+    .navbar>a {
+        height: 60%;
+    }
+
+    .navbar>a>img {
+        height: 60%;
     }
 
     #language-option>button>span {
@@ -687,4 +699,3 @@ a {
         display: none;
     }
 }
-

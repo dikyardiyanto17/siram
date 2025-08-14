@@ -10,9 +10,6 @@ module.exports = {
 	// videoConferenceUrl: "https://localhost:9102/vmeet",
 	googleRedirectApi: "https://modoto.net/vmeet-db/api/google/auth",
 	videoConferenceUrl: "https://modoto.net/vmeet",
-	// googleRedirectApi: "http://localhost:9101/api/google/auth",
-	// videoConferenceUrl: "https://localhost:9100/telepati",
 	googleOauthUrl: "https://www.googleapis.com/oauth2/v2",
-	// googleRedirectApi: "https://localhost:9100/telepati",
 	googleScope: ["https://www.googleapis.com/auth/calendar", "openid", "email", "profile"],
 }
