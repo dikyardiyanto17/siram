@@ -206,7 +206,7 @@ class MediaSoup {
 
 						if (!hasOtherRouters) {
 							const workerClosed = this.#workers.find((w) => w.worker.pid == routerClosed.workerPid)
-							workerClosed.webRtcServer.close()
+							workerClosed.webrtcServer.close()
 							workerClosed.worker.close()
 						}
 					} catch (error) {
