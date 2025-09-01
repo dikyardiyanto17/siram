@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch-home": "watchify public/javascript//home/home.js -o public/javascript/home/homebundle.js -v",
+    "watch-home": "watchify public/javascript/home/home.js public/javascript/home/modalListener.js -o public/javascript/home/homebundle.js -v",
     "watch-room": "watchify public/javascript//room/room.js -o public/javascript/room/roombundle.js -v",
     "watch-lobby": "watchify public/javascript//lobby/lobby.js -o public/javascript/lobby/lobbybundle.js -v",
     "watch-sandbox": "watchify public/javascript//sandbox/sandbox.js -o public/javascript/sandbox/sandboxbundle.js -v",

@@ -1,21 +1,23 @@
 const portToOpen = [1042, 1043] // for mediasoup tcp/udp binding,
 const privateIp = "0.0.0.0"
 // const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
+// const publicIp = "192.168.20.209" // Kosan
+// const publicIp = "192.167.61.8"
 // const publicIp = "203.175.10.29" // VPS
-const publicIp = "93.127.199.123" // VPS TERBARU PAK Indra
+const publicIp = "31.97.67.18" // VPS TERBARU PAK Indra
 module.exports = {
 	appName: "VMeet",
 	// baseUrl: "https://localhost:9102/vmeet",
 	// socketBaseUrl: "https://localhost:9102",
 	// databaseUrl: "http://localhost:9103/vmeet-db",
+	// isHttps: true,
 	baseUrl: "https://modoto.net/vmeet",
 	socketBaseUrl: "https://modoto.net",
 	databaseUrl: "https://modoto.net/vmeet-db",
+	isHttps: false,
 	url: "/vmeet",
 	socketPath: "/vmeet/socket",
 	port: 9102,
-	isHttps: false,
-	// isHttps: true,
 	maxCores: 2, // How many core you want to provide to mediasoup
 	incomingMinBitRate: 2_500_000,
 	incomingMaxBitRate: 2_500_000,

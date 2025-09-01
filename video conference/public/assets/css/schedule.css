@@ -244,10 +244,11 @@ input::-moz-placeholder {
     height: 400px;
     max-height: 400px;
     border: 1px solid #E0E4EC;
+    background-color: #ffffff;
     border-radius: 7px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
     padding: 10px;
-    overflow: auto;
+    overflow: hidden;
 }
 
 .card-meetings {
@@ -272,7 +273,7 @@ input::-moz-placeholder {
 }
 
 .card-meetings>div>span {
-    font-size: 10px;
+    font-size: 13px;
     color: #4C5667;
 }
 
@@ -308,8 +309,7 @@ input::-moz-placeholder {
 }
 
 .detail-meeting-container,
-.create-meeting-container,
-.meeting-list-container {
+.create-meeting-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -320,6 +320,15 @@ input::-moz-placeholder {
     background-color: #00000040;
     top: -100%;
     left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 1s;
+}
+
+.meeting-list-container {
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -341,6 +350,11 @@ input::-moz-placeholder {
 }
 
 .list-meeting {
+    width: 100%;
+    background-color: #ffffff7c;
+}
+
+.list-meeting {
     padding: 20px;
 }
 
@@ -352,13 +366,31 @@ input::-moz-placeholder {
     align-items: center;
     font-weight: 600;
     flex-direction: column;
+    margin-bottom: 20px;
+    border-radius: 10px;
     gap: 10px;
+}
+
+#list-meeting-info {
+    font-size: 16px;
+    font-weight: 600;
 }
 
 
 .list-meetings-filter-container {
     width: 100%;
     display: flex;
+    padding: 10px;
+    height: 60px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-meeting-card-content {
+    width: 100%;
+    height: calc(100% - 60px);
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .detail-meeting {
@@ -836,6 +868,24 @@ tbody tr {
     position: relative;
 }
 
+.log-out-container {
+    cursor: pointer;
+    margin-top: 20px;
+    margin-bottom: 0px;
+}
+
+.log-out-container>span {
+    color: #FF6464;
+    font-size: 15px;
+    margin-right: 7px;
+}
+
+#log-out-button-image {
+    border-radius: 0;
+    height: 25px;
+    margin-right: 0;
+}
+
 .copied-tooltip {
     position: absolute;
     background-color: #4caf50;
@@ -892,34 +942,53 @@ tbody tr {
 }
 
 .meeting-information-container {
+    position: relative;
     width: 100%;
-    top: 0;
-    left: 0;
     padding: 20px 0;
+    gap: 10px;
     display: flex;
-    justify-content: space-between;
 }
 
 .info-meeting-btn,
 .schedule-meeting-btn {
-    width: 200px;
     border-radius: 50px;
-    padding: 10px;
+    padding: 10px 10px;
+    color: #ffffff;
+}
+
+.schedule-meeting-btn {
+    background-color: #2F6EFF;
+}
+
+.info-meeting-btn {
+    color: #2F6EFF;
+    background-color: #ffffff;
 }
 
 .info-meeting-btn svg,
 .schedule-meeting-btn svg {
-    margin-right: 5px;
+    margin-right: 2px;
+    height: 20px;
 }
 
-.schedule-meeting-btn {
-    background: transparent;
-    border: 1px solid #2369D1;
-    color: #2369D1;
-    font-size: 12px;
+.schedule-meeting-btn,
+.info-meeting-btn {
+    border: 1px solid #2F6EFF;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
+}
+
+.meeting-information-container>hr {
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    border: none;
+    border-top: 1px solid #ffffff;
+    transform: scaleY(0.7);
+    transform-origin: top;
 }
 
 .schedule-meeting-btn:focus,
@@ -937,44 +1006,36 @@ tbody tr {
     fill: #ffffff;
 }
 
-.info-meeting-btn {
-    background: transparent;
-    border: 1px solid #2369D1;
-    color: #2369D1;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-
 .info-meeting-btn:focus,
 .info-meeting-btn:active {
     outline: none;
     box-shadow: none;
 }
 
-.info-meeting-btn:hover {
-    background: #2369D1;
-    color: white;
-}
-
-.info-meeting-btn:hover #schedule-meeting-icon {
-    fill: #ffffff;
-}
-
-.google-calender-info-container, .privacy-policy-info-container {
-    width: 100%;
+.google-calender-info-container,
+.privacy-policy-info-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.privacy-policy-info-container {
-    justify-content: center;
+.google-calender-info-container {
+    width: 100%;
 }
 
-.google-calender-info-container span, .privacy-policy-info-container span {
-    color: #666666;
+.privacy-policy-info-container {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-decoration: underline;
+    color: #2F6EFF;
+}
+
+
+.google-calender-info-container span,
+.privacy-policy-info-container span {
+    color: #2F6EFF;
     font-size: 13px;
     text-align: center;
 }
@@ -1007,8 +1068,52 @@ tbody tr {
     cursor: pointer;
 }
 
+
+#time-now {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+#date-now {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+@media (min-height: 900px) {
+    .list-meeting-card-container {
+        height: 700px;
+        max-height: 700px;
+    }
+}
+
 @media (max-width: 768px) {
     #user-name {
+        display: none;
+    }
+
+    .meeting-status {
+        display: none;
+    }
+
+    #time-now {
+        font-size: 14px !important;
+    }
+
+    #date-now {
+        font-size: 12px !important;
+    }
+
+    .list-meeting-header {
+        margin-bottom: 10px;
+        padding: 7px;
+    }
+
+    #list-meeting-info {
+        font-size: 12px;
+        display: none;
+    }
+
+    .log-out-container>span {
         display: none;
     }
 
@@ -1017,7 +1122,7 @@ tbody tr {
     }
 
     .meeting-information-container span {
-        display: none;
+        font-size: 13px;
     }
 
     .meeting-information-container svg {
@@ -1026,12 +1131,40 @@ tbody tr {
 
     .list-meeting {
         width: 100%;
+        height: 100%;
+        background-color: #ffffff;
     }
 
     .schedule-meeting-btn,
     .info-meeting-btn {
         padding: 5px;
-        width: 100px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-meeting-btn svg,
+    .schedule-meeting-btn svg {
+        height: 32px;
+    }
+
+    .info-meeting-btn {
+        background-color: #ffffff71;
+    }
+
+    .box .join-meeting-container {
+        flex-wrap: wrap;
+        font-size: 16px;
+    }
+
+    .join-meeting-container {
+        padding: 10px;
+    }
+
+    .join-meeting-container>p {
+        display: none;
     }
 
     .google-button span {
@@ -1040,5 +1173,27 @@ tbody tr {
 
     .google-calender-info-containeer span {
         font-size: 10px;
+    }
+
+    .list-meeting-card-container {
+        padding: 5px 10px;
+    }
+
+    .meeting-list-title {
+        font-size: 12px !important;
+    }
+
+    .card-meetings>div>span {
+        font-size: 10px;
+        color: #4C5667;
+    }
+
+    .privacy-policy-info-container{
+        width: 100%;
+        position: static;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform: translateX(0);
     }
 }

@@ -1,7 +1,7 @@
 <div class="navbar-container">
     <div class="navbar">
         <a href="[/= baseUrl /]">
-            <img src="[/= baseUrl /]/assets/pictures/vmeet_logo_4.png" alt="rdslogo" srcset="">
+            <img src="[/= baseUrl /]/assets/pictures/VmeetLogo.png" alt="rdslogo" srcset="">
         </a>
         <div class="option-container">
 
@@ -27,13 +27,37 @@
             </a>
             [/ } else { /]
             <div id="user-profile" class="user-profile">
-                <img src="[/= picture /]" referrerPolicy="no-referrer" alt="user-profile">
-                <span id="user-name">[/= username /]</span>
+                <input type="checkbox" id="toggle-profile" style="display: none;">
+                <label for="toggle-profile">
+                    <img src="[/= picture /]" referrerPolicy="no-referrer" alt="user-profile">
+                    <span id="user-name" style="margin-left: 8px;">[/= username /]</span>
+                </label>
+
+                <div id="profile-dropdown" class="profile-dropdown">
+                    <img src="[/= picture /]" referrerPolicy="no-referrer" alt="user-profile">
+                    <p>[/= username /]</p>
+                    <span>[/= email /]</span>
+                    <div class="log-out-container" id="log-out-button">
+                        <img id="log-out-button-image" src="[/= baseUrl /]/assets/icons/log_out_door.svg" alt="door">
+                        <span>Log Out</span>
+                    </div>
+                </div>
             </div>
-            <div class="log-out-container" id="log-out-button">
-                <span>Log Out</span>
-                <img src="[/= baseUrl /]/assets/icons/log_out_door.svg" alt="door">
-            </div>
+
+            <!-- <div id="user-profile" class="user-profile">
+                <input type="checkbox" id="toggle-profile" style="display: none;">
+                <label for="toggle-profile">
+                    <img src="[/= picture /]" referrerPolicy="no-referrer" alt="user-profile">
+                    <span id="user-name">[/= username /]</span>
+                </label>
+                                <div class="profile-dropdown">
+                    <p>Profile Info</p>
+                    <p>Settings</p>
+                    <p>Logout</p>
+                </div>
+            </div> -->
+
+
             [/ } /]
 
         </div>

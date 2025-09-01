@@ -37,8 +37,8 @@ class Home {
 					authority: 1,
 					isLogin: !!google,
 					...(google
-						? { username: google.name, picture: google.picture }
-						: { username: "Unknown", picture: `${baseUrl}/assets/pictures/avatar.png` }),
+						? { username: google.name, picture: google.picture, email: google.email }
+						: { username: "Unknown", picture: `${baseUrl}/assets/pictures/avatar.png`, email: "noemail.login" }),
 				})
 			}
 		} catch (error) {
