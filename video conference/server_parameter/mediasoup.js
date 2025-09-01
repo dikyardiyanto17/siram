@@ -1,5 +1,14 @@
 const mediasoup = require("mediasoup")
-const { turnServer, mediaCodecs, maxCores, incomingMaxBitRate, listenInfos, incomingMinBitRate, outcomingMinBitRate, outcomingMaxBitRate } = require("../config/index.js")
+const {
+	turnServer,
+	mediaCodecs,
+	maxCores,
+	incomingMaxBitRate,
+	listenInfos,
+	incomingMinBitRate,
+	outcomingMinBitRate,
+	outcomingMaxBitRate,
+} = require("../config/index.js")
 
 class MediaSoup {
 	// #publicIp = "147.139.177.186" // Wire Guard
@@ -91,6 +100,7 @@ class MediaSoup {
 			worker.observer.on("close", () => {
 				try {
 					console.log("Worker (close) is Closed => ", worker.pid)
+					this.#workers = this.#workers.filter((w) => w.worker.pid != worker.pid)
 				} catch (error) {
 					console.log("- Error Worker Close Observer ", error)
 				}
@@ -125,7 +135,7 @@ class MediaSoup {
 
 		// Count occurrences of each workerPid
 		this.#routers.forEach(({ workerPid }) => {
-			const existing = pidCounts.find((item) => item.workerPid === workerPid)
+			const existing = pidCounts.find((item) => item.workerPid == workerPid)
 			if (existing) {
 				existing.count += 1
 			} else {
@@ -137,17 +147,20 @@ class MediaSoup {
 	}
 
 	async findLeastUsedWorkerPid(pidCounts) {
-		let leastUsedPid = pidCounts[0].workerPid // Initialize with the first workerPid
-		let leastCount = pidCounts[0].count // Initialize with the first count
+		try {
+			let leastUsedPid = pidCounts[0].workerPid // Initialize with the first workerPid
+			let leastCount = pidCounts[0].count // Initialize with the first count
 
-		pidCounts.forEach(({ workerPid, count }) => {
-			if (count < leastCount) {
-				leastUsedPid = workerPid
-				leastCount = count
-			}
-		})
-
-		return leastUsedPid
+			pidCounts.forEach(({ workerPid, count }) => {
+				if (count < leastCount) {
+					leastUsedPid = workerPid
+					leastCount = count
+				}
+			})
+			return leastUsedPid
+		} catch (error) {
+			console.log("- Error finding least used worker PID : ", error)
+		}
 	}
 
 	async getRouter({ roomId }) {
@@ -158,7 +171,7 @@ class MediaSoup {
 				let worker
 				if (this.#workers.length < this.#maxCores) {
 					await this.createWorker()
-					worker = this.#workers[0]
+					worker = this.#workers[this.#workers.length - 1]
 				} else {
 					const pidCounts = await this.countWorkerPids()
 					const workerPid = await this.findLeastUsedWorkerPid(pidCounts)
@@ -181,12 +194,21 @@ class MediaSoup {
 						this.#transports = this.#transports.filter((t) => {
 							if (t.routerId == newRouter.id) {
 								t.transport.close()
-								return null
-							} else {
-								return t
+								return false
 							}
+							return true
 						})
+						const routerClosed = this.#routers.find((r) => r.router.id == newRouter.id)
+
+						const hasOtherRouters = this.#routers.some((r) => r.workerPid == routerClosed.workerPid && r.router.id != newRouter.id)
+
 						this.#routers = this.#routers.filter((r) => r.router.id != newRouter.id)
+
+						if (!hasOtherRouters) {
+							const workerClosed = this.#workers.find((w) => w.worker.pid == routerClosed.workerPid)
+							workerClosed.webRtcServer.close()
+							workerClosed.worker.close()
+						}
 					} catch (error) {
 						console.log("- Error Router close : ", error)
 					}

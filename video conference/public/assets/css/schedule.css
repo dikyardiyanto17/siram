@@ -273,7 +273,7 @@ input::-moz-placeholder {
 }
 
 .card-meetings>div>span {
-    font-size: 13px;
+    font-size: 12px;
     color: #4C5667;
 }
 
@@ -974,7 +974,7 @@ tbody tr {
 .schedule-meeting-btn,
 .info-meeting-btn {
     border: 1px solid #2F6EFF;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
