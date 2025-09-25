@@ -13079,7 +13079,9 @@ const joinMeeting = async () => {
 
 		const { status, message } = meeting
 
-		if (!status) {
+		const userCookies = await db.getCookie("userCookie")
+
+		if (!status && !userCookies) {
 			throw { message }
 		}
 
