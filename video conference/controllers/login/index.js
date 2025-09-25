@@ -1,5 +1,5 @@
 const { baseUrl } = require("../../config/index.js")
-const { decodeToken, encodeToken } = require("../../helper/jwt")
+const { Helpers } = require("../../helper/index.js")
 
 class Login {
 	static async index(req, res, next) {
@@ -11,7 +11,7 @@ class Login {
 				return
 			}
 
-			const decodedUser = await decodeToken(token)
+			const decodedUser = await Helpers.decodeToken(token)
 
 			if (!decodedUser) {
 				await res.render("pages/login/index", { baseUrl })
@@ -36,13 +36,13 @@ class Login {
 			const authHeader = req.headers["authorization"]
 			const token = authHeader && authHeader.split(" ")[1]
 			if (!token) {
-				throw { name: "Invalid token", message: "Invalid user" }
+				throw { name: Helpers.RESPONSEERROR.FORBIDDEN.name, message: Helpers.RESPONSEERROR.FORBIDDEN.message }
 			}
 
-			const { user } = await decodeToken(token)
+			const { user } = await Helpers.decodeToken(token)
 
 			if (!user) {
-				throw { name: "Invalid token", message: "Invalid user" }
+				throw { name: Helpers.RESPONSEERROR.FORBIDDEN.name, message: Helpers.RESPONSEERROR.FORBIDDEN.message }
 			}
 
 			req.session.token = token
@@ -55,10 +55,15 @@ class Login {
 
 	static async logout(req, res, next) {
 		try {
-			await req.session.destroy()
-			await res.status(200).json({ message: "Successfully log out", status: true })
+			res.clearCookie("userCookie")
+			res.clearCookie("roomToken")
+
+			return res.status(200).json({
+				message: "Successfully logged out",
+				status: true,
+			})
 		} catch (error) {
-			next(error)
+			return next(error)
 		}
 	}
 }

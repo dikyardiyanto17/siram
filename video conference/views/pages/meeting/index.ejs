@@ -263,13 +263,54 @@
                         <i id="close-side-bar-chat"><img src="[/= baseUrl /]/assets/icons/close_button.svg"
                                 alt="close"></i>
                     </div>
-                    <div class="chat-content" id="chat-content">
+                    <div class="chat-content" id="chat-everyone">
+                    </div>
+                    <div class="chat-file">
+                        <div class="message-to">
+                            <div id="meeting-message-chat" class="meeting-message-chat">
+                                <div id="message-to-list" class="message-to-list d-none">
+                                    <div id="message-to-search" class="message-to-search">
+                                        <input class="custom-input" type="text" autocomplete="off"
+                                            id="message-to-search-input" placeholder="search...">
+                                    </div>
+                                    <hr>
+                                    <div class="chat-to-everyone list-chat-to selected" id="chat-to-everyone"
+                                        data-user-id="everyone">
+                                        <span>Everyone</span>
+                                    </div>
+                                </div>
+                                <button id="message-to-button" class="plain-btn message-to-button">
+                                    <span id="chat-selected-to">Everyone </span>&nbsp;&nbsp; <img
+                                        src="[/= baseUrl /]/assets/icons/arrow_right.svg" alt="arrow">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="attachment-container">
+                            <img src="[/= baseUrl /]/assets/icons/emoji.svg" alt="emoji">
+                            <label class="attachment-icon">
+                                <img src="[/= baseUrl /]/assets/icons/attachment.svg" alt="attachment">
+                                <input id="chat-file" type="file" hidden>
+                            </label>
+                        </div>
                     </div>
                     <div class="chat-footer">
                         <div class="input-chat-container">
-                            <input id="message-input" type="text" class="custom-input" placeholder="Tulis pesan..." />
+                            <input id="message-input" autocomplete="off" type="text" class="custom-input"
+                                placeholder="Tulis pesan..." />
+                            <div class="file-input d-none" id="file-input">
+                                <div class="file-icon">
+                                    <img id="chat-file-icon" src="[/= baseUrl /]/assets/icons/chat_file.svg" alt="file">
+                                </div>
+                                <div class="file-detail">
+                                    <span id="chat-file-name"></span>
+                                    <span id="chat-file-size" class="file-size"></span>
+                                </div>
+                                <div class="file-icon">
+                                    <img src="[/= baseUrl /]/assets/icons/chat_close.svg" id="chat-close" alt="close">
+                                </div>
+                            </div>
                             <img class="send-message-button" id="send-message-button"
-                                src="[/= baseUrl /]/assets/icons/send_message.svg" alt="" srcset="" />
+                                src="[/= baseUrl /]/assets/icons/send_message.svg" alt="send" />
                         </div>
                     </div>
                 </section>
@@ -280,7 +321,7 @@
                 <section class="left-button-collection" id="left-button-collection">
                     <button class="button-container" id="mic-button">
                         <div class="tooltip-container" id="microphone-tooltip">Microphone</div>
-                        <img id="mic-icon" class="icons" src="[/= baseUrl /]/assets/icons/mic.svg" alt="mic-icons">
+                        <img id="mic-icon" class="icons mic-space" src="[/= baseUrl /]/assets/icons/mic.svg" alt="mic-icons">
                         <img src="[/= baseUrl /]/assets/icons/arrow_up.svg" alt="arrow-up"
                             id="microphone-devices-option" class="microphone-devices-option">
                         <ul id="mic-options" class="d-none">
@@ -292,7 +333,7 @@
                         </ul>
                     </button>
                     <button class="button-container" id="camera-button">
-                        <img id="camera-icon" class="icons" src="[/= baseUrl /]/assets/icons/camera.svg"
+                        <img id="camera-icon" class="icons mic-space" src="[/= baseUrl /]/assets/icons/camera.svg"
                             alt="camera-icons">
                         <img src="[/= baseUrl /]/assets/icons/arrow_up.svg" alt="arrow-up" id="camera-devices-option"
                             class="camera-devices-option">
@@ -352,8 +393,10 @@
                                     id="close-button-option-list" style="cursor: pointer;"></p>
                             <div class="option-list" id="lock-room-button">
                                 <img src="[/= baseUrl /]/assets/icons/lock.svg" alt="lock-icon">
-                                <span id="lock-room-button-title">Lock Room <img style="margin-left: 20px;" class="d-none"
-                                        src="[/= baseUrl /]/assets/icons/check.svg" alt="" id="check-lock-room"></span>
+                                <span id="lock-room-button-title">Lock Room
+                                    <img style="margin-left: 20px;" class="d-none"
+                                        src="[/= baseUrl /]/assets/icons/check.svg" alt="" id="check-lock-room">
+                                </span>
                             </div>
                             <div class="option-list" id="record-button">
                                 <img src="[/= baseUrl /]/assets/icons/record.svg" alt="record-icon">
@@ -388,19 +431,11 @@
         const baseUrl = [/- JSON.stringify(baseUrl) /]
         const socketPath = [/- JSON.stringify(socketPath) /]
         const socketBaseUrl = [/- JSON.stringify(socketBaseUrl) /]
+        const databaseUrl = [/- JSON.stringify(databaseUrl) /]
+        let picture = [/- JSON.stringify(picture) /]
+
     </script>
     <script src="[/= baseUrl /]/assets/plugins/face-api/face-api.min.js"></script>
-    <script>
-        const roomName = [/- JSON.stringify(roomId) /]
-        const userId = [/- JSON.stringify(participant_id) /]
-        const meetingType = [/- JSON.stringify(meetingType) /]
-        const picture = [/- JSON.stringify(picture) /]
-        const password = [/- JSON.stringify(password) /]
-        const faceRecognition = [/- JSON.stringify(faceRecognition) /]
-        const videoType = [/- JSON.stringify(video_type) /]
-        const token = [/- JSON.stringify(token) /]
-        const userToken = [/- JSON.stringify(user_token) /]
-    </script>
     <script src="[/= baseUrl /]/javascript/room/roombundle.js"></script>
     <script src="[/= baseUrl /]/javascript/room/language.js"></script>
 </body>

@@ -9,7 +9,14 @@ const accessTokenSchema = new Schema({
 		default: () => new Date(Date.now() + 24 * 60 * 60 * 1000),
 		index: { expires: 0 },
 	},
-	createdAt: { type: Date, default: Date.now },
+	createdAt: {
+		type: Date,
+		default: Date.now,
+	},
+	updatedAt: {
+		type: Date,
+		default: Date.now,
+	},
 })
 
 module.exports = mongoose.model("AccessToken", accessTokenSchema)

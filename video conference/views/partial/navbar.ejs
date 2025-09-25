@@ -1,7 +1,7 @@
 <div class="navbar-container">
     <div class="navbar">
         <a href="[/= baseUrl /]">
-            <img src="[/= baseUrl /]/assets/pictures/VmeetLogo.png" alt="rdslogo" srcset="">
+            <img src="[/= baseUrl /]/assets/pictures/VmeetLogo.svg" alt="rdslogo" srcset="">
         </a>
         <div class="option-container">
 
@@ -22,9 +22,9 @@
                 </div>
             </div>
             [/ if (!isLogin) { /]
-            <a href="[/= databaseUrl /]/api/google/create_token" class="google-button" style="color: #000000;">
-                <span> Sign in With</span><img src="[/= baseUrl /]/assets/icons/google_logo.svg" alt="">
-            </a>
+            <button class="blue-button rounded sign-in-btn" id="sign-in-btn-modal-2">
+                <span id="sign-in-button-title-navbar"></span>
+            </button>
             [/ } else { /]
             <div id="user-profile" class="user-profile">
                 <input type="checkbox" id="toggle-profile" style="display: none;">

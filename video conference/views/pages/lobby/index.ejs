@@ -62,7 +62,7 @@
             <div class="right-side-content">
                 <form class="lobby-form-container" id="lobby-form-container">
                     <div class="lobby-form-header">
-                        <img src="[/= baseUrl /]/assets/pictures/VmeetLogo.png" alt="rdslogo" srcset="">
+                        <img src="[/= baseUrl /]/assets/pictures/VmeetLogo.svg" alt="rdslogo" srcset="">
                     </div>
                     <div class="lobby-form-content">
                         <div class="input-meeting">
@@ -92,6 +92,7 @@
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <script>
         const baseUrl = [/- JSON.stringify(baseUrl) /]
+        const databaseUrl = [/- JSON.stringify(databaseUrl) /]
         const socketPath = [/- JSON.stringify(socketPath) /]
         const socketBaseUrl = [/- JSON.stringify(socketBaseUrl) /]
         const viewerEnabled = [/- JSON.stringify(viewerEnabled) /]

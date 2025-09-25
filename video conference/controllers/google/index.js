@@ -1,5 +1,6 @@
 const axios = require("axios")
 const querystring = require("querystring")
+const { Helpers } = require("../../helper")
 
 class GoogleApi {
 	static async post(req, res, next) {
@@ -7,14 +8,14 @@ class GoogleApi {
 			const { roomName, start_date, end_date, roomId, password, description, participants, link } = req.body
 
 			if (!roomName || !start_date || !end_date || !roomId || !password || !description || !participants || !link) {
-				throw { name: "Bad_Request", message: "Bad Request, please complete the form" }
+				throw { name: Helpers.RESPONSEERROR.BADREQUEST.name, message: Helpers.RESPONSEERROR.BADREQUEST.message }
 			}
 
 			const data = { roomName, start_date, end_date, roomId, password, description, participants, link }
 
 			const accessToken = req.session?.google?.token
 			if (!accessToken) {
-				throw { name: "Invalid", message: "Invalid user!" }
+				throw { name: Helpers.RESPONSEERROR.INVALIDUSER.name, message: Helpers.RESPONSEERROR.INVALIDUSER.message }
 			}
 
 			const request = await axios.post(`${res.locals.databaseUrl}/api/meeting`, data, {
@@ -35,10 +36,10 @@ class GoogleApi {
 		try {
 			const accessToken = req.session?.google?.token
 			if (!accessToken) {
-				throw { name: "Invalid", message: "Invalid user!" }
+				throw { name: Helpers.RESPONSEERROR.INVALIDUSER.name, message: Helpers.RESPONSEERROR.INVALIDUSER.message }
 			}
 
-			const queryString = querystring.stringify(req.query);
+			const queryString = querystring.stringify(req.query)
 
 			const request = await axios.get(`${res.locals.databaseUrl}/api/meeting?${queryString}`, {
 				headers: {
@@ -47,7 +48,7 @@ class GoogleApi {
 			})
 
 			if (request && request.status) {
-				res.status(200).json({ status: true, message: request.data.message, data: [ ...request.data.data ] })
+				res.status(200).json({ status: true, message: request.data.message, data: [...request.data.data] })
 			}
 		} catch (error) {
 			next(error)

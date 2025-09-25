@@ -40,6 +40,65 @@
             </div>
         </div>
 
+
+        [/ if (!isLogin) { /]
+        <div class="sign-in-container" id="sign-in-container">
+            <form class="sign-in-form d-none" id="sign-in-form">
+                <section class="sign-in-header">
+                    <img src="[/= baseUrl /]/assets/pictures/logo.svg" alt="VmeetLogo">
+                    <span id="sign-in-form-title"></span>
+                </section>
+                <section class="sign-in-content">
+                    <input type="text" id="sign-in-email-input" class="input-field" placeholder="">
+                    <input type="password" id="sign-in-password-input" class="input-field" placeholder="">
+                </section>
+                <section class="sign-in-footer">
+                    <button type="submit" class="btn blue-button"><span id="sign-in-title"></span></button>
+                    <div class="or-line">
+                        <hr><span id="sign-in-or-line-title"></span>
+                        <hr>
+                    </div>
+                    <button class="btn white-button google-login-button" id="google-login-button">
+                        <img src="[/= baseUrl /]/assets/icons/google_logo.svg" alt="">
+                        <span id="sign-in-google-title"></span>
+                    </button>
+                    <div class="sign-up-line">
+                        <span id="sign-up-line-title"></span>
+                        <span id="sign-up-anchor-title"></span>
+                    </div>
+                </section>
+            </form>
+            <form class="sign-up-form d-none" id="sign-up-form">
+                <section class="sign-up-header">
+                    <img src="[/= baseUrl /]/assets/pictures/logo.svg" alt="VmeetLogo">
+                    <span id="sign-up-form-title"></span>
+                </section>
+                <section class="sign-up-content">
+                    <input type="email" id="sign-up-email-input" class="input-field" placeholder="">
+                    <input type="text" id="sign-up-username-input" class="input-field" placeholder="">
+                    <input type="password" id="sign-up-password-input" class="input-field" placeholder="">
+                    <input type="password" id="sign-up-repeat-password-input" class="input-field" placeholder="">
+                </section>
+                <section class="sign-up-footer">
+                    <button type="submit" class="btn blue-button"><span id="sign-up-title"></span></button>
+                    <div class="or-line">
+                        <hr><span id="sign-up-or-line-title"></span>
+                        <hr>
+                    </div>
+                    <button class="btn white-button google-login-button" id="google-login-button">
+                        <img src="[/= baseUrl /]/assets/icons/google_logo.svg" alt="">
+                        <span id="sign-up-google-title"></span>
+                    </button>
+                    <div class="sign-up-line">
+                        <span id="sign-in-line-title"></span>
+                        <span id="sign-in-anchor-title"></span>
+                    </div>
+                </section>
+            </form>
+        </div>
+        [/ } /]
+
+
         [/ if (isLogin) { /]
         <div id="create-modal" class="create-meeting-container">
             <form id="create-meeting-container-form" class="create-meeting">
@@ -138,6 +197,11 @@
                             <button id="join-meeting-button-title" class="text-button"></button>
                         </div>
                     </div>
+                    <div class="privacy-policy-info-container">
+                        <a href="[/= baseUrl /]/privacy-policy">
+                            <span>Privacy Policy</span>
+                        </a>
+                    </div>
                 </div>
             </div>
             <div class="right-box">
@@ -162,46 +226,37 @@
                 </div>
             </div>
             [/ } else {/]
-            <div class="box">
-                <div class="text-container">
-                    <p class="text-title" id="language-2-title"></p>
-                    <p class="description-title" id="language-2-description"></p>
-                </div>
-                <div class="join-meeting-container">
-                    <button class="schedule-meeting-btn" id="start-meeting-btn-modal">
-                        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M27.5 9.45003V20.55C27.4999 20.7274 27.4497 20.901 27.3552 21.0511C27.2607 21.2011 27.1257 21.3214 26.9658 21.3981C26.8059 21.4748 26.6276 21.5047 26.4514 21.4845C26.2753 21.4643 26.1084 21.3947 25.97 21.2838L23.265 19.1125C23.2213 19.0774 23.186 19.0328 23.1618 18.9822C23.1376 18.9316 23.125 18.8762 23.125 18.82V11.18C23.125 11.1239 23.1376 11.0685 23.1618 11.0179C23.186 10.9672 23.2213 10.9227 23.265 10.8875L25.97 8.71628C26.1084 8.60536 26.2753 8.53579 26.4514 8.51556C26.6276 8.49534 26.8059 8.52529 26.9658 8.60197C27.1257 8.67865 27.2607 8.79894 27.3552 8.94898C27.4497 9.09902 27.4999 9.2727 27.5 9.45003ZM21.25 10V20C21.3227 20.5094 21.2758 21.0287 21.1131 21.5168C20.9503 22.005 20.6762 22.4485 20.3123 22.8123C19.9485 23.1762 19.505 23.4503 19.0168 23.6131C18.5287 23.7758 18.0094 23.8227 17.5 23.75H6.25003C5.74065 23.8227 5.22135 23.7758 4.73323 23.6131C4.24511 23.4503 3.80157 23.1762 3.43774 22.8123C3.0739 22.4485 2.79976 22.005 2.637 21.5168C2.47425 21.0287 2.42736 20.5094 2.50003 20V10C2.42736 9.49065 2.47425 8.97135 2.637 8.48323C2.79976 7.99511 3.0739 7.55157 3.43774 7.18774C3.80157 6.8239 4.24511 6.54976 4.73323 6.387C5.22135 6.22425 5.74065 6.17736 6.25003 6.25003H17.5C18.0094 6.17736 18.5287 6.22425 19.0168 6.387C19.505 6.54976 19.9485 6.8239 20.3123 7.18774C20.6762 7.55157 20.9503 7.99511 21.1131 8.48323C21.2758 8.97135 21.3227 9.49065 21.25 10ZM15.9375 15C15.9375 14.7514 15.8388 14.5129 15.6629 14.3371C15.4871 14.1613 15.2487 14.0625 15 14.0625H12.8125V11.875C12.8125 11.6264 12.7138 11.3879 12.5379 11.2121C12.3621 11.0363 12.1237 10.9375 11.875 10.9375C11.6264 10.9375 11.3879 11.0363 11.2121 11.2121C11.0363 11.3879 10.9375 11.6264 10.9375 11.875V14.0625H8.75003C8.50139 14.0625 8.26294 14.1613 8.08712 14.3371C7.9113 14.5129 7.81253 14.7514 7.81253 15C7.81253 15.2487 7.9113 15.4871 8.08712 15.6629C8.26294 15.8388 8.50139 15.9375 8.75003 15.9375H10.9375V18.125C10.9375 18.3737 11.0363 18.6121 11.2121 18.7879C11.3879 18.9638 11.6264 19.0625 11.875 19.0625C12.1237 19.0625 12.3621 18.9638 12.5379 18.7879C12.7138 18.6121 12.8125 18.3737 12.8125 18.125V15.9375H15C15.2487 15.9375 15.4871 15.8388 15.6629 15.6629C15.8388 15.4871 15.9375 15.2487 15.9375 15Z"
-                                fill="white" />
-                        </svg>
-                        <span id="meeting-create-button-title"></span>
-                    </button>
-                    <div class="room-id-container">
-                        <input autocomplete="off" class="text-input" type="text" name="room_id" id="room_id"
-                            placeholder="Enter Room Id...">
-                        <button id="join-meeting-button-title" class="text-button"></button>
+            <div class="left-box">
+                <div class="login-container">
+                    <div class="text-container">
+                        <p class="text-title" id="language-title">All Your Meetings in One Place</p>
+                        <p class="description-title" id="language-description">Schedule new meetings, view past or
+                            upcoming sessions, and invite participants effortlessly.</p>
                     </div>
 
+                    <div class="meeting-information-container">
+                        <button class="blue-button rounded sign-in-btn" id="sign-in-btn-modal">
+                            <span id="sign-in-button-title-home"></span>
+                        </button>
+                        <div class="room-id-container">
+                            <input autocomplete="off" class="text-input" type="text" name="room_id" id="room_id"
+                                placeholder="Enter Room Id...">
+                            <button id="join-meeting-button-title" class="text-button"></button>
+                        </div>
+                        <hr>
+                    </div>
+                    <div class="privacy-policy-info-container">
+                        <a href="[/= baseUrl /]/privacy-policy">
+                            <span>Privacy Policy</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="main-picture-container">
-                    <img src="[/= baseUrl /]/assets/pictures/vmeet_backgorund_with_border.png" alt="main-picture">
-                </div>
+            </div>
+            <div class="right-box">
+                <img src="[/= baseUrl /]/assets/pictures/vmeet_backgorund_with_border.png" alt="background-image">
             </div>
             [/ }/]
         </div>
-        [/ if (isLogin) { /]
-        <div class="privacy-policy-info-container">
-            <a href="[/= baseUrl /]/privacy-policy">
-                <span>Privacy Policy</span>
-            </a>
-        </div>
-        [/ } else { /]
-        <div class="privacy-policy-info-container" style="position: absolute; left: 50%; transform: translateX(-50%);">
-            <a href="[/= baseUrl /]/privacy-policy">
-                <span>Privacy Policy</span>
-            </a>
-        </div>
-        [/ } /]
     </div>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <script src="[/= baseUrl /]/assets/plugins/jquery/jquery-3.7.1.min.js"></script>
@@ -209,16 +264,22 @@
     <script src="[/= baseUrl /]/assets/plugins/daterangepicker-master/daterangepicker.js"></script>
     <script>
         const baseUrl = [/- JSON.stringify(baseUrl) /]
+        const databaseUrl = [/- JSON.stringify(databaseUrl) /]
         const socketPath = [/- JSON.stringify(socketPath) /]
         const socketBaseUrl = [/- JSON.stringify(socketBaseUrl) /]
         const viewerEnabled = [/- JSON.stringify(viewerEnabled) /]
         const initialSetting = [/- JSON.stringify(initialSetting) /]
         const isLogin = [/- JSON.stringify(isLogin) /]
-        const usernameGoogle = [/- JSON.stringify(username) /]
+        const username = [/- JSON.stringify(username) /]
 
-        if (usernameGoogle && usernameGoogle != "Unknown") {
-            localStorage.setItem("full_name", usernameGoogle)
+
+
+        // I dont know why, but if this is deleted it will error
+
+        if (username && username != "") {
+            localStorage.setItem("full_name", username)
         }
+
         // Room ID and Password Input
         const roomId = document.getElementById("room_id")
         const passwordInput = document.getElementById("password")
@@ -244,6 +305,9 @@
             participants: [],
             link: "",
         }
+    </script>
+    <script>
+
     </script>
     <script src="[/= baseUrl /]/javascript/home/homebundle.js"></script>
 </body>

@@ -6,9 +6,52 @@ const { MediaSoupClient } = require("./mediasoupClient")
 const url = window.location.pathname
 const parts = url.split("/")
 const RecordRTC = require("recordrtc")
+const { DBMeeting } = require("../helper/db")
+const { Helpers } = require("../../../helper")
 const socket = getSocket(socketBaseUrl, socketPath)
 
-const eventListenerCollection = new EventListener({ micStatus: false, cameraStatus: false, roomId: roomName })
+let meetingInfo = {
+	roomName: "",
+	userId: "",
+	token: "",
+	roomId: "",
+	password: "",
+	username: "",
+	meetingType: 0,
+}
+
+let faceRecognition = false
+let videoType = "vp8"
+let userToken = "usertoken"
+
+// contoh data
+// {
+//     "_id": "68bfa56f712356e8a93f8bd7",
+//     "userId": "c281ae87-5cdf-4017-a933-2ba32b7e8f1c",
+//     "username": "Diky Ardiyant",
+//     "fullname": "Diky Ardiyant",
+//     "authProvider": "guest",
+//     "confirmed": false,
+//     "createdAt": "2025-09-09T03:56:31.300Z",
+//     "updatedAt": "2025-09-09T03:56:31.300Z",
+//     "__v": 0,
+//     "roomId": "klmt-hYGF-kgWR",
+//     "roomPassword": "TUdc-l4vm-TvMt",
+//     "sourceMeeting": "Instant",
+//     "startMeeting": "2025-09-09T03:56:31.294Z",
+//     "link": "https://localhost:9102/vmeet/?rid=TUdc-l4vm-TvMt&pw=TUdc-l4vm-TvMt",
+//     "participants": [],
+//     "enableWaitingRoom": false,
+//     "enableSharingScreen": false,
+//     "createdBy": "68bfa56f712356e8a93f8bd3",
+//     "title": "d64a95c4-d866-4d90-9dd8-ea6a3bec38eb",
+//     "userIds": "68bfa56f712356e8a93f8bd3"
+// }
+
+const db = new DBMeeting()
+db.init()
+
+let eventListenerCollection
 const usersVariable = new Users()
 const mediasoupClientVariable = new MediaSoupClient()
 const isViewer = JSON.parse(localStorage.getItem("isViewer"))
@@ -25,7 +68,6 @@ const getOS = () => {
 		if (platform.includes("linux") && !userAgent.includes("android")) return "Linux"
 		if (userAgent.includes("android")) return "Android"
 		if (/iphone|ipad|ipod/.test(userAgent) || platform.includes("ios")) return "iOS"
-
 		return "Unknown OS"
 	} catch (error) {
 		console.log("- Error Get OS:", error)
@@ -55,7 +97,6 @@ const getViewerFeature = () => {
 }
 
 const os = getOS()
-console.log(os)
 
 mediasoupClientVariable.os = os
 usersVariable.os = os
@@ -63,11 +104,11 @@ usersVariable.os = os
 const getResponsive = async () => {
 	try {
 		const os = await getOS()
-		if (os === "Android" || os === "iOS") {
+		if (os == "Android" || os == "iOS") {
 			const shareButton = document.getElementById("share-link-button")
 			shareLinkButton.addEventListener("click", async () => {
 				try {
-					await navigator.clipboard.writeText(`${baseUrl}/?rid=${roomName}&pw=${password}`)
+					await navigator.clipboard.writeText(`${baseUrl}/?rid=${meetingInfo.roomId}&pw=${meetingInfo.password}`)
 					const clipboardSuccess = document.getElementById("clipboard-success")
 
 					clipboardSuccess.style.opacity = 1
@@ -167,130 +208,64 @@ const getResponsive = async () => {
 	}
 }
 
-getResponsive()
-
 const connectSocket = async () => {
 	try {
 		mediasoupClientVariable.isViewer = isViewer
 		mediasoupClientVariable.audioPrams.appData.isActive = isMicActive
 		mediasoupClientVariable.videoParams.appData.isActive = isCameraActive
 		await socket.connect()
-		await socket.emit(
+
+		socket.emit(
 			"joining-room",
-			{ position: "room", token, isViewer },
-			async ({ userId, roomId, status, authority, rtpCapabilities, waitingList, username, isViewer, meeting_type }) => {
-				try {
-					console.log("- Meeting Type : ", meeting_type)
-					if (status) {
-						let filteredRtpCapabilities = { ...rtpCapabilities }
-						filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
-							(ext) => ext.uri !== "urn:3gpp:video-orientation"
-						)
-						usersVariable.username = username
-						usersVariable.userId = userId
-						usersVariable.authority = authority
-						if (authority == 1 && meeting_type == 1) {
-							const lockIcon = document.getElementById("check-lock-room")
-							lockIcon.classList.remove("d-none")
-						}
-						if (authority == 3) {
-							document.getElementById("mute-all-button").remove()
-							document.getElementById("lock-room-button").remove()
-						}
-						const devices = await navigator.mediaDevices.enumerateDevices()
-						usersVariable.picture = picture
+			{
+				userId: meetingInfo.userId,
+				roomId: meetingInfo.roomId,
+				isViewer,
+				password: meetingInfo.password,
+				token: await db.getCookie("roomToken"),
+				username: meetingInfo.username,
+				meetingType: meetingInfo.meetingType,
+			},
+			async (data) => {
+				const { userId, roomId, status, authority, rtpCapabilities, waitingList, username, isViewer, meeting_type } = data
+				if (status) {
+					let filteredRtpCapabilities = { ...rtpCapabilities }
+					filteredRtpCapabilities.headerExtensions = filteredRtpCapabilities.headerExtensions.filter(
+						(ext) => ext.uri !== "urn:3gpp:video-orientation"
+					)
+					usersVariable.username = username
+					usersVariable.userId = userId
+					usersVariable.authority = authority
+					if (authority == 1 && meeting_type == 1) {
+						mediasoupClientVariable.lockRoom = true
+						const lockIcon = document.getElementById("check-lock-room")
+						lockIcon.classList.remove("d-none")
+					}
+					if (authority == 3) {
+						document.getElementById("mute-all-button").remove()
+						document.getElementById("lock-room-button").remove()
+					}
+					const devices = await navigator.mediaDevices.enumerateDevices()
+					usersVariable.picture = picture
+					mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
+					await mediasoupClientVariable.createDevice()
+					await mediasoupClientVariable.setEncoding({ videoType: videoType })
 
-						mediasoupClientVariable.rtpCapabilities = filteredRtpCapabilities
-						await mediasoupClientVariable.createDevice()
-						await mediasoupClientVariable.setEncoding()
-
-						if (mediasoupClientVariable.isViewer) {
-							usersVariable.users = 0
-							await usersVariable.addAllUser({
-								userId,
-								username,
-								authority,
-								socketId: socket.id,
-								kind: "audio",
-								track: null,
-								focus: false,
-								socket,
-								isViewer,
-								appData: {
-									label: "audio",
-									isActive: false,
-									kind: "audio",
-									roomId: roomId,
-									socketId: socket.id,
-									userId,
-									picture,
-								},
-							})
-							await usersVariable.addAllUser({
-								userId,
-								username,
-								authority,
-								socketId: socket.id,
-								kind: "video",
-								track: null,
-								focus: false,
-								socket,
-								isViewer,
-								appData: {
-									label: "video",
-									isActive: false,
-									kind: "audio",
-									roomId: roomId,
-									socketId: socket.id,
-									userId,
-									picture,
-								},
-							})
-							await mediasoupClientVariable.createConsumerTransport({ socket, roomId, userId })
-							await mediasoupClientVariable.getProducers({ socket, roomId, userId, usersVariable })
-							document.getElementById("loading-id").className = "loading-hide"
-							socket.emit("viewer-joined", { roomId: roomName, id: userId, username })
-							return
-						}
-
-						const { hasCamera, hasMicrophone } = await mediasoupClientVariable.checkMediaDevices()
-
-						await mediasoupClientVariable.getMyStream({
-							faceRecognition,
-							picture: `${baseUrl}/photo/${picture}.png`,
-							userId,
-							username,
-						})
-
-						if (mediasoupClientVariable.availableDevices.camera) {
-							await mediasoupClientVariable.getCameraOptions({ userId: userId })
-						}
-						if (mediasoupClientVariable.availableDevices.microphone) {
-							await mediasoupClientVariable.getMicOptions({ usersVariable })
-						}
-
-						mediasoupClientVariable.myStream.getAudioTracks()[0].enabled = isMicActive
-
-						let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
-						let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0] ? mediasoupClientVariable.myStream.getVideoTracks()[0] : null
-						if (authority == 1 || authority == 2) {
-							usersVariable.screenSharingPermission = true
-						} else {
-							usersVariable.screenSharingPermission = false
-						}
+					if (mediasoupClientVariable.isViewer) {
+						usersVariable.users = 0
 						await usersVariable.addAllUser({
 							userId,
 							username,
 							authority,
 							socketId: socket.id,
 							kind: "audio",
-							track: audioTrack,
-							focus: true,
+							track: null,
+							focus: false,
 							socket,
 							isViewer,
 							appData: {
 								label: "audio",
-								isActive: mediasoupClientVariable.audioPrams.appData.isActive,
+								isActive: false,
 								kind: "audio",
 								roomId: roomId,
 								socketId: socket.id,
@@ -304,13 +279,13 @@ const connectSocket = async () => {
 							authority,
 							socketId: socket.id,
 							kind: "video",
-							track: videoTrack,
-							focus: true,
+							track: null,
+							focus: false,
 							socket,
 							isViewer,
 							appData: {
 								label: "video",
-								isActive: mediasoupClientVariable.videoParams.appData.isActive,
+								isActive: false,
 								kind: "audio",
 								roomId: roomId,
 								socketId: socket.id,
@@ -318,21 +293,86 @@ const connectSocket = async () => {
 								picture,
 							},
 						})
-						await usersVariable.startSpeechToText({ socket, status: true })
-						if ((authority == 1 || authority == 2) && waitingList) {
-							waitingList.forEach((u) => {
-								eventListenerCollection.methodAddWaitingUser({ id: u.participantId, username: u.username, socket, picture: u.picture })
-							})
-						}
-						await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
-						// document.getElementById("loading-id").className = "loading-hide"
-					} else {
-						window.location.href = baseUrl
+						await mediasoupClientVariable.createConsumerTransport({ socket, roomId, userId })
+						await mediasoupClientVariable.getProducers({ socket, roomId, userId, usersVariable })
+						document.getElementById("loading-id").className = "loading-hide"
+						socket.emit("viewer-joined", { roomId: roomId, id: userId, username })
+						return
 					}
-				} catch (error) {
-					console.log("- Error Join Room : ", error)
-					alert(error)
-					this.constructor.warning({ message: `Internal Server Error!\n${error}`, back: true })
+
+					const { hasCamera, hasMicrophone } = await mediasoupClientVariable.checkMediaDevices()
+
+					await mediasoupClientVariable.getMyStream({
+						faceRecognition,
+						picture: `${baseUrl}/photo/${picture}.png`,
+						userId,
+						username,
+					})
+
+					if (mediasoupClientVariable.availableDevices.camera) {
+						await mediasoupClientVariable.getCameraOptions({ userId: userId })
+					}
+					if (mediasoupClientVariable.availableDevices.microphone) {
+						await mediasoupClientVariable.getMicOptions({ usersVariable })
+					}
+
+					mediasoupClientVariable.myStream.getAudioTracks()[0].enabled = isMicActive
+
+					let audioTrack = mediasoupClientVariable.myStream.getAudioTracks()[0]
+					let videoTrack = mediasoupClientVariable.myStream.getVideoTracks()[0] ? mediasoupClientVariable.myStream.getVideoTracks()[0] : null
+					if (authority == 1 || authority == 2) {
+						usersVariable.screenSharingPermission = true
+					} else {
+						usersVariable.screenSharingPermission = false
+					}
+					await usersVariable.addAllUser({
+						userId,
+						username,
+						authority,
+						socketId: socket.id,
+						kind: "audio",
+						track: audioTrack,
+						focus: true,
+						socket,
+						isViewer,
+						appData: {
+							label: "audio",
+							isActive: mediasoupClientVariable.audioPrams.appData.isActive,
+							kind: "audio",
+							roomId: roomId,
+							socketId: socket.id,
+							userId,
+							picture,
+						},
+					})
+					await usersVariable.addAllUser({
+						userId,
+						username,
+						authority,
+						socketId: socket.id,
+						kind: "video",
+						track: videoTrack,
+						focus: true,
+						socket,
+						isViewer,
+						appData: {
+							label: "video",
+							isActive: mediasoupClientVariable.videoParams.appData.isActive,
+							kind: "audio",
+							roomId: roomId,
+							socketId: socket.id,
+							userId,
+							picture,
+						},
+					})
+					await usersVariable.startSpeechToText({ socket, status: true })
+					if ((authority == 1 || authority == 2) && waitingList) {
+						waitingList.forEach((u) => {
+							eventListenerCollection.methodAddWaitingUser({ id: u.participantId, username: u.username, socket, picture: u.picture })
+						})
+					}
+					await mediasoupClientVariable.createSendTransport({ socket, roomId, userId, usersVariable })
+					// document.getElementById("loading-id").className = "loading-hide"
 				}
 			}
 		)
@@ -341,21 +381,129 @@ const connectSocket = async () => {
 	}
 }
 
-if (faceRecognition) {
-	Promise.all([
-		// faceapi.nets.ssdMobilenetv1.loadFromUri("../../assets/plugins/face-api/models"),
-		// faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
-		// faceapi.nets.faceLandmark68Net.loadFromUri("../../assets/plugins/face-api/models"),
+db.detail()
+	.then((response) => {
+		if (response.status) {
+			const { title, roomId, userIds, roomPassword, username, enableWaitingRoom, allMessages } = response.data[0]
 
-		faceapi.nets.tinyFaceDetector.loadFromUri("../../assets/plugins/face-api/models"),
-		faceapi.nets.faceRecognitionNet.loadFromUri("../../assets/plugins/face-api/models"),
-	]).then((_) => {
-		// document.getElementById("loading-id").className = "loading-hide"
-		connectSocket()
+			meetingInfo.roomName = title ? title : roomId
+			meetingInfo.userId = userIds
+			meetingInfo.password = roomPassword
+			meetingInfo.roomId = roomId
+			meetingInfo.username = username
+			meetingInfo.meetingType = enableWaitingRoom ? 1 : 2
+
+			eventListenerCollection = new EventListener({
+				micStatus: false,
+				cameraStatus: false,
+				roomId: meetingInfo.roomId,
+			})
+
+			return { allMessages, userIds }
+		}
+
+		throw { name: "Bad Request", message: response?.data[0]?.message }
 	})
-} else {
-	connectSocket()
-}
+	.then(async ({ allMessages, userIds }) => {
+		for (const msg of allMessages) {
+			const randomId = await Helpers.generateRandomId(20, "-", 3)
+			const language = localStorage.getItem("language") === "en"
+
+			if (msg.isPrivate) {
+				const isSender = msg.from === userIds
+				const chatTo = isSender ? msg.to : msg.from
+
+				let chatToUsername
+				if (!msg.to) {
+					chatToUsername = language ? "Everyone" : "Semua"
+				} else {
+					chatToUsername = isSender ? msg.toUser?.username || msg.username : msg.fromUser?.username || msg.username
+				}
+
+				const chatElement = document.getElementById(`chat-${chatTo}`)
+				if (!chatElement) {
+					await Users.createChat({
+						id: chatTo,
+						username: chatToUsername,
+						createChatContainer: true,
+						createChatTo: false,
+					})
+				}
+
+				const messageTemplate = await eventListenerCollection.messageTemplate({
+					isSender,
+					username: chatToUsername,
+					messageDate: new Date(msg.messageDate).toLocaleTimeString([], {
+						hour: "2-digit",
+						minute: "2-digit",
+					}),
+					message: msg.type === "message" ? { content: msg.content } : { fileName: msg.fileName, fileSize: msg.fileSize },
+					picture: msg.picture || usersVariable.picture || "P_0000000",
+					type: msg.type,
+					id: randomId,
+					userId: userIds,
+					chatTo,
+				})
+
+				await eventListenerCollection.appendMessage({ message: messageTemplate, chatTo })
+
+				if (msg.type != "message") {
+					await eventListenerCollection.donwloadFileMessage({ id: randomId, api: msg.api, type: msg.type })
+				}
+
+				// Generating message template in public for private message because id is can be duplicated
+				const randomId2 = await Helpers.generateRandomId(20, "-", 3)
+				const messageTemplatePublic = await eventListenerCollection.messageTemplate({
+					isSender,
+					username: chatToUsername,
+					messageDate: new Date(msg.messageDate).toLocaleTimeString([], {
+						hour: "2-digit",
+						minute: "2-digit",
+					}),
+					message: msg.type === "message" ? { content: msg.content } : { fileName: msg.fileName, fileSize: msg.fileSize },
+					picture: msg.picture || usersVariable.picture || "P_0000000",
+					type: msg.type,
+					id: randomId2,
+					userId: userIds,
+					chatTo,
+				})
+
+				await eventListenerCollection.appendMessage({ message: messageTemplatePublic, chatTo: "everyone" })
+				if (msg.type != "message") {
+					await eventListenerCollection.donwloadFileMessage({ id: randomId2, api: msg.api, type: msg.type })
+				}
+			} else {
+				const messageTemplate = await eventListenerCollection.messageTemplate({
+					isSender: msg.from === userIds,
+					username: msg.username,
+					messageDate: new Date(msg.messageDate).toLocaleTimeString([], {
+						hour: "2-digit",
+						minute: "2-digit",
+					}),
+					message: msg.type === "message" ? { content: msg.content } : { fileName: msg.fileName, fileSize: msg.fileSize },
+					picture: msg.picture || usersVariable.picture || "P_0000000",
+					type: msg.type,
+					id: randomId,
+					userId: userIds,
+				})
+
+				await eventListenerCollection.appendMessage({ message: messageTemplate, chatTo: "everyone" })
+				if (msg.type != "message") {
+					await eventListenerCollection.donwloadFileMessage({ id: randomId, api: msg.api, type: msg.type })
+				}
+			}
+		}
+
+		return
+	})
+
+	.then(() => getResponsive())
+	.then(() => connectSocket())
+	.catch((error) => {
+		Users.warning({
+			message: error?.message || "Failed initializing DB",
+		})
+	})
 
 socket.on("member-joining-room", ({ id, socketId, username, picture }) => {
 	try {
@@ -412,7 +560,7 @@ socket.on("user-logout", ({ userId }) => {
 	}
 })
 
-socket.on("message", async ({ userId, message, username, picture }) => {
+socket.on("message", async ({ userId, message, username, picture, type, id, chatTo, resend }) => {
 	try {
 		const messageDate = new Date()
 		const formattedTime = messageDate.toLocaleTimeString("en-GB", {
@@ -421,7 +569,7 @@ socket.on("message", async ({ userId, message, username, picture }) => {
 		})
 		const isSender = false
 		if (!eventListenerCollection.chatStatus && !document.getElementById("new-message-line")) {
-			const chatContent = document.getElementById("chat-content")
+			const chatContent = document.getElementById(`chat-${chatTo}`)
 			const newMessageLine = document.createElement("div")
 			newMessageLine.id = "new-message-line"
 			newMessageLine.innerHTML = `<span>New Message</span>`
@@ -433,10 +581,23 @@ socket.on("message", async ({ userId, message, username, picture }) => {
 			isSender,
 			username: username,
 			messageDate: formattedTime,
-			message,
+			message: message,
 			picture,
+			type,
+			id: id,
+			chatTo,
+			userId: usersVariable.userId,
+			resend
 		})
-		await eventListenerCollection.appendMessage({ message: messageTemplate })
+		await eventListenerCollection.appendMessage({ message: messageTemplate, chatTo })
+	} catch (error) {
+		console.log("- Error Send Message : ", error)
+	}
+})
+
+socket.on("message-donwload-link", async ({ userId, to, id, api, status, type }) => {
+	try {
+		await eventListenerCollection.donwloadFileMessage({ id, api, status, type })
 	} catch (error) {
 		console.log("- Error Send Message : ", error)
 	}
@@ -449,7 +610,7 @@ socket.on("new-producer", async ({ producerId, userId, socketId, producerPaused 
 			socket,
 			userId,
 			socketId,
-			roomId: roomName,
+			roomId: meetingInfo.roomId,
 			usersVariable: usersVariable,
 			producerPaused,
 		})
@@ -808,7 +969,7 @@ screenSharingButton.addEventListener("click", async () => {
 					label: "screensharing_video",
 					isActive: true,
 					kind: "video",
-					roomId: roomName,
+					roomId: meetingInfo.roomId,
 					socketId: socket.id,
 					userId: usersVariable.userId,
 					picture: usersVariable.picture,
@@ -881,7 +1042,11 @@ lockRoomButton.addEventListener("click", async () => {
 	try {
 		const lockIcon = document.getElementById("check-lock-room")
 		if (mediasoupClientVariable.lockRoom) {
-			socket.emit("lock-room", { userId: usersVariable.userId, roomId: roomName, lock: false }, ({ status }) => {
+			const response = await db.put({ enableWaitingRoom: false, enableSharingScreen: false })
+			if (!response.status) {
+				throw { name: "request failed", message: response.message }
+			}
+			socket.emit("lock-room", { userId: usersVariable.userId, roomId: meetingInfo.roomId, lock: false }, ({ status }) => {
 				if (status) {
 					mediasoupClientVariable.lockRoom = false
 					if (!lockIcon.classList.contains("d-none")) {
@@ -890,7 +1055,11 @@ lockRoomButton.addEventListener("click", async () => {
 				}
 			})
 		} else {
-			socket.emit("lock-room", { userId: usersVariable.userId, roomId: roomName, lock: true }, ({ status }) => {
+			const response = await db.put({ enableWaitingRoom: true, enableSharingScreen: true })
+			if (!response.status) {
+				throw { name: "request failed", message: response.message }
+			}
+			socket.emit("lock-room", { userId: usersVariable.userId, roomId: meetingInfo.roomId, lock: true }, ({ status }) => {
 				if (status) {
 					mediasoupClientVariable.lockRoom = true
 					lockIcon.classList.remove("d-none")
@@ -1047,8 +1216,10 @@ videoDevicesOption.addEventListener("click", (e) => {
 const messageInput = document.getElementById("message-input")
 messageInput.addEventListener("keyup", async (event) => {
 	try {
-		if (event.key === "Enter" && messageInput.value && messageInput.value.trim() !== "") {
-			const username = usersVariable.userId
+		if (event.key == "Enter" && messageInput.value && messageInput.value.trim() != "") {
+			const chatToElement = document.querySelector('[id^="chat-to-"].selected')
+			const chatTo = chatToElement.dataset.userId
+			const isPrivate = chatTo == "everyone" ? false : true
 			const messageDate = new Date()
 			const formattedTime = messageDate.toLocaleTimeString("en-GB", {
 				hour: "2-digit",
@@ -1062,39 +1233,52 @@ messageInput.addEventListener("keyup", async (event) => {
 			}
 
 			const userId = usersVariable.userId
-			usersVariable.allUsers.forEach((user) => {
-				if (user.userId != userId) {
-					socket.emit("message", {
-						userId: user.userId,
-						to: user.socketId,
-						message,
-						username: usersVariable.username,
-						picture: usersVariable.picture,
-					})
-				}
-			})
+
+			await usersVariable.sendChat({ socket, message: { content: message }, type: "message", chatTo })
 
 			const isSender = true
+			const randomId = await Helpers.generateRandomId(20, "-", 3)
 			const messageTemplate = await eventListenerCollection.messageTemplate({
 				isSender,
 				username: usersVariable.username,
 				messageDate: formattedTime,
-				message,
+				message: { content: message },
 				picture: usersVariable.picture,
+				id: randomId,
+				chatTo,
+				userId: usersVariable.userId,
 			})
-			await eventListenerCollection.appendMessage({ message: messageTemplate })
-			let chatContent = document.getElementById("chat-content")
+			await eventListenerCollection.appendMessage({ message: messageTemplate, chatTo })
+
+			if (isPrivate) {
+				const randomId2 = await Helpers.generateRandomId(20, "-", 3)
+				const messageTemplatePublic = await eventListenerCollection.messageTemplate({
+					isSender,
+					username: usersVariable.username,
+					messageDate: formattedTime,
+					message: { content: message },
+					picture: usersVariable.picture,
+					id: randomId2,
+					chatTo,
+					userId: usersVariable.userId,
+				})
+				await eventListenerCollection.appendMessage({ message: messageTemplatePublic, chatTo: "everyone" })
+				await usersVariable.sendChat({ socket, message: { content: message }, type: "message", chatTo: "everyone", resend: true })
+			}
+
+			let chatContent = document.getElementById(`chat-${chatTo}`)
 			chatContent.scrollTop = chatContent.scrollHeight
 			messageInput.value = ""
-			const response = await fetch(`${baseUrl}/api/video_conference/message`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${userToken}`,
-				},
-				body: JSON.stringify({ participant_id: usersVariable.userId, message_text: message, sent_at: new Date(), status: 1, room_id: roomName }),
-			})
-			console.log(response)
+
+			const data = {
+				isPrivate,
+				to: chatTo == "everyone" ? undefined : chatTo,
+				content: message,
+				messageDate: messageDate,
+				type: "message",
+			}
+
+			const response = await db.postChat({ ...data })
 		}
 	} catch (error) {
 		console.log("- Error Send Message : ", error)
@@ -1105,50 +1289,111 @@ const sendMessageButton = document.getElementById("send-message-button")
 sendMessageButton.addEventListener("click", async (event) => {
 	try {
 		const username = usersVariable.userId
+		const chatToElement = document.querySelector('[id^="chat-to-"].selected')
+		const chatTo = chatToElement.dataset.userId
+		const isPrivate = chatTo == "everyone" ? false : true
 		const messageDate = new Date()
 		const formattedTime = messageDate.toLocaleTimeString("en-GB", {
 			hour: "2-digit",
 			minute: "2-digit",
 		})
 
+		const messageFileInput = document.getElementById("chat-file")
+		const file = messageFileInput.files[0]
+		const userId = usersVariable.userId
+		const isSender = true
+		let fileDetail = {
+			fileSize: "0",
+			fileName: "",
+			status: false,
+			message: "",
+			api: "",
+		}
+		let type = "message"
+
+		if (file) {
+			console.log(file.type)
+			type = "file"
+			if (file.type.startsWith("image/")) {
+				type = "image"
+			} else if (file.type.startsWith("video/")) {
+				type = "video"
+			} else {
+				type = "file"
+			}
+
+			const { status, message: messageResponse, api } = await sendFile()
+			if (status) {
+				fileDetail.status = status
+				fileDetail.message = messageResponse
+				fileDetail.api = api
+			}
+			const fileSize = file.size > 1024 * 1024 ? (file.size / (1024 * 1024)).toFixed(2) + " MB" : (file.size / 1024).toFixed(2) + " KB"
+			fileDetail.fileSize = fileSize
+			fileDetail.fileName = file.name
+		}
+
 		const message = messageInput.value
-		if (message.trim() == "" || !message) {
+		if (!file && (message.trim() == "" || !message)) {
 			return
 		}
 
-		const userId = usersVariable.userId
-		usersVariable.allUsers.forEach((user) => {
-			if (user.userId != userId) {
-				socket.emit("message", {
-					userId: user.userId,
-					to: user.socketId,
-					message,
-					username: usersVariable.username,
-					picture: usersVariable.picture,
-				})
+		if (!file) {
+			const data = {
+				isPrivate,
+				to: chatTo == "everyone" ? undefined : chatTo,
+				content: message,
+				messageDate: messageDate,
+				type: "message",
 			}
-		})
+			const response = await db.postChat({ ...data })
+		}
 
-		const isSender = true
+		await usersVariable.sendChat({ socket, message: type == "message" ? { content: message } : { ...fileDetail }, type, chatTo, fileDetail })
+
+		const randomId = await Helpers.generateRandomId(20, "-", 3)
 		const messageTemplate = await eventListenerCollection.messageTemplate({
 			isSender,
 			username: usersVariable.username,
 			messageDate: formattedTime,
-			message,
+			message: type == "message" ? { content: message } : { ...fileDetail },
 			picture: usersVariable.picture,
+			type,
+			id: randomId,
+			chatTo,
+			userId: usersVariable.userId,
 		})
-		await eventListenerCollection.appendMessage({ message: messageTemplate })
-		let chatContent = document.getElementById("chat-content")
+		await eventListenerCollection.appendMessage({ message: messageTemplate, chatTo })
+		await eventListenerCollection.donwloadFileMessage({ id: randomId, api: fileDetail.api, status: true, type })
+
+		// If private then apply it to everyone container too
+		if (isPrivate) {
+			const randomId2 = await Helpers.generateRandomId(20, "-", 3)
+			const messageTemplatePublic = await eventListenerCollection.messageTemplate({
+				isSender,
+				username: usersVariable.username,
+				messageDate: formattedTime,
+				message: type == "message" ? { content: message } : { ...fileDetail },
+				picture: usersVariable.picture,
+				type,
+				id: randomId2,
+				chatTo,
+				userId: usersVariable.userId,
+			})
+			await eventListenerCollection.appendMessage({ message: messageTemplatePublic, chatTo: "everyone" })
+			await eventListenerCollection.donwloadFileMessage({ id: randomId, api: fileDetail.api, status: true, type })
+			await usersVariable.sendChat({
+				socket,
+				message: type == "message" ? { content: message } : { ...fileDetail },
+				type,
+				chatTo,
+				fileDetail,
+				resend: true,
+			})
+		}
+		let chatContent = document.getElementById(`chat-${chatTo}`)
 		chatContent.scrollTop = chatContent.scrollHeight
 		messageInput.value = ""
-		const response = await fetch(`${baseUrl}/api/video_conference/message`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${userToken}`,
-			},
-			body: JSON.stringify({ participant_id: usersVariable.userId, message_text: message, sent_at: new Date(), status: 1, room_id: roomName }),
-		})
 	} catch (error) {
 		console.log("- Error Send Mesage : ", error)
 	}
@@ -1263,7 +1508,7 @@ searchParticipant.addEventListener("input", (event) => {
 	const searchTerm = event.target.value.toLowerCase()
 
 	userListItems.forEach((item) => {
-		const username = item.querySelector(".user-list-username").textContent.toLowerCase() // Get the username and convert it to lowercase
+		const username = item.querySelector(".user-list-username").textContent.toLowerCase()
 
 		if (username.includes(searchTerm)) {
 			item.classList.remove("d-none")
@@ -1282,7 +1527,7 @@ const shareLinkButton = document.getElementById("share-link-button")
 
 shareLinkButton.addEventListener("click", async () => {
 	try {
-		await navigator.clipboard.writeText(`${baseUrl}/?rid=${roomName}&pw=${password}`)
+		await navigator.clipboard.writeText(`${baseUrl}/?rid=${meetingInfo.roomId}&pw=${meetingInfo.password}`)
 		const clipboardSuccess = document.getElementById("clipboard-success")
 
 		clipboardSuccess.style.opacity = 1
@@ -1294,8 +1539,111 @@ shareLinkButton.addEventListener("click", async () => {
 	}
 })
 
+const messageToButton = document.getElementById("message-to-button")
+
+messageToButton.addEventListener("click", (e) => {
+	eventListenerCollection.messageListEvent()
+})
+
+const messageFileInput = document.getElementById("chat-file")
+const chatInputFileEvent = ({ status }) => {
+	try {
+		const inputText = document.getElementById("message-input")
+		const inputFile = document.getElementById("file-input")
+		if (status) {
+			inputText.classList.remove("d-none")
+			if (!inputFile.classList.contains("d-none")) {
+				inputFile.classList.add("d-none")
+			}
+		} else {
+			inputFile.classList.remove("d-none")
+			if (!inputText.classList.contains("d-none")) {
+				inputText.classList.add("d-none")
+			}
+		}
+	} catch (error) {
+		console.log("- Error Chat Input File : ", error)
+	}
+}
+
+const sendFile = async () => {
+	try {
+		const messageFileInput = document.getElementById("chat-file")
+		const file = messageFileInput.files[0]
+		const chatToElement = document.querySelector('[id^="chat-to-"].selected')
+		const chatTo = chatToElement.dataset.userId
+		const isPrivate = chatTo == "everyone" ? false : true
+
+		if (!file) return
+
+		const formData = new FormData()
+		formData.append("file", file)
+		formData.append("to", chatTo == "everyone" ? undefined : chatTo)
+		formData.append("isPrivate", isPrivate)
+		formData.append("type", "file")
+		formData.append("messageDate", new Date())
+
+		const response = await db.postFile(formData)
+
+		if (!response.status) {
+			return { status: false, message: response?.message || "Error uploading file", api: "" }
+		}
+		return { status: true, message: response?.message || "Successfully upload the file", api: response?.data[0].api }
+	} catch (error) {
+		console.log("- Error Send File: ", error)
+		Users.warning({ message: error?.message || error })
+	} finally {
+		// Clear the input
+		const messageFileInput = document.getElementById("chat-file")
+		if (messageFileInput) messageFileInput.value = ""
+		await chatInputFileEvent({ status: true })
+	}
+}
+
+messageFileInput.addEventListener("input", async (e) => {
+	try {
+		const file = e.target.files[0]
+		if (!file) return
+
+		const fileIcon = document.getElementById("chat-file-icon")
+		const fileName = document.getElementById("chat-file-name")
+		const fileSize = document.getElementById("chat-file-size")
+
+		fileName.textContent = file.name
+
+		let displaySize
+		if (file.size >= 1024 * 1024) {
+			displaySize = (file.size / (1024 * 1024)).toFixed(2) + " MB"
+		} else {
+			displaySize = (file.size / 1024).toFixed(2) + " KB"
+		}
+
+		fileSize.textContent = displaySize
+
+		await chatInputFileEvent({ status: false })
+	} catch (error) {
+		console.log("- Error Send File: ", error)
+		Users.warning({ message: error?.message || error })
+	}
+})
+
+const cancelInputFile = document.getElementById("chat-close")
+cancelInputFile.addEventListener("click", async (e) => {
+	const messageFileInput = document.getElementById("chat-file")
+	await chatInputFileEvent({ status: true })
+	if (messageFileInput) {
+		messageFileInput.value = ""
+	}
+})
+
+const chatEveryone = document.getElementById("chat-to-everyone")
+chatEveryone.addEventListener("click", (e) => {
+	Users.resetChat()
+	Users.messageListEvent()
+})
+
 // Click Oustide Container
-document.addEventListener("click", function (e) {
+document.addEventListener("click", (e) => {
 	try {
 		e.stopPropagation()
 		eventListenerCollection.hideButton()
@@ -1307,7 +1655,7 @@ document.addEventListener("click", function (e) {
 	}
 })
 
-window.addEventListener("beforeunload", function (event) {
+window.addEventListener("beforeunload", (event) => {
 	try {
 		if (usersVariable.record.recordedStream) {
 			usersVariable.record.recordedMedia.stopRecording(() => {

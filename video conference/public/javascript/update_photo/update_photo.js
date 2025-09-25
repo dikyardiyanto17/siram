@@ -170,23 +170,23 @@ const capturePicture = async () => {
 
 					const rid = params.get("rid")
 					const pw = params.get("pw")
-					const updateTokenResponse = await fetch(`${baseUrl}/updatetoken?nt=${newToken}`, {
+					const Response = await fetch(`${baseUrl}/?nt=${newToken}`, {
 						method: "get",
 						headers: {
 							"Content-Type": "application/json",
 							Authorization: `Bearer ${token}`,
 						},
 					})
-					if (updateTokenResponse.ok) {
-						const updateTokenData = await updateTokenResponse.json()
-						if (updateTokenData.status) {
+					if (Response.ok) {
+						const Data = await Response.json()
+						if (Data.status) {
 							if (rid && pw) {
 								window.location.href = `${baseUrl}/lobby`
 							} else {
 								window.location.href = `${baseUrl}`
 							}
 						} else {
-							throw { message: updateTokenData.message || "Gagal memperbarui token" }
+							throw { message: Data.message || "Gagal memperbarui token" }
 						}
 					} else {
 						throw { message: "Gagal memperbarui token" }

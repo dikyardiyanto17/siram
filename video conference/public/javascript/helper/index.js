@@ -74,6 +74,43 @@ class Helper {
 
 			const googleCalendarInfoTitle = document.getElementById("google-calendar-info-title")
 
+			const signInFormTitle = document.getElementById("sign-in-form-title")
+			const signUpFormTitle = document.getElementById("sign-up-form-title")
+
+			const signInEmailInput = document.getElementById("sign-in-email-input")
+			const signInPasswordInput = document.getElementById("sign-in-password-input")
+
+			const signUpUsernameInput = document.getElementById("sign-up-username-input")
+			const signUpEmailInput = document.getElementById("sign-up-email-input")
+			const signUpPasswordInput = document.getElementById("sign-up-password-input")
+			const signUpRepeatPasswordInput = document.getElementById("sign-up-repeat-password-input")
+
+			const signInWithGoogleTitle = document.getElementById("sign-in-google-title")
+			const signUpWithGoogleTitle = document.getElementById("sign-up-google-title")
+
+			const signInTitleButton = document.getElementById("sign-in-title")
+			const signUpTitleButton = document.getElementById("sign-up-title")
+
+			const signInOrTitle = document.getElementById("sign-in-or-line-title")
+			const signUpOrTitle = document.getElementById("sign-up-or-line-title")
+
+			const signInLineTitleAccount = document.getElementById("sign-in-line-title")
+			const signUpLineTitleAccount = document.getElementById("sign-up-line-title")
+
+			const signInTitleAnchor = document.getElementById("sign-in-anchor-title")
+			const signUpTitleAnchor = document.getElementById("sign-up-anchor-title")
+
+			const signInTitleButtonHome = document.getElementById("sign-in-button-title-home")
+			const signInTitleButtonNavbar = document.getElementById("sign-in-button-title-navbar")
+
+			// OTP PAGE LANGUAGE
+
+			const checkEmailTitle = document.getElementById("check-email-title")
+			const digitVerificationTitle = document.getElementById("digit-verification-title")
+			const otpReceivedTitle = document.getElementById("otp-received-title")
+
+			// END OTP PAGE LANGUAGE
+
 			const dropdown = document.getElementById("dropdown")
 
 			// Remove skeleton
@@ -117,6 +154,43 @@ class Helper {
 				if (listMeetingButtonTitle) listMeetingButtonTitle.innerHTML = "Meeting Schedule"
 
 				if (googleCalendarInfoTitle) googleCalendarInfoTitle.innerHTML = "Sign in to create meetings and connect with your Google Calendar"
+
+				if (signInFormTitle) signInFormTitle.innerHTML = "Welcome Back"
+				if (signUpFormTitle) signUpFormTitle.innerHTML = "Welcome To Vmeet"
+
+				if (signInEmailInput) signInEmailInput.placeholder = "Enter Email"
+				if (signInPasswordInput) signInPasswordInput.placeholder = "Enter Password"
+
+				if (signUpUsernameInput) signUpUsernameInput.placeholder = "Enter Username"
+				if (signUpEmailInput) signUpEmailInput.placeholder = "Enter Email"
+				if (signUpPasswordInput) signUpPasswordInput.placeholder = "Enter Password"
+				if (signUpRepeatPasswordInput) signUpRepeatPasswordInput.placeholder = "Re Enter Password"
+
+				if (signInWithGoogleTitle) signInWithGoogleTitle.innerHTML = "Continue With Google"
+				if (signUpWithGoogleTitle) signUpWithGoogleTitle.innerHTML = "Continue With Google"
+
+				if (signInTitleButton) signInTitleButton.innerHTML = "Sign In"
+				if (signUpTitleButton) signUpTitleButton.innerHTML = "Sign Up"
+
+				if (signInOrTitle) signInOrTitle.innerHTML = "Or"
+				if (signUpOrTitle) signUpOrTitle.innerHTML = "Or"
+
+				if (signInLineTitleAccount) signInLineTitleAccount.innerHTML = "Dont have an account?"
+				if (signUpLineTitleAccount) signUpLineTitleAccount.innerHTML = "Already Have Account?"
+
+				if (signInTitleAnchor) signInTitleAnchor.innerHTML = "Sign In"
+				if (signUpTitleAnchor) signUpTitleAnchor.innerHTML = "Sign Up"
+
+				if (signInTitleButtonHome) signInTitleButtonHome.innerHTML = "Sign In"
+				if (signInTitleButtonNavbar) signInTitleButtonNavbar.innerHTML = "Sign In"
+
+				// OTP PAGE LANGUAGE
+
+				if (checkEmailTitle) checkEmailTitle.innerHTML = "Check Your Email"
+				if (digitVerificationTitle) digitVerificationTitle.innerHTML = "Please enter six digit verification code we sent to"
+				if (otpReceivedTitle) otpReceivedTitle.innerHTML = "Didn’t get the email? "
+
+				// END OTP PAGE LANGUAGE
 			} else if (language === "id") {
 				if (languageTitleElement) languageTitleElement.innerHTML = `Semua Meeting Anda di Satu Tempat`
 				if (languageDescriptionTitle)
@@ -153,6 +227,43 @@ class Helper {
 				if (createMeetingButtonTitle) createMeetingButtonTitle.innerHTML = "Mulai Meeting"
 				if (listMeetingButtonTitle) listMeetingButtonTitle.innerHTML = "Jadwalkan Meeting"
 				if (googleCalendarInfoTitle) googleCalendarInfoTitle.innerHTML = "Masuk untuk buat meeting dan terhubung dengan Google Calender"
+
+				if (signInFormTitle) signInFormTitle.innerHTML = "Selamat Datang"
+				if (signUpFormTitle) signUpFormTitle.innerHTML = "Selamat Datang di Vmeet"
+
+				if (signInEmailInput) signInEmailInput.placeholder = "Masukkan Email"
+				if (signInPasswordInput) signInPasswordInput.placeholder = "Masukkan Password"
+
+				if (signUpUsernameInput) signUpUsernameInput.placeholder = "Masukkan Username"
+				if (signUpEmailInput) signUpEmailInput.placeholder = "Masukkan Email"
+				if (signUpPasswordInput) signUpPasswordInput.placeholder = "Masukkan Password"
+				if (signUpRepeatPasswordInput) signUpRepeatPasswordInput.placeholder = "Ulangi Password"
+
+				if (signInWithGoogleTitle) signInWithGoogleTitle.innerHTML = "Lanjutkan Dengan Google"
+				if (signUpWithGoogleTitle) signUpWithGoogleTitle.innerHTML = "Lanjutkan Dengan Google"
+
+				if (signInTitleButton) signInTitleButton.innerHTML = "Masuk"
+				if (signUpTitleButton) signUpTitleButton.innerHTML = "Daftar"
+
+				if (signInOrTitle) signInOrTitle.innerHTML = "Atau"
+				if (signUpOrTitle) signUpOrTitle.innerHTML = "Atau"
+
+				if (signInLineTitleAccount) signInLineTitleAccount.innerHTML = "Sudah punya akun?"
+				if (signUpLineTitleAccount) signUpLineTitleAccount.innerHTML = "Belum punya akun?"
+
+				if (signInTitleAnchor) signInTitleAnchor.innerHTML = "Masuk"
+				if (signUpTitleAnchor) signUpTitleAnchor.innerHTML = "Daftar"
+
+				if (signInTitleButtonHome) signInTitleButtonHome.innerHTML = "Masuk"
+				if (signInTitleButtonNavbar) signInTitleButtonNavbar.innerHTML = "Masuk"
+
+				// OTP PAGE LANGUAGE
+
+				if (checkEmailTitle) checkEmailTitle.innerHTML = "Check Email Anda"
+				if (digitVerificationTitle) digitVerificationTitle.innerHTML = "Masukkan Kode 6 Digit yang Kami Kirim"
+				if (otpReceivedTitle) otpReceivedTitle.innerHTML = "Tidak mendapatkan pesan email? "
+
+				// END OTP PAGE LANGUAGE
 			} else {
 				throw new Error("Language ID is not valid")
 			}

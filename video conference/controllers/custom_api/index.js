@@ -1,11 +1,11 @@
-const { encodeToken } = require("../../helper/jwt")
+const { Helpers } = require("../../helper")
 
 class Custom_Api {
 	static async customApiLogin(req, res, next) {
 		try {
 			const { full_name, participant_id, isViewer } = req.body
 			if (!full_name || full_name.trim() == "" || !participant_id || participant_id.trim() == "") {
-				throw { name: "Invalid_User", message: "Invalid User" }
+				throw { name: Helpers.RESPONSEERROR.INVALIDUSER.name, message: Helpers.RESPONSEERROR.INVALIDUSER.message }
 			}
 
 			const user = {
@@ -23,9 +23,9 @@ class Custom_Api {
 				isViewer,
 			}
 			if (!user) {
-				throw { name: "Invalid_User", message: "Invalid User" }
+				throw { name: Helpers.RESPONSEERROR.INVALIDUSER.name, message: Helpers.RESPONSEERROR.INVALIDUSER.message }
 			}
-			const token = encodeToken({ user })
+			const token = Helpers.encodeToken({ user })
 			// req.session.token = token
 			await res.status(200).json({ status: true, message: "User is valid", token })
 		} catch (error) {
@@ -58,7 +58,7 @@ class Custom_Api {
 				face_recognition: false,
 				video_type: "vp8",
 			}
-			const roomToken = await encodeToken({ ...roomData })
+			const roomToken = await Helpers.encodeToken({ ...roomData })
 			req.session.meeting = {
 				firstTimeJoin: true,
 				waiting: true,

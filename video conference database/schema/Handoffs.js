@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const { handsOffExp } = require("../config")
 const Schema = mongoose.Schema
 
 const handoffSchema = new Schema({
@@ -10,16 +11,22 @@ const handoffSchema = new Schema({
 	accessToken: {
 		type: String,
 		required: true,
-		unique: true,
 	},
-	email: {
+	password: {
 		type: String,
-		unique: true,
 		required: true,
+	},
+	createdAt: {
+		type: Date,
+		default: Date.now,
+	},
+	updatedAt: {
+		type: Date,
+		default: Date.now,
 	},
 	expiresAt: {
 		type: Date,
-		default: () => Date.now() + 60 * 1000,
+		default: () => Date.now() + handsOffExp,
 		index: { expires: "0s" },
 	},
 })

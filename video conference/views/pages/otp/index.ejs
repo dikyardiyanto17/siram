@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="[/= baseUrl /]/assets/pictures/favicon.png">
+    <link rel="stylesheet" href="[/= baseUrl /]/assets/css/otp.css">
+    <title>[/= appName /]</title>
+</head>
+
+<body>
+    <div class="full-container" style="background-image: url('[/= baseUrl /]/assets/pictures/vmeet_background.png');">
+        <div class="otp-container">
+            <section class="otp-header">
+                <span id="check-email-title"></span>
+            </section>
+            <section class="otp-content">
+                <img src="[/= baseUrl /]/assets/pictures/OTP_Picture.png" alt="otp-image">
+                <span class="message-1" id="digit-verification-title"></span>
+                <span class="message-2">[/= email/]</span>
+                <div class="otp-input-container">
+                    <input type="number" maxlength="1" class="otp-input" />
+                    <input type="number" maxlength="1" class="otp-input" />
+                    <input type="number" maxlength="1" class="otp-input" />
+                    <input type="number" maxlength="1" class="otp-input" />
+                    <input type="number" maxlength="1" class="otp-input" />
+                    <input type="number" maxlength="1" class="otp-input" />
+                </div>
+                <span id="invalid-code" class="d-none"></span>
+                <span id="success-code" class="d-none"></span>
+            </section>
+            <section class="otp-footer">
+                <span class="message-1" id="otp-received-title"></span>&nbsp;<span class="message-3" id="resend-btn">
+                </span>&nbsp;<span class="message-1" id="countdown"></span>
+            </section>
+        </div>
+    </div>
+    <script>
+        const baseUrl = [/- JSON.stringify(baseUrl) /]
+        const databaseUrl = [/- JSON.stringify(databaseUrl) /]
+    </script>
+    <script src="[/= baseUrl /]/javascript/otp/otpbundle.js"></script>
+</body>
+
+</html>

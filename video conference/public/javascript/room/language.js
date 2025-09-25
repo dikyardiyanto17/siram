@@ -72,7 +72,7 @@ const changeLanguage = ({ language }) => {
 			layoutMenu.innerHTML = "Layout"
 			settingMenu.innerHTML = "Setting"
 			shareLinkTooltip.innerHTML = "Share Link"
-			lockRoomTitle.innerHTML = "Lock Room"
+			lockRoomTitle.innerHTML = `Lock Room <img style="margin-left: 20px;" class="d-none" src="${baseUrl}/assets/icons/check.svg" alt="" id="check-lock-room">`
 		} else if (language == "id") {
 			changeLayout.innerHTML = "Ubah Susunan"
 			tiled.innerHTML = "Petak"
@@ -104,7 +104,7 @@ const changeLanguage = ({ language }) => {
 			layoutMenu.innerHTML = "Ubah Susunan"
 			settingMenu.innerHTML = "Pengaturan"
 			shareLinkTooltip.innerHTML = "Bagikan Link"
-			lockRoomTitle.innerHTML = "Kunci Ruangan"
+			lockRoomTitle.innerHTML = `Kunci Ruangan  <img style="margin-left: 20px;" class="d-none" src="${baseUrl}/assets/icons/check.svg" alt="" id="check-lock-room">`
 		} else {
 			throw { name: "error", message: "language id is not valid" }
 		}

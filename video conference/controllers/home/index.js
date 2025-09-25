@@ -4,43 +4,40 @@ const axios = require("axios")
 class Home {
 	static async index(req, res, next) {
 		try {
-			const { code } = req.query
-			if (code) {
-				const request = await axios.get(`${res.locals.databaseUrl}/api/google/access_token`, {
-					headers: {
-						Authorization: `Bearer ${code}`,
-					},
-				})
+			const { userCookie } = req.cookies
 
-				if (request && request.data) {
-					const { accessToken, email, user } = request.data
-					if (accessToken && user) {
-						const googleInfo = {
-							token: accessToken,
-							email: user.email,
-							name: user.username,
-							picture: user.picture,
+			if (userCookie) {
+				try {
+					const response = await axios.get(`${res.locals.databaseUrl}/auth/user/detail`, {
+						headers: {
+							Cookie: req.headers.cookie,
+						},
+					})
+
+					if (response?.data?.status) {
+						const { user } = response.data.data[0]
+						if (user) {
+							return res.render("pages/home/index", {
+								baseUrl,
+								isLogin: true,
+								username: user.username,
+								picture: user.picture,
+								email: user.email,
+							})
 						}
-						req.session.google = { ...googleInfo }
-						return req.session.save((err) => {
-							if (err) return next(err)
-							return res.redirect(baseUrl)
-						})
 					}
+				} catch (error) {
+					console.log("- Error Auth on DB : ", error)
 				}
-
-				return res.redirect(baseUrl)
-			} else {
-				const google = req.session?.google || null
-				return res.render("pages/home/index", {
-					baseUrl,
-					authority: 1,
-					isLogin: !!google,
-					...(google
-						? { username: google.name, picture: google.picture, email: google.email }
-						: { username: "Unknown", picture: `${baseUrl}/assets/pictures/avatar.png`, email: "noemail.login" }),
-				})
 			}
+
+			return res.render("pages/home/index", {
+				baseUrl,
+				isLogin: false,
+				username: "",
+				picture: "",
+				email: "",
+			})
 		} catch (error) {
 			next(error)
 		}

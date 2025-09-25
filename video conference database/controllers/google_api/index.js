@@ -1,9 +1,10 @@
 const { google } = require("googleapis")
 const crypto = require("crypto")
-const { v4: uuidv4 } = require("uuid")
 const { googleRedirectApi, googleScope } = require("../../config")
 const Handoffs = require("../../schema/Handoffs")
 const Users = require("../../schema/Users")
+const { Helpers } = require("../../helper")
+const Cookies = require("../../schema/Cookies")
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
@@ -28,15 +29,16 @@ class GoogleApi {
 		try {
 			const codeFromQuery = req.query.code
 			if (!codeFromQuery) {
-				throw { name: "forbidden", message: "Unauthorized user!" }
+				throw { name: Helpers.RESPONSEERROR.FORBIDDEN.name, message: Helpers.RESPONSEERROR.FORBIDDEN.message }
 			}
 
 			const { tokens } = await oauth2Client.getToken(codeFromQuery)
+			const { refresh_token } = tokens
 			await oauth2Client.setCredentials(tokens)
 
 			const accessToken = tokens.access_token
 			if (!accessToken) {
-				throw { name: "forbidden", message: "No access_token returned by Google!" }
+				throw { name: Helpers.RESPONSEERROR.FORBIDDEN.name, message: "No access token returned by Google!" }
 			}
 
 			const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client })
@@ -44,22 +46,10 @@ class GoogleApi {
 			const { email, name, picture, id: googleId, sub } = userInfo
 
 			const googleSub = sub || googleId
-			const handoffCode = crypto.randomUUID()
-
-			await Handoffs.findOneAndUpdate(
-				{ email },
-				{
-					code: handoffCode,
-					accessToken,
-					email,
-					expiresAt: new Date(Date.now() + 60 * 1000),
-				},
-				{ upsert: true, new: true, setDefaultsOnInsert: true }
-			)
 
 			const now = new Date()
 			const onInsert = {
-				userId: uuidv4(),
+				userId: await Helpers.generateUUIDv4(),
 				username: name || email.split("@")[0],
 				email,
 				authProvider: "google",
@@ -67,6 +57,8 @@ class GoogleApi {
 				picture,
 				createdAt: now,
 				updatedAt: now,
+				fullname: name || email.split("@")[0],
+				refreshToken: refresh_token,
 			}
 
 			const onUpdate = {
@@ -74,18 +66,35 @@ class GoogleApi {
 				picture,
 				authProvider: "google",
 				updatedAt: now,
+				refreshToken: refresh_token,
 			}
 
 			const existingUser = await Users.findOne({ email })
 
+			let user
+
 			if (!existingUser) {
-				await Users.create(onInsert)
+				user = await Users.create(onInsert)
 			} else {
-				await Users.updateOne({ email }, { $set: onUpdate })
+				user = await Users.findOneAndUpdate({ email }, { $set: onUpdate }, { new: true })
 			}
 
+			const cookie = await Helpers.generateCrypto({ length: 30 })
+
+			const saveCookie = await Cookies.create({
+				cookieId: cookie.cookie,
+				createdBy: await user._id.toString(),
+				token: accessToken,
+				loginPlatform: "Google",
+			})
+
+			res.cookie("userCookie", cookie.cookie, {
+				expires: cookie.exp,
+				...Helpers.cookieSetting,
+			})
+
 			const vcUrl = res.locals.videoConferenceUrl
-			return res.redirect(`${vcUrl}/?code=${encodeURIComponent(handoffCode)}`)
+			return res.redirect(`${vcUrl}`)
 		} catch (error) {
 			return next(error)
 		}
@@ -96,21 +105,20 @@ class GoogleApi {
 			const authHeader = req.headers.authorization
 
 			if (!authHeader || !authHeader.startsWith("Bearer ")) {
-				throw { name: "forbidden", message: "Unauthorized user!" }
+				throw { name: Helpers.RESPONSEERROR.FORBIDDEN.name, message: Helpers.RESPONSEERROR.FORBIDDEN.message }
 			}
 
-			
 			const code = authHeader.split(" ")[1]
 			const handoff = await Handoffs.findOne({ code })
 
 			if (!handoff) {
-				throw { name: "forbidden", message: "Session is expired!" }
+				throw { name: Helpers.RESPONSEERROR.FORBIDDEN.name, message: "Session is expired!" }
 			}
 
 			const user = await Users.findOne({ email: handoff.email })
 
 			if (!user) {
-				throw { name: "not_found", message: "User not found!" }
+				throw { name: Helpers.RESPONSEERROR.NOTFOUND.name, message: Helpers.RESPONSEERROR.NOTFOUND.message }
 			}
 
 			return res.status(200).json({

@@ -1024,12 +1024,10 @@ tbody tr {
 }
 
 .privacy-policy-info-container {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
     text-decoration: underline;
     color: #2F6EFF;
+    display: flex;
+    justify-content: center;
 }
 
 

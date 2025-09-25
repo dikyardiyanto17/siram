@@ -1,4 +1,16 @@
 class StaticEvent {
+	static messageListEvent() {
+		try {
+			const messageToList = document.getElementById("message-to-list")
+			if (messageToList.classList.contains("d-none")) {
+				messageToList.classList.remove("d-none")
+			} else {
+				messageToList.classList.add("d-none")
+			}
+		} catch (error) {
+			console.log("- Error Message List Event", error)
+		}
+	}
 	static getInitialsAndColor(name) {
 		// Extract initials and limit to 2 characters
 		const initials = name
@@ -27,6 +39,96 @@ class StaticEvent {
 		}
 
 		return randomId
+	}
+
+	static selectChat({ id, username }) {
+		try {
+			const chatContainerElement = document.getElementById(`chat-${id}`)
+			const allChatContents = document.querySelectorAll(".chat-content")
+			const allListChatTo = document.querySelectorAll(".list-chat-to")
+			const selectedListChatTo = document.getElementById(`chat-to-${id}`)
+
+			this.messageListEvent()
+
+			allChatContents.forEach((el) => {
+				if (el != chatContainerElement) {
+					el.classList.add("d-none")
+				} else {
+					el.classList.remove("d-none")
+				}
+			})
+
+			allListChatTo.forEach((el) => {
+				if (el !== selectedListChatTo) {
+					el.classList.remove("selected")
+				} else {
+					el.classList.add("selected")
+				}
+			})
+
+			selectedListChatTo.classList.add("selected")
+			chatContainerElement.classList.remove("d-none")
+			document.getElementById("chat-selected-to").innerHTML = username
+		} catch (error) {
+			console.log("- Error Select Chat : ", error)
+		}
+	}
+
+	static resetChat() {
+		try {
+			const chatContainerElement = document.getElementById(`chat-everyone`)
+			const allChatContents = document.querySelectorAll(".chat-content")
+			const allListChatTo = document.querySelectorAll(".list-chat-to")
+			const selectedListChatTo = document.getElementById(`chat-to-everyone`)
+
+			allChatContents.forEach((el) => {
+				if (el !== chatContainerElement) {
+					el.classList.add("d-none")
+				} else {
+					el.classList.remove("d-none")
+				}
+			})
+
+			allListChatTo.forEach((el) => {
+				if (el !== selectedListChatTo) {
+					el.classList.remove("selected")
+				} else {
+					el.classList.add("selected")
+				}
+			})
+
+			document.getElementById("chat-selected-to").innerHTML = "Everyone"
+		} catch (error) {
+			console.log("- Error Select Chat : ", error)
+		}
+	}
+
+	static createChat({ id, username, createChatTo = true, createChatContainer = true }) {
+		try {
+			const isChatToElementExist = document.getElementById(`chat-to-${id}`)
+			const isChatContainerElementExist = document.getElementById(`chat-${id}`)
+			if (!isChatToElementExist && createChatTo) {
+				const chatToElement = document.createElement("div")
+				chatToElement.classList.add(`chat-to-${id}`)
+				chatToElement.id = `chat-to-${id}`
+				chatToElement.classList.add(`list-chat-to`)
+				chatToElement.dataset.userId = id
+				chatToElement.innerHTML = `<span>${username}</span>`
+				document.getElementById("message-to-list").appendChild(chatToElement)
+				chatToElement.addEventListener("click", (e) => this.selectChat({ id, username }))
+			}
+
+			if (!isChatContainerElementExist && createChatContainer) {
+				const chatContainerElement = document.createElement("div")
+				chatContainerElement.classList.add("chat-content")
+				chatContainerElement.classList.add("d-none")
+				chatContainerElement.id = `chat-${id}`
+				chatContainerElement.dataset.username = username
+				document.getElementById("chat-everyone").insertAdjacentElement("afterend", chatContainerElement)
+			}
+		} catch (error) {
+			console.log("- Error Create Chat : ", error)
+		}
 	}
 
 	static methodAddUserList({ id, username, authority, picture, userId, userAuthority }) {
@@ -60,6 +162,11 @@ class StaticEvent {
 									</div>
                                 </div>
                             `
+
+			if (userId != id) {
+				this.createChat({ id, username, createChatContainer: true, createChatTo: true })
+			}
+
 			document.getElementById("users-list-container").appendChild(userListElement)
 		} catch (error) {
 			console.log("- Error Add User : ", error)
@@ -357,6 +464,28 @@ class Users extends StaticEvent {
 		this.#screenSharingRequestPermission = permission
 	}
 
+	async getCurrentVideoDisplayed() {
+		// return document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+		return document.querySelectorAll('#video-collection > [id^="vc-"]:not(.d-none)')
+	}
+
+	async createMicUserSvg({ id }) {
+		return `
+			<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<mask id="mask0" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16">
+					<path d="M5 3C5 2.20435 5.31607 1.44129 5.87868 0.87868C6.44129 0.31607 7.20435 0 8 0C8.79565 0 9.55871 0.31607 10.1213 0.87868C10.6839 1.44129 11 2.20435 11 3V8C11 8.79565 10.6839 9.55871 10.1213 10.1213C9.55871 10.6839 8.79565 11 8 11C7.20435 11 6.44129 10.6839 5.87868 10.1213C5.31607 9.55871 5 8.79565 5 8V3Z" fill="#9CA3AF"/>
+					<path d="M3.5 6.5C3.63261 6.5 3.75979 6.55268 3.85355 6.64645C3.94732 6.74021 4 6.86739 4 7V8C4 9.06087 4.42143 10.0783 5.17157 10.8284C5.92172 11.5786 6.93913 12 8 12C9.06087 12 10.0783 11.5786 10.8284 10.8284C11.5786 10.0783 12 9.06087 12 8V7C12 6.86739 12.0527 6.74021 12.1464 6.64645C12.2402 6.55268 12.3674 6.5 12.5 6.5C12.6326 6.5 12.7598 6.55268 12.8536 6.64645C12.9473 6.74021 13 6.86739 13 7V8C13 9.23953 12.5396 10.4349 11.7081 11.3541C10.8766 12.2734 9.73332 12.851 8.5 12.975V15H11.5C11.6326 15 11.7598 15.0527 11.8536 15.1464C11.9473 15.2402 12 15.3674 12 15.5C12 15.6326 11.9473 15.7598 11.8536 15.8536C11.7598 15.9473 11.6326 16 11.5 16H4.5C4.36739 16 4.24021 15.9473 4.14645 15.8536C4.05268 15.7598 4 15.6326 4 15.5C4 15.3674 4.05268 15.2402 4.14645 15.1464C4.24021 15.0527 4.36739 15 4.5 15H7.5V12.975C6.26668 12.851 5.12337 12.2734 4.29188 11.3541C3.46038 10.4349 2.99998 9.23953 3 8V7C3 6.86739 3.05268 6.74021 3.14645 6.64645C3.24021 6.55268 3.36739 6.5 3.5 6.5Z" fill="#9CA3AF"/>
+				</mask>
+				<g mask="url(#mask0)">
+					<rect width="16" height="16" fill="#9CA3AF"/>
+					<rect id="video-mic-${id}" y="16" width="16" height="16" fill="#2D8CFF"/>
+				</g>
+				<line id="video-mic-muted-${id}" class="d-none" x1="2" y1="14" x2="14" y2="2" stroke="#FF3B30" stroke-width="1" stroke-linecap="round"/>
+			</svg>
+
+		`
+	}
+
 	async findAdmin() {
 		try {
 			const authority = this.#allUsers.filter((u) => u.authority == 1 || u.authority == 2)
@@ -544,7 +673,7 @@ class Users extends StaticEvent {
 
 	async addVideoSecondMethod({ userId, track = null, username, picture, isActive = true }) {
 		try {
-			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+			const currentVideoDisplayed = await this.getCurrentVideoDisplayed()
 			if (!this.#videoContainerFocus.classList.contains("d-none") && this.#currentLayout == 1) {
 				this.#videoContainerFocus.classList.add("d-none")
 			}
@@ -556,7 +685,7 @@ class Users extends StaticEvent {
 
 				let videoContainerElement = document.createElement("div")
 				videoContainerElement.id = `vc-${userId}`
-				if (currentVideoDisplayed < this.#totalLayout) {
+				if (currentVideoDisplayed.length < this.#totalLayout) {
 					videoContainerElement.className = `${this.#currentVideoClass}`
 				} else {
 					videoContainerElement.className = `${this.#currentVideoClass} d-none`
@@ -564,6 +693,7 @@ class Users extends StaticEvent {
 
 				let userVideoElement = document.createElement("div")
 				userVideoElement.className = "user-container"
+				userVideoElement.id = `user-container-${userId}`
 
 				userVideoElement.innerHTML = `<div class="d-none video-turn-off" id="turn-off-${userId}">
 				<span class="turn-off-alphabet" style="color: ${document.getElementById(`color-${userId}`)?.style?.color || alphabetName.color};">
@@ -581,7 +711,8 @@ class Users extends StaticEvent {
 
 				let microphoneElement = document.createElement("div")
 				microphoneElement.className = "video-mic-icon"
-				microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				// microphoneElement.innerHTML = `<img class="video-mic-image" src="${baseUrl}/assets/icons/mic_level_3.svg" id="video-mic-${userId}" alt="mic_icon"/>`
+				microphoneElement.innerHTML = await this.createMicUserSvg({ id: userId })
 				userVideoElement.appendChild(microphoneElement)
 
 				if (!track) {
@@ -864,7 +995,7 @@ class Users extends StaticEvent {
 
 	async updateAllVideoSecondMethod() {
 		try {
-			const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)')
+			const currentVideoDisplayed = await this.getCurrentVideoDisplayed()
 			currentVideoDisplayed.forEach((e) => {
 				currentVideoDisplayed.forEach((e) => {
 					e.classList.forEach((className) => {
@@ -1552,9 +1683,9 @@ class Users extends StaticEvent {
 
 				await Promise.all(promises)
 
-				const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+				const currentVideoDisplayed = await this.getCurrentVideoDisplayed()
 
-				if (currentVideoDisplayed == 0) {
+				if (currentVideoDisplayed.length == 0) {
 					await this.previousVideo({ socket })
 				}
 			} else if (this.#currentLayout == 2) {
@@ -1592,6 +1723,7 @@ class Users extends StaticEvent {
 							}
 						} else {
 							await this.showHideVideo({ id: u.userId, status: false })
+							console.log("- Track : ", track, " - User : ", u)
 							socket.emit("consumer-pause", { serverConsumerId: track.id }, async ({ status, message }) => {
 								try {
 									if (status) {
@@ -1612,7 +1744,7 @@ class Users extends StaticEvent {
 				await this.updateVideoContainer()
 				this.#videoContainerFocus.classList.remove("d-none")
 				this.#videoContainer.classList.remove("d-none")
-				
+
 				this.#allUsers.forEach(async (u) => {
 					const min = this.#currentPage * this.#totalLayout - (this.#totalLayout - 1)
 					const max = this.#currentPage * this.#totalLayout
@@ -1682,9 +1814,9 @@ class Users extends StaticEvent {
 					}
 				})
 
-				const currentVideoDisplayed = document.querySelectorAll('#video-collection [id^="vc-"]:not(.d-none)').length
+				const currentVideoDisplayed = await this.getCurrentVideoDisplayed()
 
-				if (currentVideoDisplayed == 0) {
+				if (currentVideoDisplayed.length == 0) {
 					await this.previousVideo({ socket })
 				}
 				if (this.#users == 1) {
@@ -1776,9 +1908,9 @@ class Users extends StaticEvent {
 
 				await Promise.all(promises)
 
-				const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)').length
+				const currentVideoDisplayed = await this.getCurrentVideoDisplayed()
 
-				if (currentVideoDisplayed == 0) {
+				if (currentVideoDisplayed.length == 0) {
 					await this.previousVideo({ socket })
 				}
 			} else {
@@ -1873,7 +2005,7 @@ class Users extends StaticEvent {
 			}
 			if (this.#currentLayout == 3) {
 				await this.updateAllVideoSecondMethod()
-				const currentVideoDisplayed = document.querySelectorAll('[id^="vc-"]:not(.d-none)')
+				const currentVideoDisplayed = await this.getCurrentVideoDisplayed()
 
 				currentVideoDisplayed.forEach((e) => {
 					e.classList.forEach((className) => {
@@ -2207,7 +2339,6 @@ class Users extends StaticEvent {
 				let screenSharingStream = new MediaStream()
 				videoStream.getTracks().forEach((track) => screenSharingStream.addTrack(track))
 
-
 				let allAudio = []
 
 				this.#allUsers.forEach((u) => {
@@ -2312,14 +2443,15 @@ class Users extends StaticEvent {
 			if (!track) {
 				return
 			}
-			const audioVisualizerImage = document.getElementById(`video-mic-${id}`)
-			if (!audioVisualizerImage) {
+			const audioVisualizer = document.getElementById(`video-mic-${id}`)
+			const audioVisualizerMuted = document.getElementById(`video-mic-muted-${id}`)
+			if (!audioVisualizer) {
 				setTimeout(() => {
 					this.createAudioVisualizer({ id, track })
 				}, 3000)
 				return
 			}
-			if (audioVisualizerImage) {
+			if (audioVisualizer) {
 				// Access the microphone audio stream (replace with your stream source)
 				const audioContext = new (window.AudioContext || window.webkitAudioContext)()
 				const analyser = audioContext.createAnalyser()
@@ -2331,32 +2463,43 @@ class Users extends StaticEvent {
 				const audioSource = audioContext.createMediaStreamSource(newTheAudio)
 				audioSource.connect(analyser)
 
-				// Function to draw the single audio bar
+				const color = "ffffff"
+				const userVideoContainer = document.getElementById(`user-container-${id}`)
+
 				function drawBar() {
 					analyser.getByteFrequencyData(dataArray)
 					const barHeight = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length
+
 					if (!track.enabled) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_muted.svg`
-					} else if (barHeight <= 3) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_1.svg`
-					} else if (barHeight <= 6) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_2.svg`
-					} else if (barHeight <= 9) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_3.svg`
-					} else if (barHeight <= 12) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_4.svg`
-					} else if (barHeight <= 15) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_5.svg`
-					} else if (barHeight <= 18) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_6.svg`
-					} else if (barHeight <= 21) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_7.svg`
-					} else if (barHeight <= 24) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_8.svg`
-					} else if (barHeight <= 27) {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_9.svg`
+						if (audioVisualizerMuted.classList.contains("d-none")) {
+							audioVisualizerMuted.classList.remove("d-none")
+						}
+						audioVisualizer.setAttribute("y", 16)
 					} else {
-						audioVisualizerImage.src = `${baseUrl}/assets/icons/mic_level_10.svg`
+						if (!audioVisualizerMuted.classList.contains("d-none")) {
+							audioVisualizerMuted.classList.add("d-none")
+						}
+						const thresholds = [
+							{ max: 3, y: 16 },
+							{ max: 6, y: 14 },
+							{ max: 9, y: 12 },
+							{ max: 12, y: 10 },
+							{ max: 15, y: 8 },
+							{ max: 18, y: 6 },
+							{ max: 21, y: 4 },
+							{ max: 24, y: 2 },
+							{ max: 27, y: 1 },
+						]
+
+						const match = thresholds.find((t) => barHeight <= t.max)
+
+						audioVisualizer.setAttribute("y", match ? match.y : 0)
+					}
+
+					if (barHeight >= 15) {
+						userVideoContainer.style.outline = `1px solid #${color}`
+					} else {
+						userVideoContainer.style.outline = ``
 					}
 
 					requestAnimationFrame(drawBar)
@@ -2636,6 +2779,70 @@ class Users extends StaticEvent {
 			await this.#speechToText.recognition.start()
 		} catch (error) {
 			// console.error("- Error Start Speech Recognition: ", error)
+		}
+	}
+
+	// Resend is for applying to everyone chat on other user
+	async sendChat({ socket, message, type, chatTo, fileDetail = null, resend = false }) {
+		try {
+			const targets =
+				chatTo == "everyone" ? this.#allUsers.filter((user) => user.userId != this.#userId) : this.#allUsers.filter((user) => user.userId == chatTo)
+
+			if (resend) {
+				for (const user of targets) {
+					const randomId = await this.constructor.generateRandomId(20, "-", 3)
+					socket.emit("message", {
+						userId: user.userId,
+						to: user.socketId,
+						message: { ...message },
+						username: this.#username,
+						picture: this.#picture,
+						type,
+						id: randomId,
+						chatTo: "everyone",
+						resend
+					})
+					if (type != "message" && fileDetail) {
+						socket.emit("message-donwload-link", {
+							userId: user.userId,
+							to: user.socketId,
+							id: randomId,
+							api: fileDetail.api,
+							status: fileDetail.status,
+							type,
+						})
+					}
+				}
+				return
+			}
+
+			for (const user of targets) {
+				const randomId = await this.constructor.generateRandomId(20, "-", 3)
+
+				socket.emit("message", {
+					userId: user.userId,
+					to: user.socketId,
+					message: { ...message },
+					username: this.#username,
+					picture: this.#picture,
+					type,
+					id: randomId,
+					chatTo: chatTo == "everyone" ? chatTo : this.#userId,
+				})
+
+				if (type != "message" && fileDetail) {
+					socket.emit("message-donwload-link", {
+						userId: user.userId,
+						to: user.socketId,
+						id: randomId,
+						api: fileDetail.api,
+						status: fileDetail.status,
+						type,
+					})
+				}
+			}
+		} catch (error) {
+			console.log("- Error Send Chat Via Socket : ", error)
 		}
 	}
 }

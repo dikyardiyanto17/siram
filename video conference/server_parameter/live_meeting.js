@@ -1,4 +1,4 @@
-const { saveSession } = require("../helper/index.js")
+const { Helpers } = require("../helper/index.js")
 
 class LiveMeeting {
 	#users = []
@@ -17,6 +17,7 @@ class LiveMeeting {
 			// Code 1, room doesnot exist so its new users || room exist and password is correct
 			// Code 2, room exist but password is wrong
 			const room = await this.#users.find((x) => x.roomId == roomId)
+			console.log(room, "==", password)
 			if (!room || room.password == password) {
 				return 1
 			}
@@ -37,7 +38,12 @@ class LiveMeeting {
 			grouped[user.roomId].push(user)
 		}
 
-		return { rooms: grouped }
+		const totalRooms = Object.keys(grouped).length
+
+		return {
+			rooms: grouped,
+			totalRooms,
+		}
 	}
 
 	async addUser({
@@ -52,6 +58,7 @@ class LiveMeeting {
 		picture,
 		meetingType,
 		password,
+		isViewer,
 	}) {
 		try {
 			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
@@ -69,10 +76,23 @@ class LiveMeeting {
 					picture,
 					meetingType,
 					password,
+					isViewer,
 				})
 			}
 		} catch (error) {
 			console.log("- Error Add User : ", error)
+		}
+	}
+
+	async updateUser({ participantId, roomId }, updateData) {
+		try {
+			const user = this.#users.find((u) => u.participantId == participantId && u.roomId == roomId)
+			if (user) {
+				// user = { ...user, ...updateData }
+				Object.assign(user, updateData)
+			}
+		} catch (error) {
+			console.log("- Error Update User : ", error)
 		}
 	}
 
@@ -228,12 +248,12 @@ class LiveMeeting {
 	async deleteUser({ socket, userSession }) {
 		try {
 			const user = this.#users.find((u) => u.socketId == socket.id)
-			if ( user && user.joined) {
+			if (user && user.joined) {
 				userSession.roomId = null
 				userSession.roomName = null
 				userSession.password = null
 				userSession.meetingType = null
-				await saveSession(userSession)
+				await Helpers.saveSession(userSession)
 				this.#users.forEach((u) => {
 					try {
 						if (u.participantId != user.participantId && u.roomId == user.roomId && u.joined) {
@@ -251,7 +271,6 @@ class LiveMeeting {
 						// this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
 						// this.#users = this.#users.filter((u) => u.participantId != user.participantId)
 						this.#users = this.#users.filter((u) => !(u.participantId == user.participantId && u.roomId == user.roomId))
-
 					}
 				}, 1000 * 60 * 60)
 				return
@@ -260,7 +279,6 @@ class LiveMeeting {
 				// this.#users = this.#users.filter((u) => u.participantId != user.participantId && u.roomId != user.roomId)
 				// this.#users = this.#users.filter((u) => u.participantId != user.participantId)
 				this.#users = this.#users.filter((u) => !(u.participantId == user.participantId && u.roomId == user.roomId))
-
 			}
 		} catch (error) {
 			console.log("- Error Delete User : ", error)
@@ -275,7 +293,7 @@ class LiveMeeting {
 				userSession.roomName = null
 				userSession.password = null
 				userSession.meetingType = null
-				await saveSession(userSession)
+				await Helpers.saveSession(userSession)
 				this.#users = this.#users.filter((u) => u.participantId != userId)
 			}
 		} catch (error) {

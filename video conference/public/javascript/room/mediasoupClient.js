@@ -24,6 +24,12 @@ class StaticEvent {
 		}
 	}
 
+	static async getCookie(name) {
+		const value = `; ${document.cookie}`
+		const parts = value.split(`; ${name}=`)
+		if (parts.length === 2) return parts.pop().split(";").shift()
+	}
+
 	static async changeVideo({ userId, isActive, isCurrentUser }) {
 		try {
 			const videoPicture = document.getElementById(`turn-off-${userId}`)
@@ -287,7 +293,7 @@ class MediaSoupClient extends StaticEvent {
 		}
 	}
 
-	async setEncoding() {
+	async setEncoding({ videoType }) {
 		try {
 			let currentVideoType = videoType
 			if (videoType != "vp8" && videoType != "vp9") {
@@ -608,6 +614,8 @@ class MediaSoupClient extends StaticEvent {
 							document.getElementById("loading-id").className = "loading-hide"
 						}
 						if (e == "failed") {
+							const roomId = await this.constructor.getCookie("roomId")
+							const password = await this.constructor.getCookie("password")
 							socket.close()
 							window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 						}
@@ -677,6 +685,8 @@ class MediaSoupClient extends StaticEvent {
 
 				this.#consumerTransport.on("connectionstatechange", async (e) => {
 					if (e === "failed") {
+						const roomId = await this.constructor.getCookie("roomId")
+						const password = await this.constructor.getCookie("password")
 						window.location.href = `${baseUrl}/?rid=${roomId}&pw=${password}`
 					}
 					console.log("- Receiver Transport State : ", e)
@@ -702,6 +712,8 @@ class MediaSoupClient extends StaticEvent {
 				this.#videoParams.track = this.#mystream.getVideoTracks()[0]
 				this.#videoParams.appData.picture = picture
 				this.#videoProducer = await this.#producerTransport.produce(this.#videoParams)
+				const roomId = await this.constructor.getCookie("roomId")
+				const password = await this.constructor.getCookie("password")
 
 				this.#videoProducer.on("trackended", () => {
 					// window.location.reload()
@@ -916,7 +928,11 @@ class MediaSoupClient extends StaticEvent {
 							// const consumerTrack = consumers.consumer.find((x) => x.id == params.serverConsumerId)
 							socket.emit("consumer-resume", { serverConsumerId: params.serverConsumerId }, async ({ status, message }) => {
 								try {
-									await this.constructor.changeVideo({ userId: appData && appData?.label == "screensharing_video" ? `ssv_${userId}` : userId, isActive: true, isCurrentUser: false })
+									await this.constructor.changeVideo({
+										userId: appData && appData?.label == "screensharing_video" ? `ssv_${userId}` : userId,
+										isActive: true,
+										isCurrentUser: false,
+									})
 									if (status && message != "producer-paused") {
 										if (consumer.paused) {
 											consumer.resume()

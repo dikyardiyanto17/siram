@@ -1,10 +1,11 @@
 const portToOpen = [1042, 1043] // for mediasoup tcp/udp binding,
 const privateIp = "0.0.0.0"
-// const publicIp = "192.168.18.35" // RDS Harmoni Lantai 1 2.4G
+// const publicIp = "192.167.61.8" // RDS Harmoni Lantai 1 2.4G
+// const publicIp = "192.168.18.35" // RDS Huawei
 // const publicIp = "192.168.20.209" // Kosan
-// const publicIp = "192.168.145.3" // Hotspot 
+// const publicIp = "192.168.145.3" // Hotspot
 // const publicIp = "203.175.10.29" // VPS
-const publicIp = "31.97.67.18" // VPS TERBARU PAK Indra
+const publicIp = "31.97.67.18" // VPS TERBARU Pak Indra
 module.exports = {
 	appName: "VMeet",
 	// baseUrl: "https://localhost:9102/vmeet",
@@ -146,6 +147,9 @@ module.exports = {
 	},
 	viewerEnabled: true,
 	initialSetting: true,
-	allowedCors: ["https://localhost:9100", "http://localhost:9101"],
 	googleOauthUrl: "https://www.googleapis.com/oauth2/v2",
+	allowedCors: {
+		origin: ["http:localhost:9102/vmeet-db", "https://modoto.net/vmeet-db"],
+		credentials: true,
+	},
 }

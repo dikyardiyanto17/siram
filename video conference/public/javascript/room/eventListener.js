@@ -53,7 +53,6 @@ class EventListener {
 	#sideBarDisplay = "side-bar-container"
 	#sideBarHide = "side-bar-container-hide"
 	#chatContainer
-	#chatContent
 	#userListContainer
 	// #usersListContainer
 	#userListWaitingContainer
@@ -145,7 +144,6 @@ class EventListener {
 		this.#sideBarContainer = document.getElementById("side-bar-container")
 		this.#sideBarStatus = false
 		this.#chatContainer = document.getElementById("chat-container")
-		this.#chatContent = document.getElementById("chat-content")
 		this.#userListContainer = document.getElementById("user-list-container")
 		// this.#usersListContainer = document.getElementById("users-list-container")
 		this.#userListWaitingContainer = document.getElementById("waiting-list-container")
@@ -276,6 +274,7 @@ class EventListener {
 
 	async changeChatButton() {
 		try {
+			let chatTo = "everyone"
 			this.disablingButton({ element: this.#userListButton })
 			this.disablingButton({ element: this.#chatButton })
 			this.#chatButton = document.getElementById("chat-button")
@@ -298,7 +297,7 @@ class EventListener {
 				this.#chatButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
-				let chatContent = document.getElementById("chat-content")
+				let chatContent = document.getElementById(`chat-${chatTo}`)
 				chatContent.scrollTop = chatContent.scrollHeight
 				const redDotCHat = document.getElementById("red-dot-chat")
 				if (!redDotCHat.classList.contains("d-none")) {
@@ -314,6 +313,7 @@ class EventListener {
 
 	async changeChatButtonMobile() {
 		try {
+			let chatTo = "everyone"
 			if (this.#userListStatus && !this.#chatStatus) {
 				this.hideAndDisplay({ element: this.#userListContainer, status: false })
 				this.changeUserListButton()
@@ -333,7 +333,7 @@ class EventListener {
 				this.#chatButton.classList.add("active")
 				this.#sideBarStatus = true
 				this.hideAndDisplay({ element: this.#chatContainer, status: true })
-				let chatContent = document.getElementById("chat-content")
+				let chatContent = document.getElementById(`chat-${chatTo}`)
 				chatContent.scrollTop = chatContent.scrollHeight
 				const redDotCHat = document.getElementById("red-dot-chat")
 				if (!redDotCHat.classList.contains("d-none")) {
@@ -1082,9 +1082,54 @@ class EventListener {
 		}
 	}
 
+	async resetChat() {
+		try {
+			const chatContainerElement = document.getElementById(`chat-everyone`)
+			const allChatContents = document.querySelectorAll(".chat-content")
+			const allListChatTo = document.querySelectorAll(".list-chat-to")
+			const selectedListChatTo = document.getElementById(`chat-to-everyone`)
+
+			allChatContents.forEach((el) => {
+				if (el !== chatContainerElement) {
+					el.classList.add("d-none")
+				} else {
+					el.classList.remove("d-none")
+				}
+			})
+
+			allListChatTo.forEach((el) => {
+				if (el !== selectedListChatTo) {
+					el.classList.remove("selected")
+				} else {
+					el.classList.add("selected")
+				}
+			})
+
+			document.getElementById("chat-selected-to").innerHTML = "Everyone"
+		} catch (error) {
+			console.log("- Error Select Chat : ", error)
+		}
+	}
+
 	async deleteUserList({ id }) {
 		try {
 			const userListElement = document.getElementById(`ul-${id}`)
+			const chatToElement = document.getElementById(`chat-to-${id}`)
+			const chatContainerElement = document.getElementById(`chat-${id}`)
+			if (chatToElement) {
+				if (chatToElement.classList.contains("selected")) {
+					await this.resetChat()
+				}
+				chatToElement.remove()
+			}
+
+			if (chatContainerElement) {
+				if (chatContainerElement.classList.contains("d-none")) {
+					await this.resetChat()
+				}
+				chatContainerElement.remove()
+			}
+
 			if (userListElement) {
 				userListElement.remove()
 			}
@@ -1093,106 +1138,183 @@ class EventListener {
 		}
 	}
 
-	// Method Send Message
-	async messageTemplate({ isSender, username, messageDate, message, picture }) {
+	async messageTemplate({ isSender, username, messageDate, message, picture, type = "message", id, chatTo = "everyone", userId, resend = false }) {
 		try {
-			const chatContent = document.getElementById("chat-content")
-			if (isSender) {
-				if (chatContent.children.length > 0) {
-					const usernameLastMessage = chatContent?.lastElementChild?.firstElementChild?.firstElementChild?.firstElementChild?.innerHTML
-					const dateLastMessage = chatContent?.lastElementChild?.firstElementChild?.firstElementChild?.lastElementChild?.innerHTML
-					if (usernameLastMessage == username && messageDate == dateLastMessage) {
-						return `
-						<div class="message-content">
-							<div class="message-header d-none">
-								<span>${username}</span>
-								<span>${messageDate}</span>
-							</div>
-							<div class="user-message-container">
-								<div class="message">
-									<span>${message}</span>
-								</div>
-							</div>
+			const chatContent = document.getElementById(`chat-${chatTo}`)
+			const hasPreviousMessage = chatContent.children.length > 0
+
+			const lastHeader = chatContent?.lastElementChild?.querySelector(".message-header")
+			const usernameLastMessage = lastHeader?.querySelector("span:first-child")?.innerHTML
+			const dateLastMessage = lastHeader?.querySelector("span:last-child")?.innerHTML
+
+			const isGrouped = hasPreviousMessage && usernameLastMessage === username && dateLastMessage === messageDate
+
+			const chatToElement = document.getElementById(`chat-${chatTo}`)
+			const chatToUsername = chatToElement.dataset.username
+
+			let contentHTML = ""
+			switch (type) {
+				case "file":
+				case "audio":
+					contentHTML = `
+					<div class="message message-file" id="${id}" style="cursor: pointer;  ${isSender ? `background-color: #203348;` : ""}">
+						<div class="file-icon">
+							<img src="${baseUrl}/assets/icons/chat_file.svg" alt="file">
 						</div>
-						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${baseUrl}/photo/${picture}.png"
-								alt="profile-picture" />
+						<div class="file-detail">
+							<span>${message.fileName}</span>
+							<span class="file-size">${message.fileSize}</span>
 						</div>
-					`
-					}
-				}
-				return `
-					<div class="message-content">
-						<div class="message-header">
-							<span>${username}</span>
-							<span>${messageDate}</span>
-						</div>
-						<div class="user-message-container">
-							<div class="message">
-								<span>${message}</span>
-							</div>
-						</div>
-					</div>
-					<div class="message-profile">
-						<img class="message-profile-photo" src="${baseUrl}/photo/${picture}.png"
-							alt="profile-picture" />
 					</div>
 				`
+					break
+				case "image":
+					contentHTML = `
+					<div class="message message-image" id="${id}" style="cursor: pointer;  ${isSender ? `background-color: #203348;` : ""}">
+						<img id="chat-image-${id}" src="${baseUrl}/assets/pictures/loading-file.gif" alt="image">
+					</div>
+				`
+					break
+				case "video":
+					contentHTML = `
+						<div class="message message-video" id="${id}">
+							<video controls preload="metadata"
+									style="max-width: 100%; border-radius: 8px;">
+								<source src="" type="video/mp4">
+								Your browser does not support the video tag.
+							</video>
+						</div>
+					`
+					break
+				default:
+					contentHTML = `
+					<div class="message" ${isSender ? `style="color: #203348;"` : ""}>
+						<span>${message.content}</span>
+					</div>
+				`
+			}
+
+			// Message header
+			const language = localStorage.getItem("language") === "en"
+			const meText = language ? "Me" : "Saya"
+			const fromWord = language ? "From" : "Dari"
+			const toWord = language ? "to" : "untuk"
+			const everyoneText = language ? "Everyone" : "Semua"
+
+			const fromLabel = isSender ? meText : username
+
+			let toLabel
+			if (chatTo === "everyone") {
+				toLabel = everyoneText
+			} else if (isSender) {
+				const chatToEl = document.getElementById(`chat-${chatTo}`)
+				toLabel = chatToEl?.dataset?.username || chatTo
 			} else {
-				if (chatContent.children.length > 0) {
-					const usernameLastMessage = chatContent?.lastElementChild?.lastElementChild?.firstElementChild?.firstElementChild?.innerHTML
-					const dateLastMessage = chatContent?.lastElementChild?.lastElementChild?.firstElementChild?.lastElementChild?.innerHTML
-					if (usernameLastMessage == username && messageDate == dateLastMessage) {
-						return `
-						<div class="message-profile">
-							<img class="message-profile-photo d-none" src="${baseUrl}/photo/${picture}.png"
-								alt="profile-picture" />
-						</div>
-						<div class="message-content">
-							<div class="message-header d-none">
-								<span>${username}</span>
-								<span>${messageDate}</span>
-							</div>
-							<div class="user-message-container">
-								<div class="message">
-									<span>${message}</span>
-								</div>
-							</div>
-						</div>
-					`
-					}
-				}
+				toLabel = meText
+			}
+			if (resend) {
+				toLabel = meText
+			}
+
+			const headerHTML = `
+				<div class="message-header ${isGrouped ? "d-none" : ""}">
+					<span>${fromWord} <span class="blue-color-span">${fromLabel}</span> ${toWord} <span class="blue-color-span">${toLabel}</span></span>
+					<span>${messageDate}</span>
+				</div>
+			`
+
+			// Return based on isSender layout
+			if (isSender) {
 				return `
-					<div class="message-profile">
-						<img class="message-profile-photo" src="${baseUrl}/photo/${picture}.png"
-							alt="profile-picture" />
+				<div class="message-content">
+					${headerHTML}
+					<div class="user-message-container">
+						${contentHTML}
 					</div>
-					<div class="message-content">
-						<div class="message-header">
-							<span>${username}</span>
-							<span>${messageDate}</span>
-						</div>
-						<div class="user-message-container">
-							<div class="message">
-								<span>${message}</span>
-							</div>
-						</div>
+				</div>
+				<div class="message-profile">
+					<img class="message-profile-photo ${isGrouped ? "d-none" : ""}"
+						src="${baseUrl}/photo/${picture}.png" alt="profile-picture" />
+				</div>
+			`
+			} else {
+				return `
+				<div class="message-profile">
+					<img class="message-profile-photo ${isGrouped ? "d-none" : ""}"
+						src="${baseUrl}/photo/${picture}.png" alt="profile-picture" />
+				</div>
+				<div class="message-content">
+					${headerHTML}
+					<div class="user-message-container">
+						${contentHTML}
 					</div>
-				`
+				</div>
+			`
 			}
 		} catch (error) {
 			console.log("- Error Getting Message Template : ", error)
 		}
 	}
 
-	async appendMessage({ message }) {
+	async appendMessage({ message, chatTo = "everyone" }) {
 		try {
 			const messageElement = document.createElement("div")
 			messageElement.className = "message-container"
 			messageElement.innerHTML = message
-			this.#chatContent.appendChild(messageElement)
+			document.getElementById(`chat-${chatTo}`).appendChild(messageElement)
 		} catch (error) {
 			console.log("- Error Append Message : ", error)
+		}
+	}
+
+	async messageListEvent() {
+		try {
+			const messageToList = document.getElementById("message-to-list")
+
+			if (messageToList.classList.contains("d-none")) {
+				messageToList.classList.remove("d-none")
+			} else {
+				messageToList.classList.add("d-none")
+			}
+		} catch (error) {
+			console.log("- Error Message List Event", error)
+		}
+	}
+
+	async donwloadFileMessage({ id, api, status = true, type = "file" }) {
+		try {
+			const element = document.getElementById(id)
+			if (!element) throw { message: "Element is not found" }
+
+			if (!status) {
+				element.innerHTML = "Gagal Upload"
+				throw { message: "Gagal upload file" }
+			}
+
+			if (type != "video") {
+				element.addEventListener("click", () => {
+					const link = document.createElement("a")
+					link.href = `${api}?id=${encodeURIComponent(id)}`
+					link.target = "_blank"
+					link.download = ""
+					document.body.appendChild(link)
+					link.click()
+					document.body.removeChild(link)
+				})
+			}
+
+			if (type == "image") {
+				document.getElementById(`chat-image-${id}`).src = api
+			}
+			if (type == "video") {
+				console.log("- Video Template : ", document.getElementById(id))
+				const videoElement = document.getElementById(id).querySelector("video")
+				const source = videoElement.querySelector("source")
+				source.src = api
+				videoElement.load()
+			}
+		} catch (error) {
+			console.log("- Error Download : ", error)
 		}
 	}
 }

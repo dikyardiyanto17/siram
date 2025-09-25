@@ -1,6 +1,10 @@
 const { default: Swal } = require("sweetalert2")
 const { getSocket } = require("../socket/socket")
 const { Helper } = require("../helper")
+const { DBMeeting } = require("../helper/db")
+
+const db = new DBMeeting()
+db.init()
 
 // Parameter
 const socket = getSocket(socketBaseUrl, socketPath)
@@ -13,13 +17,13 @@ const pw = params.get("pw")
 const waitingModal = document.getElementById("waiting-modal-container")
 
 const checkBoxInputPassword = document.getElementById("custom-password-checkbox")
-const closeScheduleButton = document.getElementById("close-create-modal-button")
 
 const dropdown = document.querySelector(".dropdown")
 const btn = document.querySelector(".dropdown-btn")
 const selectedFlag = document.getElementById("selected-flag")
 const selectedLanguage = document.getElementById("selected-language")
 
+//
 const initMeetingDate = () => {
 	try {
 		$(function () {
@@ -265,14 +269,9 @@ const initMeetingList = () => {
 			const startDate = start.format("YYYY-MM-DD")
 			const endDate = end.format("YYYY-MM-DD")
 
-			fetch(`${baseUrl}/api/google?st=${startDate}&et=${endDate}`, {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			})
-				.then((response) => response.json())
+			db.getList({ startDate, endDate })
 				.then((result) => {
+					console.log(result)
 					displayMeeting({ data: result.data })
 				})
 				.catch((error) => {
@@ -307,6 +306,14 @@ const initMeetingList = () => {
 	}
 }
 
+const googleLogin = () => {
+	try {
+		window.location.href = databaseUrl + "/api/google/create_token"
+	} catch (error) {
+		console.log("- Error Login Google : ", error)
+	}
+}
+
 if (isLogin) {
 	initMeetingList()
 	initMeetingDate()
@@ -336,12 +343,6 @@ checkBoxInputPassword?.addEventListener("change", async () => {
 	} catch (error) {
 		console.log("- Error Click Checkbox Input Password : ", error)
 	}
-})
-
-closeScheduleButton?.addEventListener("click", (e) => {
-	e.stopPropagation()
-	e.preventDefault()
-	createModalEvent()
 })
 
 dropdown.addEventListener("click", (e) => {
@@ -429,46 +430,18 @@ logoutButton?.addEventListener("click", async () => {
 	}
 })
 
-const joiningRoom = async ({ roomId, password, token }) => {
-	try {
-		socket.emit("joining-room", { position: "home", token }, ({ status, roomName, meetingDate, meeting_type }) => {
-			if (status) {
-				window.location.href = baseUrl + "/lobby"
-			} else {
-				if (meeting_type == 1) {
-					window.location.href = `${baseUrl}/lobby`
-					return
-				}
-				if (!meetingDate || !roomName || roomName.trim() == "") {
-					Swal.fire({
-						title: "Invalid Room",
-						text: "Pastikan ID Room dan Password benar!",
-						icon: "error",
-					})
-					return
-				}
-				let hours = new Date(meetingDate).getHours()
-				let minutes = new Date(meetingDate).getMinutes()
-				hours = hours < 10 ? "0" + hours : hours
-				minutes = minutes < 10 ? "0" + minutes : minutes
-				const timeString = `${hours}.${minutes}`
-				setFormStyle({ status: false })
-				modalTitle.innerHTML = roomName
-				document.getElementById("start_date_modal").innerHTML = timeString
-				waitingModal.classList.remove("d-none")
-			}
-		})
-	} catch (error) {
-		console.log("- Error Joining Room : ", error)
-	}
-}
+const googleLoginButton = document.getElementById("google-login-button")
+googleLoginButton?.addEventListener("click", (e) => {
+	e.stopPropagation()
+	googleLogin()
+})
 
 const joinMeeting = async () => {
 	try {
-		await socket.connect()
 		const roomId = document.getElementById("room_id").value
 		const password = document.getElementById("password").value
 		const language = localStorage.getItem("language")
+
 		if (!roomId || roomId.trim() == "") {
 			await Helper.showWarningModal({ message: language == "en" ? "Room ID is empty" : "ID Room wajib di isi" })
 			return
@@ -479,30 +452,18 @@ const joinMeeting = async () => {
 			return
 		}
 
-		const responseDatabaseRoom = await fetch(`${baseUrl}/custom_api/room?rid=${roomId}&pw=${password}`, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		})
+		const meeting = await db.check({ roomId, password })
 
-		if (responseDatabaseRoom.ok) {
-			const dataResponseDatabaseRoom = await responseDatabaseRoom.json()
-			if (dataResponseDatabaseRoom.status) {
-				localStorage.setItem("password", document.getElementById("password").value)
-				localStorage.setItem("room_id", document.getElementById("room_id").value)
-				localStorage.setItem("room_token", dataResponseDatabaseRoom.token)
-				await joiningRoom({
-					roomId: dataResponseDatabaseRoom.room_id,
-					password: dataResponseDatabaseRoom.password,
-					token: dataResponseDatabaseRoom.token,
-				})
-			} else {
-				throw { message: dataResponseDatabaseRoom?.message || "ISE" }
-			}
-		} else {
-			throw { message: "ID Ruangan tidak valid" }
+		const { status, message } = meeting
+
+		if (!status) {
+			throw { message }
 		}
+
+		sessionStorage.setItem("roomId", roomId)
+		sessionStorage.setItem("password", password)
+
+		window.location.href = `${baseUrl}/lobby`
 	} catch (error) {
 		console.log("- error Joining room : ", error)
 		if (error.message) {
@@ -525,10 +486,10 @@ document.addEventListener("DOMContentLoaded", (e) => {
 	const toggleCheckbox = document.getElementById("toggle-profile")
 
 	document.addEventListener("click", (event) => {
-		if (toggleCheckbox.checked && !profileContainer.contains(event.target)) {
-			toggleCheckbox.checked = false // uncheck to close dropdown
+		if (toggleCheckbox && toggleCheckbox.checked && !profileContainer.contains(event.target)) {
+			toggleCheckbox.checked = false
 		}
 	})
 })
 
-module.exports = { joinMeeting, initMeetingDate }
+module.exports = { joinMeeting, initMeetingDate, db }

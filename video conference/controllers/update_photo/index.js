@@ -1,4 +1,4 @@
-const { decodeToken } = require("../../helper/jwt")
+const { Helpers } = require("../../helper")
 
 class Update_Photo {
 	static async index(req, res, next) {
@@ -14,10 +14,10 @@ class Update_Photo {
 		try {
 			const { nt } = req.query
 			if (!nt) {
-				throw { name: "Invalid", message: "Invalid new token" }
+				throw { name: Helpers.RESPONSEERROR.INVALIDUSER.name, message: "Invalid new token" }
 			}
 
-			const { user } = await decodeToken(nt)
+			const { user } = await Helpers.decodeToken(nt)
 			req.session.token = nt
 			if (req.session.meeting) {
 				req.session.meeting.photoPath = user.photo_path

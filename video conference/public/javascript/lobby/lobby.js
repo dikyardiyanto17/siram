@@ -1,5 +1,10 @@
 const { default: Swal } = require("sweetalert2")
 const { getSocket } = require("../socket/socket")
+const { DBMeeting } = require("../helper/db")
+
+const db = new DBMeeting()
+
+db.init()
 
 const viewerCheckbox = document.getElementById("viewer-checkbox")
 const micButton = document.getElementById("mic-button")
@@ -20,7 +25,7 @@ const userSettings = {
 micButton.addEventListener("click", (e) => {
 	try {
 		const micIcon = document.getElementById("mic-icon")
-		const iconSrc = micIcon.src.split("/").pop() // e.g., 'mic_muted.svg'
+		const iconSrc = micIcon.src.split("/").pop()
 
 		if (iconSrc === "mic_muted.svg") {
 			userSettings.isMicActive = true
@@ -77,17 +82,13 @@ const checkMediaDevices = async () => {
 const joiningRoom = async ({ roomId, password }) => {
 	try {
 		await socket.connect()
-		await socket.emit(
-			"joining-room",
-			{ position: "lobby", token: localStorage.getItem("room_token") },
-			({ status, roomName }) => {
-				if (status) {
-					window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
-				} else {
-					waitingModal.classList.remove("d-none")
-				}
+		await socket.emit("joining-room", { position: "lobby", token: localStorage.getItem("room_token") }, ({ status, roomName }) => {
+			if (status) {
+				window.location.href = baseUrl + "/room/" + roomName.replace(/\s+/g, "-")
+			} else {
+				waitingModal.classList.remove("d-none")
 			}
-		)
+		})
 	} catch (error) {
 		console.log("- Error Joining Room : ", error)
 	}
@@ -229,79 +230,76 @@ const warning = ({ message }) => {
 	}
 }
 
-const fullName = localStorage.getItem("full_name");
+const fullName = localStorage.getItem("full_name")
 
 if (fullName && fullName !== "[object HTMLInputElement]") {
-    const input = document.getElementById("full_name");
-	input.value = fullName;
-	lobbyForm.full_name = fullName;
+	const input = document.getElementById("full_name")
+	input.value = fullName
+	lobbyForm.full_name = fullName
 } else {
-    localStorage.removeItem("full_name");
+	localStorage.removeItem("full_name")
 }
 
-
-
-
 const lobbyFormElement = document.getElementById("lobby-form-container")
-lobbyFormElement.addEventListener("submit", async (event) => {
-	try {
-		event.preventDefault()
-		userSettings.isViewer = viewerCheckbox?.checked || false
-		localStorage.setItem("isCameraActive", userSettings.isCameraActive)
-		localStorage.setItem("isMicActive", userSettings.isMicActive)
-		localStorage.setItem("isViewer", viewerCheckbox?.checked || false)
-		lobbyForm.full_name = document.getElementById("full_name").value
-		lobbyForm.participant_id = document.getElementById("participant_id").value
+// lobbyFormElement.addEventListener("submit", async (event) => {
+// 	try {
+// 		event.preventDefault()
+// 		userSettings.isViewer = viewerCheckbox?.checked || false
+// 		localStorage.setItem("isCameraActive", userSettings.isCameraActive)
+// 		localStorage.setItem("isMicActive", userSettings.isMicActive)
+// 		localStorage.setItem("isViewer", viewerCheckbox?.checked || false)
+// 		lobbyForm.full_name = document.getElementById("full_name").value
+// 		lobbyForm.participant_id = document.getElementById("participant_id").value
 
-		if (!lobbyForm.full_name || lobbyForm.full_name.trim() == "") {
-			throw { message: "Nama Lengkap Wajib Di isi" }
-		}
+// 		if (!lobbyForm.full_name || lobbyForm.full_name.trim() == "") {
+// 			throw { message: "Nama Lengkap Wajib Di isi" }
+// 		}
 
-		if (!lobbyForm.participant_id || lobbyForm.participant_id.trim() == "") {
-			throw { message: "Id Peserta Wajib Di isi" }
-		}
+// 		if (!lobbyForm.participant_id || lobbyForm.participant_id.trim() == "") {
+// 			throw { message: "Id Peserta Wajib Di isi" }
+// 		}
 
-		localStorage.setItem("full_name", lobbyForm.full_name)
-		localStorage.setItem("participant_id", lobbyForm.participant_id)
+// 		localStorage.setItem("full_name", lobbyForm.full_name)
+// 		localStorage.setItem("participant_id", lobbyForm.participant_id)
 
-		const response = await fetch(`${baseUrl}/custom_api/login`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ ...lobbyForm, isViewer: viewerCheckbox.checked }),
-		})
-		if (response.ok) {
-			const { status, message, token } = await response.json()
-			if (status) {
-				const responseVideoConference = await fetch(`${baseUrl}/api/login`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${token}`,
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ ...lobbyForm, isViewer: viewerCheckbox.checked }),
-				})
+// 		const response = await fetch(`${baseUrl}/custom_api/login`, {
+// 			method: "POST",
+// 			headers: {
+// 				"Content-Type": "application/json",
+// 			},
+// 			body: JSON.stringify({ ...lobbyForm, isViewer: viewerCheckbox.checked }),
+// 		})
+// 		if (response.ok) {
+// 			const { status, message, token } = await response.json()
+// 			if (status) {
+// 				const responseVideoConference = await fetch(`${baseUrl}/api/login`, {
+// 					method: "POST",
+// 					headers: {
+// 						Authorization: `Bearer ${token}`,
+// 						"Content-Type": "application/json",
+// 					},
+// 					body: JSON.stringify({ ...lobbyForm, isViewer: viewerCheckbox.checked }),
+// 				})
 
-				if (responseVideoConference.ok) {
-					const data = await responseVideoConference.json()
-					if (data.status) {
-						await joiningRoom({ roomId: localStorage.getItem("room_id"), password: localStorage.getItem("password") })
-					} else {
-						throw { message: "lobby failed" }
-					}
-				}
-			} else {
-				throw { message: "Peserta Tidak ditemukan" }
-			}
-		} else {
-			throw { message: "Peserta Tidak ditemukan" }
-		}
-	} catch (error) {
-		console.log("- Error Submmit Login : ", error)
-		await warning({ message: error.message || "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
-	}
-})
+// 				if (responseVideoConference.ok) {
+// 					const data = await responseVideoConference.json()
+// 					if (data.status) {
+// 						await joiningRoom({ roomId: localStorage.getItem("room_id"), password: localStorage.getItem("password") })
+// 					} else {
+// 						throw { message: "lobby failed" }
+// 					}
+// 				}
+// 			} else {
+// 				throw { message: "Peserta Tidak ditemukan" }
+// 			}
+// 		} else {
+// 			throw { message: "Peserta Tidak ditemukan" }
+// 		}
+// 	} catch (error) {
+// 		console.log("- Error Submmit Login : ", error)
+// 		await warning({ message: error.message || "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
+// 	}
+// })
 
 socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 	try {
@@ -319,5 +317,78 @@ socket.on("response-member-waiting", async ({ response, roomId, id }) => {
 		}
 	} catch (error) {
 		console.log("- Error Response Member Waiting : ", error)
+	}
+})
+
+const joinMeeting = async () => {
+	try {
+		lobbyForm.full_name = document.getElementById("full_name").value
+		lobbyForm.participant_id = document.getElementById("participant_id").value
+
+		userSettings.isViewer = viewerCheckbox?.checked || false
+		localStorage.setItem("isCameraActive", userSettings.isCameraActive)
+		localStorage.setItem("isMicActive", userSettings.isMicActive)
+		localStorage.setItem("isViewer", viewerCheckbox?.checked || false)
+		localStorage.setItem("full_name", lobbyForm.full_name)
+		localStorage.setItem("participant_id", lobbyForm.participant_id)
+
+		if (!lobbyForm.full_name || lobbyForm.full_name.trim() == "") {
+			throw { name: "Error on Client!", message: "Nama Lengkap Wajib Di isi" }
+		}
+
+		if (!lobbyForm.participant_id || lobbyForm.participant_id.trim() == "") {
+			throw { name: "Error on Client!", message: "Id Peserta Wajib Di isi" }
+		}
+
+		const savedRoomId = sessionStorage.getItem("roomId")
+		const savedPassword = sessionStorage.getItem("password")
+		const language = localStorage.getItem("language")
+
+		const response = await db.post({
+			roomId: savedRoomId,
+			password: savedPassword,
+			link: `${baseUrl}/?rid=${savedRoomId}&pw=${savedPassword}`,
+			username: lobbyForm.full_name,
+		})
+
+		if (!response.status) {
+			throw { message: response?.message || "Request Failed!", name: response?.name || "ISE" }
+		}
+
+		const { enableWaitingRoom, userIds, roomId, roomPassword, username, authority } = response.data[0]
+
+		if (enableWaitingRoom && !authority) {
+			await socket.connect()
+			await socket.emit(
+				"joining-room-lobby",
+				{ userId: userIds, roomId, isViewer: false, password: roomPassword, username, meetingType: 1 },
+				({ status }) => {
+					if (status) {
+						window.location.href = baseUrl + "/room/" + roomId
+					} else {
+						waitingModal.classList.remove("d-none")
+					}
+				}
+			)
+			return
+		}
+
+		window.location.href = `${baseUrl}/room/${response.data[0].roomId}`
+	} catch (error) {
+		if (error?.name == "GUESTERROR") {
+			setTimeout(() => {
+				window.location.href = baseUrl
+			}, 2000)
+		}
+		await warning({ message: error?.message || error })
+	}
+}
+
+lobbyFormElement.addEventListener("submit", async (event) => {
+	try {
+		event.preventDefault()
+		await joinMeeting()
+	} catch (error) {
+		await warning({ message: error.message || "Login gagal, pastikan Nama dan ID yang dimasukkan valid" })
 	}
 })

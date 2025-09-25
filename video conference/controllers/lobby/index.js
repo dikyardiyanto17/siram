@@ -1,6 +1,9 @@
+const { Helpers } = require("../../helper")
+
 class Lobby {
 	static async index(req, res, next) {
 		try {
+			console.log(req.cookies)
 			res.render("pages/lobby/index")
 		} catch (error) {
 			next(error)
@@ -11,7 +14,7 @@ class Lobby {
 		try {
 			const { meeting, roomToken } = req.session
 			if (!meeting || !roomToken) {
-				throw { name: "Invalid_Room", message: "Room is not found" }
+				throw { name: Helpers.RESPONSEERROR.NOTFOUND.name, message: "Room is not found" }
 			}
 			const { startDate, photoPath, roomName, roomId, password } = meeting
 			res.render("pages/sandbox/index", {

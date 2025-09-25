@@ -1,13 +1,23 @@
 const mongoose = require("mongoose")
+const { Helpers } = require("../helper")
 const Schema = mongoose.Schema
 
 const meetingSchema = new Schema({
 	title: {
 		type: String,
-		required: true,
 	},
 	roomId: {
 		type: String,
+		required: true,
+	},
+	sourceMeeting: {
+		type: String,
+		enum: ["Instant", "Schedule"],
+		default: "Instant",
+	},
+	hostId: {
+		type: Schema.Types.ObjectId,
+		ref: "User",
 		required: true,
 	},
 	roomPassword: {
@@ -16,15 +26,13 @@ const meetingSchema = new Schema({
 	},
 	startMeeting: {
 		type: Date,
-		required: true,
+		default: Date.now,
 	},
 	endMeeting: {
 		type: Date,
-		required: true,
 	},
 	description: {
 		type: String,
-		required: true,
 	},
 	link: {
 		type: String,
@@ -32,10 +40,19 @@ const meetingSchema = new Schema({
 	},
 	participants: [
 		{
-			type: String,
-			required: true,
+			type: mongoose.Schema.Types.Mixed,
 		},
 	],
+	enableWaitingRoom: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
+	enableSharingScreen: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
 	createdBy: {
 		type: Schema.Types.ObjectId,
 		ref: "User",
@@ -45,6 +62,21 @@ const meetingSchema = new Schema({
 		type: Date,
 		default: Date.now,
 	},
+	updatedAt: {
+		type: Date,
+		default: Date.now,
+	},
+})
+
+meetingSchema.pre("save", async function (next) {
+	try {
+		if (!this.title) {
+			this.title = await Helpers.generateUUIDv4()
+		}
+		next()
+	} catch (error) {
+		next(error)
+	}
 })
 
 module.exports = mongoose.model("Meeting", meetingSchema)
